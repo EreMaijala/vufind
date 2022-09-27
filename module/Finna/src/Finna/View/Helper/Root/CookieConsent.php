@@ -52,7 +52,7 @@ class CookieConsent extends \VuFind\View\Helper\Root\CookieConsent
         // Check that categories in current consent cookie exist in configuration:
         if ($consentJson = $this->cookieManager->get($this->consentCookieName)) {
             if ($consent = json_decode($consentJson, true)) {
-                $categories = array_values(
+                $cookieCategories = array_values(
                     array_unique(
                         array_merge(
                             (array)($consent['categories'] ?? []),
@@ -60,9 +60,15 @@ class CookieConsent extends \VuFind\View\Helper\Root\CookieConsent
                         )
                     )
                 );
+
+                $categories = array_keys($this->consentConfig['Categories']);
                 $enabled = $this->config['Cookies']['consentCategories'] ?? '';
-                $enabled = $enabled ? explode(',', $enabled) : ['essential'];
-                if ($categories != $enabled) {
+                $categories = array_intersect(
+                    $categories,
+                    $enabled ? explode(',', $enabled) : ['essential']
+                );
+
+                if ($categories != $cookieCategories) {
                     // Categories differ, invalidate current consent:
                     $consent['revision'] = (int)($consent['revision']) - 1;
 
