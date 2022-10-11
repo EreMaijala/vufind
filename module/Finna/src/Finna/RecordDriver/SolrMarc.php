@@ -292,6 +292,10 @@ class SolrMarc extends \VuFind\RecordDriver\SolrMarc
                         break;
                     case '080':
                         $classification = 'udk';
+                        $version = $this->getSubfield($field, '2');
+                        if (strpos($version, '2017') !== false) {
+                            $classification .= '2017';
+                        }
                         break;
                     default:
                         $classification = $this->getSubfield($field, '2');
