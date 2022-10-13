@@ -811,6 +811,7 @@ class SolrEad3 extends SolrEad
                     }
                 }
             }
+            $formatted['downloadable'] = $this->allowRecordImageDownload($formatted);
             $result['displayImages'][] = $formatted;
         };
         $isExcludedFromOCR = function ($title) {
@@ -1305,6 +1306,9 @@ class SolrEad3 extends SolrEad
      * - heading: the actual subject heading chunks
      * - type: heading type
      * - source: source vocabulary
+     * - id: first authority id (if defined)
+     * - ids: multiple authority ids (if defined)
+     * - authType: authority type (if id is defined)
      *
      * @return array
      */
@@ -1598,6 +1602,16 @@ class SolrEad3 extends SolrEad
             ];
         }
         return array_reverse($result);
+    }
+
+    /**
+     * Get parent series
+     *
+     * @return array
+     */
+    public function getParentSeries(): array
+    {
+        return $this->getHierarchyParents();
     }
 
     /**

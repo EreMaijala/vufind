@@ -32,7 +32,6 @@
 namespace Finna\ILS\Driver;
 
 use DOMDocument;
-use VuFind\Config\Locator;
 use VuFind\Date\DateException;
 use VuFind\Exception\ILS as ILSException;
 use VuFind\I18n\Translator\TranslatorAwareInterface as TranslatorAwareInterface;
@@ -67,6 +66,13 @@ class AxiellWebServices extends \VuFind\ILS\Driver\AbstractBase
      * @var \VuFind\Date\Converter
      */
     protected $dateFormat;
+
+    /**
+     * Config file path resolver
+     *
+     * @var \VuFind\Config\PathResolver
+     */
+    protected $pathResolver;
 
     /**
      * Default pickup location
@@ -291,11 +297,15 @@ class AxiellWebServices extends \VuFind\ILS\Driver\AbstractBase
     /**
      * Constructor
      *
-     * @param \VuFind\Date\Converter $dateConverter Date converter object
+     * @param \VuFind\Date\Converter      $dateConverter Date converter object
+     * @param \VuFind\Config\PathResolver $pathResolver  Config file path resolver
      */
-    public function __construct(\VuFind\Date\Converter $dateConverter)
-    {
+    public function __construct(
+        \VuFind\Date\Converter $dateConverter,
+        \VuFind\Config\PathResolver $pathResolver
+    ) {
         $this->dateFormat = $dateConverter;
+        $this->pathResolver = $pathResolver;
     }
 
     /**
@@ -3517,10 +3527,6 @@ class AxiellWebServices extends \VuFind\ILS\Driver\AbstractBase
             // Don't mangle a URL
             return $wsdl;
         }
-        $file = Locator::getConfigPath($wsdl);
-        if (!file_exists($file)) {
-            $file = Locator::getConfigPath($wsdl, 'config/finna');
-        }
-        return $file;
+        return $this->pathResolver->getConfigPath($wsdl);
     }
 }
