@@ -238,6 +238,7 @@ $config = [
             'Finna\Controller\AuthorityController' => 'VuFind\Controller\AbstractBaseFactory',
             'Finna\Controller\AuthorityRecordController' => 'Finna\Controller\AbstractBaseWithConfigFactory',
             'Finna\Controller\BarcodeController' => 'VuFind\Controller\AbstractBaseFactory',
+            'Finna\Controller\BazaarController' => 'VuFind\Controller\AbstractBaseFactory',
             'Finna\Controller\BrowseSearchController' => 'VuFind\Controller\AbstractBaseFactory',
             'Finna\Controller\CartController' => 'VuFind\Controller\CartControllerFactory',
             'Finna\Controller\CollectionController' => 'VuFind\Controller\AbstractBaseWithConfigFactory',
@@ -277,6 +278,8 @@ $config = [
             'AuthorityRecord' => 'Finna\Controller\AuthorityRecordController',
             'Barcode' => 'Finna\Controller\BarcodeController',
             'barcode' => 'Finna\Controller\BarcodeController',
+            'Bazaar' => 'Finna\Controller\BazaarController',
+            'bazaar' => 'Finna\Controller\BazaarController',
             'BrowseSearch' => 'Finna\Controller\BrowseSearchController',
             // Alias for the browse record route (that must not clash with normal
             // record route for getMatchedRouteName to return correct value):
@@ -371,9 +374,9 @@ $config = [
             'Finna\RecordDriver\PluginManager' => 'VuFind\ServiceManager\AbstractPluginManagerFactory',
             'Finna\RecordTab\TabManager' => 'VuFind\RecordTab\TabManagerFactory',
             'Finna\Role\PermissionManager' => 'VuFind\Role\PermissionManagerFactory',
-            'Finna\Search\Memory' => 'VuFind\Search\MemoryFactory',
             'Finna\Search\Solr\AuthorityHelper' => 'Finna\Search\Solr\AuthorityHelperFactory',
             'Finna\Search\Solr\HierarchicalFacetHelper' => 'VuFind\Search\Solr\HierarchicalFacetHelperFactory',
+            'Finna\Service\BazaarService' => 'Finna\Service\BazaarServiceFactory',
             'Finna\Service\R2SupportService' => 'Finna\Service\R2SupportServiceFactory',
             'Finna\Service\RecordFieldMarkdown' => 'Laminas\ServiceManager\Factory\InvokableFactory',
             'Finna\Service\RemsService' => 'Finna\Service\RemsServiceFactory',
@@ -408,7 +411,6 @@ $config = [
             'VuFind\Record\Loader' => 'Finna\Record\Loader',
             'VuFind\RecordTab\TabManager' => 'Finna\RecordTab\TabManager',
             'VuFind\Role\PermissionManager' => 'Finna\Role\PermissionManager',
-            'VuFind\Search\Memory' => 'Finna\Search\Memory',
             'VuFind\Search\Solr\HierarchicalFacetHelper' => 'Finna\Search\Solr\HierarchicalFacetHelper',
 
             'ViewResolver' => 'Finna\View\Resolver\AggregateResolver',
@@ -430,6 +432,8 @@ $config = [
                 'factories' => [
                     'Finna\AjaxHandler\AddToList' =>
                         'Finna\AjaxHandler\AddToListFactory',
+                    'Finna\AjaxHandler\BazaarDestroySession' =>
+                        'Finna\AjaxHandler\BazaarDestroySessionFactory',
                     'Finna\AjaxHandler\CheckRequestsAreValid' =>
                         'VuFind\AjaxHandler\AbstractIlsAndUserActionFactory',
                     'Finna\AjaxHandler\CommentRecord' =>
@@ -505,6 +509,7 @@ $config = [
                 ],
                 'aliases' => [
                     'addToList' => 'Finna\AjaxHandler\AddToList',
+                    'bazaarDestroySession' => 'Finna\AjaxHandler\BazaarDestroySession',
                     'checkRequestsAreValid' => 'Finna\AjaxHandler\CheckRequestsAreValid',
                     'editList' => 'Finna\AjaxHandler\EditList',
                     'editListResource' => 'Finna\AjaxHandler\EditListResource',
@@ -684,7 +689,7 @@ $config = [
                     'Finna\ILS\Driver\Demo' => 'VuFind\ILS\Driver\DemoFactory',
                     'Finna\ILS\Driver\KohaRest' => 'VuFind\ILS\Driver\KohaRestFactory',
                     'Finna\ILS\Driver\KohaRestSuomi' => 'Finna\ILS\Driver\KohaRestSuomiFactory',
-                    'Finna\ILS\Driver\Mikromarc' => '\VuFind\ILS\Driver\DriverWithDateConverterFactory',
+                    'Finna\ILS\Driver\Mikromarc' => 'Finna\ILS\Driver\MikromarcFactory',
                     'Finna\ILS\Driver\MultiBackend' => 'Finna\ILS\Driver\MultiBackendFactory',
                     'Finna\ILS\Driver\NoILS' => 'VuFind\ILS\Driver\NoILSFactory',
                     'Finna\ILS\Driver\SierraRest' => 'VuFind\ILS\Driver\SierraRestFactory',
@@ -1080,7 +1085,8 @@ $staticRoutes = [
     'Barcode/Show', 'Search/MapFacet',
     'L1/Advanced', 'L1/FacetList', 'L1/Home', 'L1/Results',
     'Record/DownloadModel',
-    'Record/DownloadFile'
+    'Record/DownloadFile',
+    'Bazaar/Home', 'Bazaar/Cancel',
 ];
 
 $routeGenerator = new \VuFind\Route\RouteGenerator();

@@ -55,6 +55,7 @@ class SierraRest extends AbstractBase implements TranslatorAwareInterface,
     use \VuFindHttp\HttpServiceAwareTrait;
     use \VuFind\I18n\Translator\TranslatorAwareTrait;
     use \VuFind\I18n\HasSorterTrait;
+    use \VuFind\Service\Feature\RetryTrait;
 
     /**
      * Driver configuration
@@ -212,6 +213,26 @@ class SierraRest extends AbstractBase implements TranslatorAwareInterface,
     protected $checkFreezability = false;
 
     /**
+     * Number of retries in case an API request fails with a retryable error (see
+     * $retryableRequestExceptionPatterns below).
+     *
+     * @var int
+     */
+    protected $httpRetryCount = 2;
+
+    /**
+     * Exception message regexp patterns for request errors that can be retried
+     *
+     * @var array
+     */
+    protected $retryableRequestExceptionPatterns = [
+        // cURL adapter:
+        '/Error in cURL request: Empty reply from server/',
+        // Socket adapter:
+        '/A valid response status line was not found in the provided string/',
+    ];
+
+    /**
      * Constructor
      *
      * @param \VuFind\Date\Converter $dateConverter  Date converter object
@@ -303,6 +324,10 @@ class SierraRest extends AbstractBase implements TranslatorAwareInterface,
             if ($this->apiVersion < 5) {
                 $this->apiBase = 'v' . floor($this->apiVersion);
             }
+        }
+
+        if (null !== ($retries = $this->config['Catalog']['http_retries'] ?? null)) {
+            $this->httpRetryCount = (int)$retries;
         }
 
         $this->sortItemsByEnumChron
@@ -804,6 +829,9 @@ class SierraRest extends AbstractBase implements TranslatorAwareInterface,
         if ($this->apiVersion >= 5) {
             $fields .= ',pickupByDate';
         }
+        if ($this->apiVersion >= 6) {
+            $fields .= ',notNeededAfterDate';
+        }
         $freezeEnabled = in_array(
             'frozen',
             explode(':', $this->config['Holds']['updateFields'] ?? '')
@@ -893,6 +921,11 @@ class SierraRest extends AbstractBase implements TranslatorAwareInterface,
                     'Y-m-d',
                     $entry['placed']
                 ),
+                'expire' => !empty($entry['notNeededAfterDate'])
+                    ? $this->dateConverter->convertToDisplayDate(
+                        'Y-m-d',
+                        $entry['notNeededAfterDate']
+                    ) : null,
                 'last_pickup_date' => $lastPickup,
                 'position' => $position,
                 'available' => $available,
@@ -1192,36 +1225,8 @@ class SierraRest extends AbstractBase implements TranslatorAwareInterface,
         $comment = $holdDetails['comment'] ?? '';
         $bibId = $this->extractBibId($holdDetails['id']);
 
-        // Convert last interest date from Display Format to Sierra's required format
-        try {
-            $lastInterestDate = $this->dateConverter->convertFromDisplayDate(
-                'Y-m-d',
-                $holdDetails['requiredBy']
-            );
-        } catch (DateException $e) {
-            // Hold Date is invalid
-            return $this->holdError('hold_date_invalid');
-        }
-
         if ($level == 'copy' && empty($itemId)) {
             throw new ILSException("Hold level is 'copy', but item ID is empty");
-        }
-
-        try {
-            $checkTime = $this->dateConverter->convertFromDisplayDate(
-                'U',
-                $holdDetails['requiredBy']
-            );
-            if (!is_numeric($checkTime)) {
-                throw new DateException('Result should be numeric');
-            }
-        } catch (DateException $e) {
-            throw new ILSException('Problem parsing required by date.', 0, $e);
-        }
-
-        if (time() > $checkTime) {
-            // Hold Date is in the past
-            return $this->holdError('hold_date_past');
         }
 
         // Make sure pickup location is valid
@@ -1233,8 +1238,10 @@ class SierraRest extends AbstractBase implements TranslatorAwareInterface,
             'recordType' => $level == 'copy' ? 'i' : 'b',
             'recordNumber' => (int)($level == 'copy' ? $itemId : $bibId),
             'pickupLocation' => $pickUpLocation,
-            'neededBy' => $lastInterestDate
         ];
+        if (!empty($holdDetails['requiredByTS'])) {
+            $request['neededBy'] = gmdate('Y-m-d', $holdDetails['requiredByTS']);
+        }
         if ($comment) {
             $request['note'] = $comment;
         }
@@ -1297,9 +1304,9 @@ class SierraRest extends AbstractBase implements TranslatorAwareInterface,
                 $description .= $entry['description'];
             }
             switch ($description) {
-            case 'Overdue Renewal':
-                $description = 'Overdue';
-                break;
+                case 'Overdue Renewal':
+                    $description = 'Overdue';
+                    break;
             }
             $bibId = null;
             $title = null;
@@ -1505,6 +1512,73 @@ class SierraRest extends AbstractBase implements TranslatorAwareInterface,
         $patron = false,
         $returnStatus = false
     ) {
+        // Status logging callback:
+        $statusCallback = function ($attempt, $exception) use (
+            $hierarchy,
+            $params,
+            $method
+        ): void {
+            $apiUrl = $this->getApiUrlFromHierarchy($hierarchy);
+            $status = $exception
+                ? (' failed (' . $exception->getMessage() . ')')
+                : ' succeeded';
+            $msg = "$method request for '$apiUrl' with params "
+                . var_export($params, true)
+                . "$status on attempt $attempt";
+            $this->logWarning($msg);
+        };
+
+        // Callback that checks for a retryable exception:
+        $retryableCallback = function ($attempt, $exception) {
+            // Get the original HTTP exception:
+            if (!($previous = $exception->getPrevious())) {
+                return false;
+            }
+            $msg = $previous->getMessage();
+            foreach ($this->retryableRequestExceptionPatterns as $pattern) {
+                if (preg_match($pattern, $msg)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        $args = func_get_args();
+        return $this->callWithRetry(
+            function () use ($args) {
+                return call_user_func_array([$this, 'requestCallback'], $args);
+            },
+            $statusCallback,
+            [
+                'retryCount' => $this->httpRetryCount,
+                'retryableExceptionCallback' => $retryableCallback,
+            ]
+        );
+    }
+
+    /**
+     * Callback used by makeRequest
+     *
+     * @param array  $hierarchy    Array of values to embed in the URL path of the
+     * request
+     * @param array  $params       A keyed array of query data
+     * @param string $method       The http request method to use (Default is GET)
+     * @param array  $patron       Patron information, if available
+     * @param bool   $returnStatus Whether to return HTTP status code and response
+     * as a keyed array instead of just the response
+     *
+     * @throws ILSException
+     * @return mixed JSON response decoded to an associative array, an array of HTTP
+     * status code and JSON response when $returnStatus is true or null on
+     * authentication error when using patron-specific access
+     */
+    protected function requestCallback(
+        $hierarchy,
+        $params = false,
+        $method = 'GET',
+        $patron = false,
+        $returnStatus = false
+    ) {
         // Clear current access token if it's not specific to the given patron
         if ($patron && $this->isPatronSpecificAccess()
             && $this->sessionCache->accessTokenPatron != $patron['cat_username']
@@ -1520,12 +1594,7 @@ class SierraRest extends AbstractBase implements TranslatorAwareInterface,
         }
 
         // Set up the request
-        $apiUrl = $this->config['Catalog']['host'];
-
-        // Add hierarchy
-        foreach ($hierarchy as $value) {
-            $apiUrl .= '/' . urlencode($value);
-        }
+        $apiUrl = $this->getApiUrlFromHierarchy($hierarchy);
 
         // Create proxy request
         $client = $this->createHttpClient($apiUrl);
@@ -1612,6 +1681,22 @@ class SierraRest extends AbstractBase implements TranslatorAwareInterface,
                 'statusCode' => $response->getStatusCode(),
                 'response' => $decodedResult
             ] : $decodedResult;
+    }
+
+    /**
+     * Build an API URL from a hierarchy array
+     *
+     * @param array $hierarchy Hierarchy
+     *
+     * @return string
+     */
+    protected function getApiUrlFromHierarchy(array $hierarchy): string
+    {
+        $url = $this->config['Catalog']['host'];
+        foreach ($hierarchy as $value) {
+            $url .= '/' . urlencode($value);
+        }
+        return $url;
     }
 
     /**
@@ -2371,12 +2456,12 @@ class SierraRest extends AbstractBase implements TranslatorAwareInterface,
             $status = $this->mapStatusCode('Charged');
         } else {
             switch ($status) {
-            case '-':
-                $status = $this->mapStatusCode('-');
-                break;
-            case 'Lib Use Only':
-                $status = $this->mapStatusCode('o');
-                break;
+                case '-':
+                    $status = $this->mapStatusCode('-');
+                    break;
+                case 'Lib Use Only':
+                    $status = $this->mapStatusCode('o');
+                    break;
             }
         }
         if ($status == $this->mapStatusCode('-')) {
