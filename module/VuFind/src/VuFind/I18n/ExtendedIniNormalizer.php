@@ -102,7 +102,9 @@ class ExtendedIniNormalizer
     public function loadFileIntoArray(string $filename): array
     {
         $fileArray = file($filename);
-
+if (!isset($fileArray[0])) {
+    die ("Empty: $filename");
+}
         // Strip off UTF-8 BOM if necessary.
         $bom = html_entity_decode('&#xFEFF;', ENT_NOQUOTES, 'UTF-8');
         $fileArray[0] = str_replace($bom, '', $fileArray[0]);
