@@ -221,7 +221,10 @@ VuFind.register('search', function search() {
     loadingOverlay.setAttribute('role', 'status');
     loadingOverlay.innerHTML = VuFind.loading();
     recordList.prepend(loadingOverlay);
-    document.querySelector(scrollElementSelector).scrollIntoView({behavior: 'smooth'});
+    const scrollEl = document.querySelector(scrollElementSelector);
+    if (scrollEl && window.scrollY > scrollEl.offsetTop) {
+      scrollEl.scrollIntoView({behavior: 'smooth'});
+    }
     const searchStats = document.querySelector(searchStatsSelector);
     const statsKey = searchStats.dataset.key;
 
