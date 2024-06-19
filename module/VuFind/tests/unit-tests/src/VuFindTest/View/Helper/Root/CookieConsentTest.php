@@ -29,7 +29,7 @@
 
 namespace VuFindTest\View\Helper\Root;
 
-use Laminas\View\Helper\EscapeHtmlAttr;
+use Laminas\Escaper\Escaper;
 use Laminas\View\Helper\Layout;
 use Laminas\View\Helper\ServerUrl;
 use Laminas\View\Renderer\PhpRenderer;
@@ -37,6 +37,7 @@ use Symfony\Component\Yaml\Yaml;
 use VuFind\Auth\LoginTokenManager;
 use VuFind\Cookie\CookieManager;
 use VuFind\View\Helper\Root\CookieConsent;
+use VuFind\View\Helper\Root\EscapeHtmlAttr;
 use VuFind\View\Helper\Root\Url;
 use VuFindTest\Feature\FixtureTrait;
 
@@ -213,7 +214,7 @@ class CookieConsentTest extends \PHPUnit\Framework\TestCase
         };
 
         $plugins = [
-            'escapeHtmlAttr' => new EscapeHtmlAttr(),
+            'escapeHtmlAttr' => new EscapeHtmlAttr(new Escaper('utf-8'), true),
             'layout' => $layout,
             'serverUrl' => $serverUrl,
             'url' => $url,

@@ -29,7 +29,7 @@
 
 namespace VuFindTest\View\Helper\Root;
 
-use Laminas\View\Helper\EscapeHtmlAttr;
+use VuFind\View\Helper\Root\EscapeHtmlAttr;
 use VuFind\View\Helper\Root\HtmlSafeJsonEncode;
 
 /**

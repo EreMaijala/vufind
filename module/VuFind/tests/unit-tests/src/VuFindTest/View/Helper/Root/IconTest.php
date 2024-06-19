@@ -31,7 +31,8 @@ namespace VuFindTest\View\Helper\Root;
 
 use Laminas\Cache\Storage\Adapter\BlackHole;
 use Laminas\Cache\Storage\StorageInterface;
-use Laminas\View\Helper\EscapeHtmlAttr;
+use Laminas\Escaper\Escaper;
+use VuFind\View\Helper\Root\EscapeHtmlAttr;
 use VuFind\View\Helper\Root\Icon;
 use VuFindTheme\View\Helper\ImageLink;
 
@@ -130,7 +131,7 @@ class IconTest extends \PHPUnit\Framework\TestCase
         $icon = new Icon(
             $config ?? $this->getDefaultTestConfig(),
             $cache ?? new BlackHole(),
-            new EscapeHtmlAttr(),
+            new EscapeHtmlAttr(new Escaper('utf-8'), true),
             $rtl
         );
         $icon->setView($this->getPhpRenderer($plugins));
@@ -222,7 +223,7 @@ class IconTest extends \PHPUnit\Framework\TestCase
             ],
             [
                 'wry',
-                'foo="b&#x2B;r"',
+                'foo="b+r"',
                 '1F600',
                 'wrySmile',
                 [
@@ -231,7 +232,7 @@ class IconTest extends \PHPUnit\Framework\TestCase
             ],
             [
                 'super&#x20;wry',
-                'foo="b&#x2B;r"',
+                'foo="b+r"',
                 '1F600',
                 'wrySmile',
                 [

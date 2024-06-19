@@ -1,6 +1,9 @@
 <?php
 return [
     'extends' => false,
+    // Whether to use normal HTML escaper instead of legacy browser compatible escaper for attributes
+    // (normal escaper is faster and produces smaller HTML, but does not support backtick as the enclosing character):
+    'useNormalEscaperForAttributes' => true,
     'helpers' => [
         'factories' => [
             'Laminas\View\Helper\HeadTitle' => 'VuFind\View\Helper\Root\HeadTitleFactory',
@@ -29,6 +32,7 @@ return [
             'VuFind\View\Helper\Root\DateTime' => 'VuFind\View\Helper\Root\DateTimeFactory',
             'VuFind\View\Helper\Root\DisplayLanguageOption' => 'VuFind\View\Helper\Root\DisplayLanguageOptionFactory',
             'VuFind\View\Helper\Root\Doi' => 'VuFind\View\Helper\Root\DoiFactory',
+            'VuFind\View\Helper\Root\EscapeHtmlAttr' => 'VuFind\View\Helper\Root\EscapeHtmlAttrFactory',
             'VuFind\View\Helper\Root\ExplainElement' => 'Laminas\ServiceManager\Factory\InvokableFactory',
             'VuFind\View\Helper\Root\Export' => 'VuFind\View\Helper\Root\ExportFactory',
             'VuFind\View\Helper\Root\Feedback' => 'VuFind\View\Helper\Root\FeedbackFactory',
@@ -194,6 +198,7 @@ return [
             'truncate' => 'VuFind\View\Helper\Root\Truncate',
             'userlist' => 'VuFind\View\Helper\Root\UserList',
             'usertags' => 'VuFind\View\Helper\Root\UserTags',
+            'Laminas\View\Helper\EscapeHtmlAttr' => 'VuFind\View\Helper\Root\EscapeHtmlAttr',
             'Laminas\View\Helper\Url' => 'VuFind\View\Helper\Root\Url',
         ],
     ],

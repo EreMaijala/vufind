@@ -31,7 +31,6 @@ namespace VuFind\View\Helper\Root;
 
 use Laminas\Cache\Storage\StorageInterface;
 use Laminas\View\Helper\AbstractHelper;
-use Laminas\View\Helper\EscapeHtmlAttr;
 
 use function in_array;
 use function is_string;
