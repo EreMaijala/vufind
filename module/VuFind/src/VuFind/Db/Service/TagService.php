@@ -290,7 +290,7 @@ class TagService extends AbstractDbService implements TagServiceInterface, \VuFi
      * for no filter).
      * @param bool                             $caseSensitive Treat tags as case-sensitive?
      *
-     * @return array
+     * @return array[]
      */
     public function getUserTagsFromFavorites(
         UserEntityInterface|int $userOrId,

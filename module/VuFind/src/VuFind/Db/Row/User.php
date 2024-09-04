@@ -362,7 +362,8 @@ class User extends RowGateway implements
      *
      * @return \Laminas\Db\ResultSet\AbstractResultSet
      *
-     * @deprecated Use UserListServiceInterface::getUserListsAndCountsByUser()
+     * @deprecated Use UserListServiceInterface::getUserListsAndCountsByUser() or
+     * UserListServiceInterface::getUserListsByUser()
      */
     public function getLists()
     {
