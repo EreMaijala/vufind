@@ -118,7 +118,7 @@ class SolrDefault extends DefaultRecord implements
     /**
      * Search results plugin manager
      *
-     * @var \VuFindSearch\Service
+     * @var ?\VuFindSearch\Service
      */
     protected $searchService = null;
 

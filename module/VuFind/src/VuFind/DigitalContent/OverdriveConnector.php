@@ -115,7 +115,7 @@ class OverdriveConnector implements
     /**
      * Cache for storing ILS data temporarily (e.g. patron blocks)
      *
-     * @var StorageInterface
+     * @var ?StorageInterface
      */
     protected $cache = null;
 
@@ -125,13 +125,13 @@ class OverdriveConnector implements
      * @param Config           $mainConfig       VuFind main conf
      * @param Config           $recordConfig     Record-specific conf file
      * @param ILSAuthenticator $ilsAuth          ILS Authenticator
-     * @param Container        $sessionContainer container
+     * @param ?Container       $sessionContainer container
      */
     public function __construct(
         Config $mainConfig,
         Config $recordConfig,
         ILSAuthenticator $ilsAuth,
-        Container $sessionContainer = null
+        ?Container $sessionContainer = null
     ) {
         $this->mainConfig = $mainConfig;
         $this->recordConfig = $recordConfig;
@@ -1742,11 +1742,11 @@ class OverdriveConnector implements
     /**
      * Set a cache storage object.
      *
-     * @param StorageInterface $cache Cache storage interface
+     * @param ?StorageInterface $cache Cache storage interface
      *
      * @return void
      */
-    public function setCacheStorage(StorageInterface $cache = null)
+    public function setCacheStorage(?StorageInterface $cache = null)
     {
         $this->cache = $cache;
     }

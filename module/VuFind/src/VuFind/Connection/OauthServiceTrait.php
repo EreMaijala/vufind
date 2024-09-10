@@ -53,7 +53,7 @@ trait OauthServiceTrait
     /**
      * Current OAuth token
      *
-     * @var stdClass
+     * @var ?\stdClass
      */
     protected $tokenData = null;
 

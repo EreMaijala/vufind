@@ -82,13 +82,13 @@ class YamlReader
     /**
      * Constructor
      *
-     * @param \VuFind\Cache\Manager $cacheManager Cache manager (optional)
-     * @param PathResolver          $pathResolver Config file path resolver
+     * @param ?\VuFind\Cache\Manager $cacheManager Cache manager (optional)
+     * @param ?PathResolver          $pathResolver Config file path resolver
      * (optional; defaults to \VuFind\Config\Locator)
      */
     public function __construct(
-        \VuFind\Cache\Manager $cacheManager = null,
-        PathResolver $pathResolver = null
+        ?\VuFind\Cache\Manager $cacheManager = null,
+        ?PathResolver $pathResolver = null
     ) {
         $this->cacheManager = $cacheManager;
         $this->pathResolver = $pathResolver;
@@ -135,8 +135,8 @@ class YamlReader
     /**
      * Given core and local filenames, retrieve the configuration data.
      *
-     * @param string $defaultFile Full path to file containing default YAML
-     * @param string $customFile  Full path to file containing local customizations
+     * @param string  $defaultFile Full path to file containing default YAML
+     * @param ?string $customFile  Full path to file containing local customizations
      * (may be null if no local file exists).
      *
      * @return array

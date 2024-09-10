@@ -45,44 +45,19 @@ use function strlen;
 class HoldingsILS extends AbstractBase
 {
     /**
-     * ILS connection (or null if not applicable)
-     *
-     * @var Connection
-     */
-    protected $catalog;
-
-    /**
-     * Name of template to use for rendering holdings.
-     *
-     * @var string
-     */
-    protected $template;
-
-    /**
-     * Whether the holdings tab should be hidden when empty or not.
-     *
-     * @var bool
-     */
-    protected $hideWhenEmpty;
-
-    /**
      * Constructor
      *
-     * @param \VuFind\ILS\Connection|null $catalog       ILS connection to use to
-     * check for holdings before displaying the tab; may be set to null if no check
-     * is needed.
-     * @param string|null                 $template      Holdings template to use
-     * @param bool                        $hideWhenEmpty Whether the
-     * holdings tab should be hidden when empty or not
+     * @param ?Connection $catalog       ILS connection to use to check for holdings before displaying the tab; may be
+     * set to null if no check is needed.
+     * @param ?string     $template      Holdings template to use
+     * @param bool        $hideWhenEmpty Whether the holdings tab should be hidden when empty or not
      */
     public function __construct(
-        Connection $catalog = null,
-        $template = null,
-        $hideWhenEmpty = false
+        protected ?Connection $catalog = null,
+        protected $template = null,
+        protected $hideWhenEmpty = false
     ) {
-        $this->catalog = $catalog;
-        $this->template = $template ?? 'standard';
-        $this->hideWhenEmpty = $hideWhenEmpty;
+        $this->template ??= 'standard';
     }
 
     /**

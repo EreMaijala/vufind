@@ -59,6 +59,8 @@ trait MarcReaderTrait
 
     /**
      * MARC reader. Access only via getMarcReader() as this is initialized lazily.
+     *
+     * @var ?object
      */
     protected $lazyMarcReader = null;
 

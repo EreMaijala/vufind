@@ -53,20 +53,22 @@ trait CachingDownloaderAwareTrait
      * a section in config.ini which will be parsed to override default settings.
      * Note that the prefix "Cache_" will be prepended on this string.
      *
-     * @var string
+     * @var ?string
      */
     protected $cacheOptionsSection = null;
 
     /**
      * Cache Options file. This can be overridden by child classes to declare
      * which .ini file contains the $cacheOptionsSection above.
+     *
+     * @var ?string
      */
     protected $cacheOptionsFile = null;
 
     /**
      * Caching downloader
      *
-     * @var CachingDownloader
+     * @var ?CachingDownloader
      */
     protected $cachingDownloader = null;
 

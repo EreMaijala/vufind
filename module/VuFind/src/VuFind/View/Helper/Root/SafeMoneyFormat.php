@@ -75,8 +75,8 @@ class SafeMoneyFormat extends AbstractHelper
     /**
      * Convert currency to display format and escape the result
      *
-     * @param float  $number   The number to format
-     * @param string $currency Currency format (ISO 4217) to use (null for default)
+     * @param float   $number   The number to format
+     * @param ?string $currency Currency format (ISO 4217) to use (null for default)
      *
      * @return string
      */

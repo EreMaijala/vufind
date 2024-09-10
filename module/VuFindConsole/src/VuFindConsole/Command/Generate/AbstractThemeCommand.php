@@ -71,7 +71,7 @@ abstract class AbstractThemeCommand extends Command
      * Constructor
      *
      * @param GeneratorInterface $generator Generator to call
-     * @param string|null        $name      The name of the command; passing null
+     * @param ?string            $name      The name of the command; passing null
      * means it must be set in configure()
      */
     public function __construct(GeneratorInterface $generator, $name = null)

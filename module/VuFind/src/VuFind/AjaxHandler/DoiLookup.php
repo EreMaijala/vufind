@@ -85,7 +85,7 @@ class DoiLookup extends AbstractBase
     /**
      * View renderer
      *
-     * @var RendererInterface
+     * @var ?RendererInterface
      */
     protected $viewRenderer = null;
 

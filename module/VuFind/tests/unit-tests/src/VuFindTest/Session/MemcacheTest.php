@@ -339,8 +339,8 @@ class MemcacheTest extends \VuFindTest\Unit\SessionHandlerTestCase
     /**
      * Get the session handler to test.
      *
-     * @param \Laminas\Config\Config $config Optional configuration
-     * @param \Memcache              $client Optional client object
+     * @param ?\Laminas\Config\Config $config Optional configuration
+     * @param ?\Memcache              $client Optional client object
      *
      * @return Database
      */

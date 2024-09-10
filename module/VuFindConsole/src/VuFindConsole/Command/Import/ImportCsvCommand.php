@@ -64,8 +64,8 @@ class ImportCsvCommand extends Command
     /**
      * Constructor
      *
-     * @param Importer    $importer CSV importer
-     * @param string|null $name     The name of the command; passing null means it
+     * @param Importer $importer CSV importer
+     * @param ?string  $name     The name of the command; passing null means it
      * must be set in configure()
      */
     public function __construct(Importer $importer, $name = null)

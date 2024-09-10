@@ -193,12 +193,12 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     /**
      * Return document specified by id.
      *
-     * @param string   $id     The document to retrieve from Solr
-     * @param ParamBag $params Parameters
+     * @param string    $id     The document to retrieve from Solr
+     * @param ?ParamBag $params Parameters
      *
      * @return string
      */
-    public function retrieve($id, ParamBag $params = null)
+    public function retrieve($id, ?ParamBag $params = null)
     {
         $params = $params ?: new ParamBag();
         $params
@@ -264,14 +264,14 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
      *
      * @param DocumentInterface $document Document to write
      * @param string            $handler  Update handler
-     * @param ParamBag          $params   Update handler parameters
+     * @param ?ParamBag         $params   Update handler parameters
      *
      * @return string Response body
      */
     public function write(
         DocumentInterface $document,
         $handler = 'update',
-        ParamBag $params = null
+        ?ParamBag $params = null
     ) {
         $params = $params ?: new ParamBag();
         $urlSuffix = "/{$handler}";

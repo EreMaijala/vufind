@@ -115,9 +115,9 @@ class CachingDownloader implements \VuFindHttp\HttpServiceAwareInterface
     /**
      * Set up a different cache.
      *
-     * @param string $cacheId             Cache ID
-     * @param string $cacheOptionsSection Cache Options Section
-     * @param string $cacheOptionsFile    Config file defining the cache options
+     * @param string  $cacheId             Cache ID
+     * @param ?string $cacheOptionsSection Cache Options Section
+     * @param ?string $cacheOptionsFile    Config file defining the cache options
      *
      * @return void
      */

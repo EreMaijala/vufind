@@ -43,7 +43,7 @@ abstract class AbstractGeneratorPlugin implements GeneratorPluginInterface
     /**
      * Verbose message callback
      *
-     * @var callable
+     * @var ?callable
      */
     protected $verboseMessageCallback = null;
 

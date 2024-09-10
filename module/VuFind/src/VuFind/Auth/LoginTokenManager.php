@@ -74,7 +74,7 @@ class LoginTokenManager implements LoggerAwareInterface, TranslatorAwareInterfac
     /**
      * Browscap
      *
-     * @var BrowscapInterface
+     * @var ?BrowscapInterface
      */
     protected $browscap = null;
 

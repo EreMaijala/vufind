@@ -94,14 +94,14 @@ abstract class Options implements TranslatorAwareInterface
     /**
      * RSS-specific sort option
      *
-     * @var string
+     * @var ?string
      */
     protected $rssSort = null;
 
     /**
      * Default search handler
      *
-     * @var string
+     * @var ?string
      */
     protected $defaultHandler = null;
 
@@ -192,7 +192,7 @@ abstract class Options implements TranslatorAwareInterface
     /**
      * Convenient field => delimiter lookup array derived from $delimitedFacets.
      *
-     * @var array
+     * @var ?array
      */
     protected $processedDelimitedFacets = null;
 
@@ -1310,11 +1310,11 @@ abstract class Options implements TranslatorAwareInterface
     /**
      * Configure autocomplete preferences from an .ini file.
      *
-     * @param Config $searchSettings Object representation of .ini file
+     * @param ?Config $searchSettings Object representation of .ini file
      *
      * @return void
      */
-    protected function configureAutocomplete(Config $searchSettings = null)
+    protected function configureAutocomplete(?Config $searchSettings = null)
     {
         // Only change settings from current values if they are defined in .ini:
         $this->autocompleteEnabled = $searchSettings->Autocomplete->enabled
@@ -1357,8 +1357,8 @@ abstract class Options implements TranslatorAwareInterface
     /**
      * Get hierarchical exclude filters.
      *
-     * @param string|null $field Field to get or null for all values.
-     *                           Default is null.
+     * @param ?string $field Field to get or null for all values.
+     *                      Default is null.
      *
      * @return array
      */
@@ -1373,8 +1373,8 @@ abstract class Options implements TranslatorAwareInterface
     /**
      * Get hierarchical facet filters.
      *
-     * @param string|null $field Field to get or null for all values.
-     *                           Default is null.
+     * @param ?string $field Field to get or null for all values.
+     *                       Default is null.
      *
      * @return array
      */

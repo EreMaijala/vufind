@@ -50,7 +50,7 @@ class ParamsFactory extends \VuFind\Search\Params\ParamsFactory
      *
      * @param ContainerInterface $container     Service manager
      * @param string             $requestedName Service being created
-     * @param null|array         $options       Extra options (optional)
+     * @param ?array             $options       Extra options (optional)
      *
      * @return object
      *
@@ -62,7 +62,7 @@ class ParamsFactory extends \VuFind\Search\Params\ParamsFactory
     public function __invoke(
         ContainerInterface $container,
         $requestedName,
-        array $options = null
+        ?array $options = null
     ) {
         if (!empty($options)) {
             throw new \Exception('Unexpected options sent to factory.');

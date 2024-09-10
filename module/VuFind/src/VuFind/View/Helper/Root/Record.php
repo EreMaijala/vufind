@@ -70,7 +70,7 @@ class Record extends \Laminas\View\Helper\AbstractHelper implements DbServiceAwa
     /**
      * Cover router
      *
-     * @var CoverRouter
+     * @var ?CoverRouter
      */
     protected $coverRouter = null;
 
@@ -85,11 +85,10 @@ class Record extends \Laminas\View\Helper\AbstractHelper implements DbServiceAwa
      * Constructor
      *
      * @param TagsService $tagsService Tags service
-     * @param Config      $config      Configuration from config.ini
+     * @param ?Config     $config      Configuration from config.ini
      */
     public function __construct(protected TagsService $tagsService, protected ?Config $config = null)
     {
-        $this->config = $config;
     }
 
     /**
@@ -108,7 +107,7 @@ class Record extends \Laminas\View\Helper\AbstractHelper implements DbServiceAwa
      * Render a template within a record driver folder.
      *
      * @param string $name    Template name to render
-     * @param array  $context Variables needed for rendering template; these will
+     * @param ?array $context Variables needed for rendering template; these will
      * be temporarily added to the global view context, then reverted after the
      * template is rendered (default = record driver only).
      * @param bool   $throw   If true (default), an exception is thrown if the
@@ -274,8 +273,8 @@ class Record extends \Laminas\View\Helper\AbstractHelper implements DbServiceAwa
     /**
      * Get notes associated with this record in user lists.
      *
-     * @param int $list_id ID of list to load tags from (null for all lists)
-     * @param int $user_id ID of user to load tags from (null for all users)
+     * @param ?int $list_id ID of list to load tags from (null for all lists)
+     * @param ?int $user_id ID of user to load tags from (null for all users)
      *
      * @return string[]
      */
@@ -516,7 +515,7 @@ class Record extends \Laminas\View\Helper\AbstractHelper implements DbServiceAwa
      *
      * @param string $idPrefix Prefix for checkbox HTML ids
      * @param string $formAttr ID of form for [form] attribute
-     * @param int    $number   Result number (for label of checkbox)
+     * @param ?int   $number   Result number (for label of checkbox)
      *
      * @return string
      */

@@ -47,7 +47,7 @@ trait IniReaderTrait
     /**
      * INI reader
      *
-     * @var IniReader
+     * @var ?IniReader
      */
     protected $iniReader = null;
 

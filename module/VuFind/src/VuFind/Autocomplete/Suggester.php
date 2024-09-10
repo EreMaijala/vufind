@@ -48,41 +48,17 @@ use function is_object;
 class Suggester
 {
     /**
-     * Autocomplete plugin manager.
-     *
-     * @var PluginManager
-     */
-    protected $pluginManager = null;
-
-    /**
-     * Search options plugin manager.
-     *
-     * @var OptionsManager
-     */
-    protected $optionsManager = null;
-
-    /**
-     * Configuration manager.
-     *
-     * @var ConfigManager
-     */
-    protected $configManager = null;
-
-    /**
      * Constructor
      *
-     * @param PluginManager  $pm Autocomplete plugin manager
-     * @param ConfigManager  $cm Config manager
-     * @param OptionsManager $om Options manager
+     * @param PluginManager  $pluginManager  Autocomplete plugin manager
+     * @param ConfigManager  $configManager  Configuration manager
+     * @param OptionsManager $optionsManager Search options plugin manager
      */
     public function __construct(
-        PluginManager $pm,
-        ConfigManager $cm,
-        OptionsManager $om
+        protected PluginManager $pluginManager,
+        protected ConfigManager $configManager,
+        protected OptionsManager $optionsManager
     ) {
-        $this->pluginManager = $pm;
-        $this->configManager = $cm;
-        $this->optionsManager = $om;
     }
 
     /**

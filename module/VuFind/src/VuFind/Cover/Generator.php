@@ -192,9 +192,9 @@ class Generator
     /**
      * Generates a dynamic cover image from elements of the item
      *
-     * @param string $title      Title of the book
-     * @param string $author     Author of the book
-     * @param string $callnumber Callnumber of the book
+     * @param string  $title      Title of the book
+     * @param string  $author     Author of the book
+     * @param ?string $callnumber Callnumber of the book
      *
      * @return string contents of image file
      */

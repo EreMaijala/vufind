@@ -110,7 +110,7 @@ class Explanation extends \VuFind\Search\Base\Explanation
     /**
      * Raw explanation.
      *
-     * @var string
+     * @var ?string
      */
     protected $rawExplanation = null;
 

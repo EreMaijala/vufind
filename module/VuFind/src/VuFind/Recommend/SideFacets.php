@@ -138,25 +138,16 @@ class SideFacets extends AbstractFacets
     protected $hierarchicalFacetSortOptions = [];
 
     /**
-     * Hierarchical facet helper
-     *
-     * @var HierarchicalFacetHelper
-     */
-    protected $hierarchicalFacetHelper;
-
-    /**
      * Constructor
      *
-     * @param \VuFind\Config\PluginManager $configLoader Configuration loader
-     * @param HierarchicalFacetHelper      $facetHelper  Helper for handling
-     * hierarchical facets
+     * @param \VuFind\Config\PluginManager $configLoader            Configuration loader
+     * @param HierarchicalFacetHelper      $hierarchicalFacetHelper Helper for handling hierarchical facets
      */
     public function __construct(
         \VuFind\Config\PluginManager $configLoader,
-        HierarchicalFacetHelper $facetHelper = null
+        protected ?HierarchicalFacetHelper $hierarchicalFacetHelper = null
     ) {
         parent::__construct($configLoader);
-        $this->hierarchicalFacetHelper = $facetHelper;
     }
 
     /**

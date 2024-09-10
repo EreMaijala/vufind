@@ -62,9 +62,9 @@ interface QueryInterface
     /**
      * Replace a term.
      *
-     * @param string   $from       Search term to find
-     * @param string   $to         Search term to insert
-     * @param callable $normalizer Function to normalize text strings (null for
+     * @param string    $from       Search term to find
+     * @param string    $to         Search term to insert
+     * @param ?callable $normalizer Function to normalize text strings (null for
      * no normalization)
      *
      * @return void

@@ -79,7 +79,7 @@ class Router
      *
      * @param \VuFind\RecordDriver\AbstractBase|string $driver Record driver
      * representing record to link to, or source|id pipe-delimited string
-     * @param string                                   $tab    Action to access
+     * @param ?string                                  $tab    Action to access
      * @param array                                    $query  Optional query params
      *
      * @return array

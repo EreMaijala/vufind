@@ -63,7 +63,7 @@ class ThemeCommand extends Command
      * Constructor
      *
      * @param ThemeCompiler $compiler Theme compiler
-     * @param string|null   $name     The name of the command; passing null means it
+     * @param ?string       $name     The name of the command; passing null means it
      * must be set in configure()
      */
     public function __construct(ThemeCompiler $compiler, $name = null)

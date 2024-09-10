@@ -46,29 +46,15 @@ use VuFind\Session\Settings as SessionSettings;
 class QRCodeController extends \Laminas\Mvc\Controller\AbstractActionController
 {
     /**
-     * QR Code loader
-     *
-     * @var Loader
-     */
-    protected $loader = false;
-
-    /**
-     * Session settings
-     *
-     * @var SessionSettings
-     */
-    protected $sessionSettings = null;
-
-    /**
      * Constructor
      *
-     * @param Loader          $loader QR Code Loader
-     * @param SessionSettings $ss     Session settings
+     * @param Loader          $loader          QR Code Loader
+     * @param SessionSettings $sessionSettings Session settings
      */
-    public function __construct(Loader $loader, SessionSettings $ss)
-    {
-        $this->loader = $loader;
-        $this->sessionSettings = $ss;
+    public function __construct(
+        protected Loader $loader,
+        protected SessionSettings $sessionSettings
+    ) {
     }
 
     /**

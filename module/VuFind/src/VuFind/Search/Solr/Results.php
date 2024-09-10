@@ -51,26 +51,28 @@ class Results extends \VuFind\Search\Base\Results
     /**
      * Field facets.
      *
-     * @var array
+     * @var ?array
      */
     protected $responseFacets = null;
 
     /**
      * Query facets.
      *
-     * @var array
+     * @var ?array
      */
     protected $responseQueryFacets = null;
 
     /**
      * Pivot facets.
      *
-     * @var array
+     * @var ?array
      */
     protected $responsePivotFacets = null;
 
     /**
      * Counts of filtered-out facet values, indexed by field name.
+     *
+     * @var ?array
      */
     protected $filteredFacetCounts = null;
 
@@ -91,7 +93,7 @@ class Results extends \VuFind\Search\Base\Results
     /**
      * Class to process spelling.
      *
-     * @var SpellingProcessor
+     * @var ?SpellingProcessor
      */
     protected $spellingProcessor = null;
 
@@ -100,14 +102,14 @@ class Results extends \VuFind\Search\Base\Results
      * Set to '*' to start paging a request and use the new value returned from the
      * search request for the next request.
      *
-     * @var null|string
+     * @var ?string
      */
     protected $cursorMark = null;
 
     /**
      * Highest relevance of all the results
      *
-     * @var null|float
+     * @var ?float
      */
     protected $maxScore = null;
 

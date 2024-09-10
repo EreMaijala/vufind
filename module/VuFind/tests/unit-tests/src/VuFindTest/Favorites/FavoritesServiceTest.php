@@ -56,7 +56,7 @@ class FavoritesServiceTest extends \PHPUnit\Framework\TestCase
     /**
      * Get a FavoritesService object.
      *
-     * @param UserListServiceInterface $listService Mock list service (optional)
+     * @param ?UserListServiceInterface $listService Mock list service (optional)
      *
      * @return FavoritesService
      */

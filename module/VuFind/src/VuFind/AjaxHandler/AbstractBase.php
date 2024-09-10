@@ -45,7 +45,7 @@ abstract class AbstractBase implements AjaxHandlerInterface
     /**
      * Session settings
      *
-     * @var SessionSettings
+     * @var ?SessionSettings
      */
     protected $sessionSettings = null;
 
@@ -69,7 +69,7 @@ abstract class AbstractBase implements AjaxHandlerInterface
      * Format a response array.
      *
      * @param mixed $response Response data
-     * @param int   $httpCode HTTP status code (omit for default)
+     * @param ?int  $httpCode HTTP status code (omit for default)
      *
      * @return array
      */

@@ -58,7 +58,7 @@ class RecordLinker extends \Laminas\View\Helper\AbstractHelper
     /**
      * Search results (optional)
      *
-     * @var \VuFind\Search\Base\Results
+     * @var ?\VuFind\Search\Base\Results
      */
     protected $results = null;
 

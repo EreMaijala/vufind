@@ -55,7 +55,7 @@ class Options extends \VuFind\Search\Base\Options
     /**
      * Relevance sort override for empty searches
      *
-     * @var string
+     * @var ?string
      */
     protected $emptySearchRelevanceOverride = null;
 

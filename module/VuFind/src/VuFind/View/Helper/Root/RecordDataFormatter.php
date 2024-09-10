@@ -62,14 +62,14 @@ class RecordDataFormatter extends AbstractHelper
     /**
      * Record driver object.
      *
-     * @var RecordDriver
+     * @var ?RecordDriver
      */
     protected $driver = null;
 
     /**
      * Config.
      *
-     * @var \Laminas\Config\Config
+     * @var ?\Laminas\Config\Config
      */
     protected $config;
 

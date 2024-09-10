@@ -198,14 +198,14 @@ class Mailer implements
     /**
      * Constructs a {@see MimeMessage} body from given text and html content.
      *
-     * @param string|null $text Mail content used for plain text part
-     * @param string|null $html Mail content used for html part
+     * @param ?string $text Mail content used for plain text part
+     * @param ?string $html Mail content used for html part
      *
      * @return MimeMessage
      */
     public function buildMultipartBody(
-        string $text = null,
-        string $html = null
+        ?string $text = null,
+        ?string $html = null
     ): MimeMessage {
         $parts = new MimeMessage();
 
@@ -239,13 +239,13 @@ class Mailer implements
     /**
      * Send an email message.
      *
-     * @param string|Address|AddressList $to      Recipient email address (or
-     * delimited list)
-     * @param string|Address             $from    Sender name and email address
-     * @param string                     $subject Subject line for message
-     * @param string|MimeMessage         $body    Message body
-     * @param string                     $cc      CC recipient (null for none)
-     * @param string|Address|AddressList $replyTo Reply-To address (or delimited
+     * @param string|Address|AddressList      $to      Recipient email address (or
+     *                                                 delimited list)
+     * @param string|Address                  $from    Sender name and email address
+     * @param string                          $subject Subject line for message
+     * @param string|MimeMessage              $body    Message body
+     * @param ?string                         $cc      CC recipient (null for none)
+     * @param string|Address|AddressList|null $replyTo Reply-To address (or delimited
      * list, null for none)
      *
      * @throws MailException

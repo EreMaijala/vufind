@@ -124,8 +124,8 @@ class RedisTest extends \VuFindTest\Unit\SessionHandlerTestCase
     /**
      * Get the session handler to test.
      *
-     * @param \Credis_Client         $client Client object
-     * @param \Laminas\Config\Config $config Optional configuration
+     * @param \Credis_Client          $client Client object
+     * @param ?\Laminas\Config\Config $config Optional configuration
      *
      * @return Database
      */

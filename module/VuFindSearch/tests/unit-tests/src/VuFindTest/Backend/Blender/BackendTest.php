@@ -221,7 +221,7 @@ class BackendTest extends TestCase
     /**
      * Event manager
      *
-     * @var SharedEventManager
+     * @var ?SharedEventManager
      */
     protected $sharedEventManager = null;
 
@@ -1043,14 +1043,14 @@ class BackendTest extends TestCase
     /**
      * Return search params
      *
-     * @param array $filters Blender filters
-     * @param Query $query   Query
+     * @param array  $filters Blender filters
+     * @param ?Query $query   Query
      *
      * @return ParamBag
      */
     protected function getSearchParams(
         array $filters,
-        Query $query = null
+        ?Query $query = null
     ): ParamBag {
         return new ParamBag(
             [

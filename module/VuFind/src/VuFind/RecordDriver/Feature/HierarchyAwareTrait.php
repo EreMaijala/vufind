@@ -49,14 +49,14 @@ trait HierarchyAwareTrait
     /**
      * Hierarchy driver plugin manager
      *
-     * @var \VuFind\Hierarchy\Driver\PluginManager
+     * @var ?\VuFind\Hierarchy\Driver\PluginManager
      */
     protected $hierarchyDriverManager = null;
 
     /**
      * Hierarchy driver for current object
      *
-     * @var \VuFind\Hierarchy\Driver\AbstractBase
+     * @var ?\VuFind\Hierarchy\Driver\AbstractBase
      */
     protected $hierarchyDriver = null;
 

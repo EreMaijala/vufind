@@ -57,28 +57,28 @@ class Feed extends ParentFeed
     /**
      * Total results
      *
-     * @var int
+     * @var ?int
      */
     protected $totalResults = null;
 
     /**
      * Start index
      *
-     * @var int
+     * @var ?int
      */
     protected $startIndex = null;
 
     /**
      * Items per page
      *
-     * @var int
+     * @var ?int
      */
     protected $itemsPerPage = null;
 
     /**
      * Search terms
      *
-     * @var string
+     * @var ?string
      */
     protected $searchTerms = null;
 

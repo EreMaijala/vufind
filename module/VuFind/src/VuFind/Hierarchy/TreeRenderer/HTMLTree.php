@@ -53,38 +53,17 @@ class HTMLTree extends AbstractBase implements \VuFind\I18n\Translator\Translato
     use \VuFind\I18n\Translator\TranslatorAwareTrait;
 
     /**
-     * Router plugin
-     *
-     * @var UrlPlugin
-     */
-    protected $router = null;
-
-    /**
-     * Whether the collections functionality is enabled
-     *
-     * @var bool
-     */
-    protected $collectionsEnabled;
-
-    /**
-     * View renderer
-     *
-     * @var RendererInterface
-     */
-    protected $viewRenderer;
-
-    /**
      * Constructor
      *
      * @param UrlPlugin         $router             Router plugin for urls
      * @param bool              $collectionsEnabled Whether the collections functionality is enabled
-     * @param RendererInterface $renderer           View renderer
+     * @param RendererInterface $viewRenderer       View renderer
      */
-    public function __construct(UrlPlugin $router, bool $collectionsEnabled, RendererInterface $renderer)
-    {
-        $this->router = $router;
-        $this->collectionsEnabled = $collectionsEnabled;
-        $this->viewRenderer = $renderer;
+    public function __construct(
+        protected UrlPlugin $router,
+        protected bool $collectionsEnabled,
+        protected RendererInterface $viewRenderer
+    ) {
     }
 
     /**

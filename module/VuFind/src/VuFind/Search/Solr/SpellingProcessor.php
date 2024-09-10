@@ -79,25 +79,19 @@ class SpellingProcessor
     protected $phrase;
 
     /**
-     * Callback for normalizing text.
-     *
-     * @var callable
-     */
-    protected $normalizer;
-
-    /**
      * Constructor
      *
-     * @param Config   $config     Spelling configuration (optional)
-     * @param callable $normalizer Callback for normalization of text (optional).
+     * @param ?Config   $config     Spelling configuration (optional)
+     * @param ?callable $normalizer Callback for normalization of text (optional).
      */
-    public function __construct($config = null, $normalizer = null)
-    {
+    public function __construct(
+        $config = null,
+        protected $normalizer = null
+    ) {
         $this->spellingLimit = $config->limit ?? 3;
         $this->spellSkipNumeric = $config->skip_numeric ?? true;
         $this->expand = $config->expand ?? true;
         $this->phrase = $config->phrase ?? false;
-        $this->normalizer = $normalizer;
     }
 
     /**

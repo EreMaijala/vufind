@@ -58,7 +58,7 @@ class Options extends \VuFind\Search\Base\Options
     /**
      * Relevance sort override for empty searches
      *
-     * @var string
+     * @var ?string
      */
     protected $emptySearchRelevanceOverride = null;
 
@@ -72,7 +72,7 @@ class Options extends \VuFind\Search\Base\Options
     /**
      * Solr field to be used as a tie-breaker.
      *
-     * @var string
+     * @var ?string
      */
     protected $sortTieBreaker = null;
 

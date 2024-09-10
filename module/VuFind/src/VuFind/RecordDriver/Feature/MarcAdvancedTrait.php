@@ -887,9 +887,9 @@ trait MarcAdvancedTrait
     /**
      * Returns an id extracted from the identifier subfield passed in
      *
-     * @param string $idField MARC subfield containing id information
-     * @param string $prefix  Prefix to search for in id field
-     * @param bool   $raw     Return raw match, or normalize?
+     * @param string  $idField MARC subfield containing id information
+     * @param ?string $prefix  Prefix to search for in id field
+     * @param bool    $raw     Return raw match, or normalize?
      *
      * @return string|bool    ID on success, false on failure
      */
@@ -997,11 +997,11 @@ trait MarcAdvancedTrait
      * Return an XML representation of the record using the specified format.
      * Return false if the format is unsupported.
      *
-     * @param string       $format  Name of format to use (corresponds with
+     * @param string        $format  Name of format to use (corresponds with
      * OAI-PMH metadataPrefix parameter).
-     * @param string       $baseUrl Base URL of host containing VuFind (optional;
+     * @param ?string       $baseUrl Base URL of host containing VuFind (optional;
      * may be used to inject record URLs into XML when appropriate).
-     * @param RecordLinker $linker  Record linker helper (optional; may be used to
+     * @param ?RecordLinker $linker  Record linker helper (optional; may be used to
      * inject record URLs into XML when appropriate).
      *
      * @return mixed XML, or false if format unsupported.

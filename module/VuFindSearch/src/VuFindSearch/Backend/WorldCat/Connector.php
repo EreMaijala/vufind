@@ -110,13 +110,13 @@ class Connector extends \VuFindSearch\Backend\SRU\Connector
     /**
      * Retrieve a specific record.
      *
-     * @param string   $id     Record ID to retrieve
-     * @param ParamBag $params Parameters
+     * @param string    $id     Record ID to retrieve
+     * @param ?ParamBag $params Parameters
      *
      * @throws \Exception
      * @return string    MARC XML
      */
-    public function getRecord($id, ParamBag $params = null)
+    public function getRecord($id, ?ParamBag $params = null)
     {
         $params = $params ?: new ParamBag();
         $params->set('servicelevel', 'full');

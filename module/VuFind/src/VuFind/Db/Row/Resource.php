@@ -78,7 +78,7 @@ class Resource extends RowGateway implements DbServiceAwareInterface, DbTableAwa
      * Remove tags from the current resource.
      *
      * @param \VuFind\Db\Row\User $user    The user deleting the tags.
-     * @param string              $list_id The list associated with the tags
+     * @param ?string             $list_id The list associated with the tags
      * (optional -- omitting this will delete ALL of the user's tags).
      *
      * @return void
@@ -96,7 +96,7 @@ class Resource extends RowGateway implements DbServiceAwareInterface, DbTableAwa
      *
      * @param string              $tagText The tag to save.
      * @param UserEntityInterface $user    The user posting the tag.
-     * @param string              $list_id The list associated with the tag
+     * @param ?string             $list_id The list associated with the tag
      * (optional).
      *
      * @return void
@@ -124,7 +124,7 @@ class Resource extends RowGateway implements DbServiceAwareInterface, DbTableAwa
      *
      * @param string              $tagText The tag to delete.
      * @param \VuFind\Db\Row\User $user    The user deleting the tag.
-     * @param string              $list_id The list associated with the tag
+     * @param ?string             $list_id The list associated with the tag
      * (optional).
      *
      * @return void

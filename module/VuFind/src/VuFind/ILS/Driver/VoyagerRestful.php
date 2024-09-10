@@ -481,7 +481,7 @@ class VoyagerRestful extends Voyager implements
      *
      * @param array  $data   Item Data
      * @param string $id     The BIB record id
-     * @param array  $patron Patron Data
+     * @param ?array $patron Patron Data
      *
      * @return array Keyed data
      */
@@ -682,12 +682,12 @@ class VoyagerRestful extends Voyager implements
     /**
      * Get Pick Up Locations
      *
-     * This is responsible for gettting a list of valid library locations for
+     * This is responsible for getting a list of valid library locations for
      * holds / recall retrieval
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing or editing a hold. When placing a hold, it contains
      * most of the same values passed to placeHold, minus the patron data. When
      * editing a hold it contains all the hold information returned by getMyHolds.
@@ -787,9 +787,9 @@ class VoyagerRestful extends Voyager implements
      *
      * Returns the default pick up location set in VoyagerRestful.ini
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing a hold; contains most of the same values passed to
      * placeHold, minus the patron data. May be used to limit the pickup options
      * or may be ignored.
@@ -809,9 +809,9 @@ class VoyagerRestful extends Voyager implements
      *
      * Returns the default request group set in VoyagerRestful.ini
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing a hold; contains most of the same values passed to
      * placeHold, minus the patron data. May be used to limit the request group
      * options or may be ignored.
@@ -855,10 +855,10 @@ class VoyagerRestful extends Voyager implements
     /**
      * Get request groups
      *
-     * @param int   $bibId       BIB ID
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param int    $bibId       BIB ID
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing a hold; contains most of the same values passed to
      * placeHold, minus the patron data. May be used to limit the request group
      * options or may be ignored.
@@ -1650,9 +1650,9 @@ class VoyagerRestful extends Voyager implements
     /**
      * Check whether the given patron has the given bib record or its item on loan.
      *
-     * @param int $patronId Patron ID
-     * @param int $bibId    Bib ID
-     * @param int $itemId   Item ID (optional)
+     * @param int  $patronId Patron ID
+     * @param int  $bibId    Bib ID
+     * @param ?int $itemId   Item ID (optional)
      *
      * @return bool
      */

@@ -50,7 +50,7 @@ trait TranslatorAwareTrait
     /**
      * Translator
      *
-     * @var \Laminas\I18n\Translator\TranslatorInterface
+     * @var ?\Laminas\I18n\Translator\TranslatorInterface
      */
     protected $translator = null;
 

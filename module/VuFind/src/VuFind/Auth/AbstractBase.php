@@ -69,7 +69,7 @@ abstract class AbstractBase implements
     /**
      * Configuration settings
      *
-     * @var \Laminas\Config\Config
+     * @var ?\Laminas\Config\Config
      */
     protected $config = null;
 

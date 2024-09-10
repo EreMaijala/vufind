@@ -343,7 +343,7 @@ class Alma extends AbstractBase implements
      * record.
      *
      * @param string $id      The record id to retrieve the holdings for
-     * @param array  $patron  Patron data
+     * @param ?array $patron  Patron data
      * @param array  $options Additional options
      *
      * @return array On success an array with the key "total" containing the total
@@ -1596,9 +1596,9 @@ class Alma extends AbstractBase implements
      * This is responsible get a list of valid library locations for holds / recall
      * retrieval
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing or editing a hold. When placing a hold, it contains
      * most of the same values passed to placeHold, minus the patron data. When
      * editing a hold it contains all the hold information returned by getMyHolds.

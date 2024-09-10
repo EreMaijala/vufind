@@ -60,7 +60,7 @@ class Channels implements ContentBlockInterface
     /**
      * Data source (null to use default found in channels.ini)
      *
-     * @var string
+     * @var ?string
      */
     protected $source = null;
 

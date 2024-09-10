@@ -51,7 +51,7 @@ trait LiveSolrTrait
     /**
      * Container for services related to live Solr connectivity.
      *
-     * @var \VuFindTest\Container\MockContainer
+     * @var ?\VuFindTest\Container\MockContainer
      */
     protected $liveSolrContainer = null;
 

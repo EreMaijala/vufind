@@ -47,7 +47,7 @@ abstract class AbstractChannelProvider implements ChannelProviderInterface
     /**
      * Cover router
      *
-     * @var CoverRouter
+     * @var ?CoverRouter
      */
     protected $coverRouter = null;
 
@@ -61,7 +61,7 @@ abstract class AbstractChannelProvider implements ChannelProviderInterface
     /**
      * Record router
      *
-     * @var RecordRouter
+     * @var ?RecordRouter
      */
     protected $recordRouter = null;
 

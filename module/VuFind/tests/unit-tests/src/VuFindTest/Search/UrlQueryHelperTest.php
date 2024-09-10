@@ -49,8 +49,8 @@ class UrlQueryHelperTest extends \PHPUnit\Framework\TestCase
     /**
      * Get a preconfigured helper.
      *
-     * @param array $request Request parameters
-     * @param Query $query   Query object
+     * @param array  $request Request parameters
+     * @param ?Query $query   Query object
      *
      * @return UrlQueryHelper
      */

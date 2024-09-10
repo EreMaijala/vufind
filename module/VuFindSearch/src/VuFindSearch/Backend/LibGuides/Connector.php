@@ -93,7 +93,7 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
      * @param string     $iid                Institution ID
      * @param HttpClient $client             HTTP client
      * @param float      $apiVersion         API version number
-     * @param string     $baseUrl            API base URL (optional)
+     * @param ?string    $baseUrl            API base URL (optional)
      * @param bool       $displayDescription Optionally load & display the description of each resource
      */
     public function __construct($iid, $client, $apiVersion = 1, $baseUrl = null, $displayDescription = false)

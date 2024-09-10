@@ -91,7 +91,7 @@ class User extends RowGateway implements
     /**
      * VuFind configuration
      *
-     * @var \Laminas\Config\Config
+     * @var ?\Laminas\Config\Config
      */
     protected $config = null;
 
@@ -286,9 +286,9 @@ class User extends RowGateway implements
      * the returned list WILL NOT include tags attached to records that are not
      * saved in favorites lists.
      *
-     * @param string $resourceId Filter for tags tied to a specific resource (null for no filter).
-     * @param int    $listId     Filter for tags tied to a specific list (null for no filter).
-     * @param string $source     Filter for tags tied to a specific record source. (null for no filter).
+     * @param ?string $resourceId Filter for tags tied to a specific resource (null for no filter).
+     * @param ?int    $listId     Filter for tags tied to a specific list (null for no filter).
+     * @param ?string $source     Filter for tags tied to a specific record source. (null for no filter).
      *
      * @return array
      *

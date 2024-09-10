@@ -47,51 +47,19 @@ use function in_array;
 class CoverController extends \Laminas\Mvc\Controller\AbstractActionController
 {
     /**
-     * Cover loader
-     *
-     * @var Loader
-     */
-    protected $loader;
-
-    /**
-     * Proxy loader
-     *
-     * @var CachingProxy
-     */
-    protected $proxy;
-
-    /**
-     * Session settings
-     *
-     * @var SessionSettings
-     */
-    protected $sessionSettings = null;
-
-    /**
-     * Configuration settings ([Content] section of config.ini)
-     *
-     * @var array
-     */
-    protected $config;
-
-    /**
      * Constructor
      *
-     * @param Loader          $loader Cover loader
-     * @param CachingProxy    $proxy  Proxy loader
-     * @param SessionSettings $ss     Session settings
-     * @param array           $config Configuration settings
+     * @param Loader          $loader          Cover loader
+     * @param CachingProxy    $proxy           Proxy loader
+     * @param SessionSettings $sessionSettings Session settings
+     * @param array           $config          Configuration settings ([Content] section of config.ini)
      */
     public function __construct(
-        Loader $loader,
-        CachingProxy $proxy,
-        SessionSettings $ss,
-        array $config = []
+        protected Loader $loader,
+        protected CachingProxy $proxy,
+        protected SessionSettings $sessionSettings,
+        protected array $config = []
     ) {
-        $this->loader = $loader;
-        $this->proxy = $proxy;
-        $this->sessionSettings = $ss;
-        $this->config = $config;
     }
 
     /**
@@ -209,8 +177,8 @@ class CoverController extends \Laminas\Mvc\Controller\AbstractActionController
      * Support method -- update the view to display the image currently found in the
      * \VuFind\Cover\Loader.
      *
-     * @param string $type  Content type of image (null to access loader)
-     * @param string $image Image data (null to access loader)
+     * @param ?string $type  Content type of image (null to access loader)
+     * @param ?string $image Image data (null to access loader)
      *
      * @return \Laminas\Http\Response
      */

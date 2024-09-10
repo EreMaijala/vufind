@@ -97,7 +97,7 @@ class Shibboleth extends AbstractBase implements DbTableAwareInterface
     /**
      * Name of attribute with shibboleth session ID
      *
-     * @var string
+     * @var ?string
      */
     protected $shibSessionId = null;
 

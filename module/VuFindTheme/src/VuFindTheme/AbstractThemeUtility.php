@@ -50,7 +50,7 @@ abstract class AbstractThemeUtility
     /**
      * Last error message
      *
-     * @var string
+     * @var ?string
      */
     protected $lastError = null;
 

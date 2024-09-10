@@ -75,8 +75,8 @@ class Logger extends BaseLogger
      * - exceptionhandler: if true register this logger as exceptionhandler
      * - errorhandler: if true register this logger as errorhandler
      *
-     * @param UserIpReader      $userIpReader User IP reader
-     * @param array|Traversable $options      Configuration options
+     * @param UserIpReader           $userIpReader User IP reader
+     * @param array|Traversable|null $options      Configuration options
      *
      * @throws \Laminas\Log\Exception\InvalidArgumentException
      */

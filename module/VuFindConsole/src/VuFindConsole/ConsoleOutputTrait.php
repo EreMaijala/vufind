@@ -45,7 +45,7 @@ trait ConsoleOutputTrait
     /**
      * Output interface.
      *
-     * @var OutputInterface
+     * @var ?OutputInterface
      */
     protected $outputInterface = null;
 

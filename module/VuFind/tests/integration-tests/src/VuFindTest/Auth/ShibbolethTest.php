@@ -108,7 +108,7 @@ final class ShibbolethTest extends \PHPUnit\Framework\TestCase
      * Get an authentication object.
      *
      * @param Config  $config             Configuration to use (null for default)
-     * @param Config  $shibConfig         Configuration with IdP
+     * @param ?Config $shibConfig         Configuration with IdP
      * @param boolean $useHeaders         use HTTP headers instead of environment variables
      * @param boolean $requiredAttributes required attributes
      *

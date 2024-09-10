@@ -48,16 +48,16 @@ class Url extends \Laminas\View\Helper\Url
     /**
      * Request (or null if unavailable)
      *
-     * @var Request
+     * @var ?Request
      */
     protected $request = null;
 
     /**
      * Constructor
      *
-     * @param Request $request Request object for GET parameters
+     * @param ?Request $request Request object for GET parameters
      */
-    public function __construct(Request $request = null)
+    public function __construct(?Request $request = null)
     {
         $this->request = $request;
     }

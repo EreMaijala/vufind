@@ -63,7 +63,7 @@ class BrowseController extends AbstractBase implements
     /**
      * Current browse mode
      *
-     * @var string
+     * @var ?string
      */
     protected $currentAction = null;
 

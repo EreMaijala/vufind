@@ -47,10 +47,10 @@ class Request extends \Laminas\Http\PhpEnvironment\Request
      * Return the parameter container responsible for query parameters or a single
      * query parameter
      *
-     * @param string|null $name    Parameter name to retrieve, or null to get the
+     * @param ?string $name    Parameter name to retrieve, or null to get the
      * whole container.
-     * @param mixed|null  $default Default value to use when the parameter is
-     * missing.
+     * @param mixed   $default Default value to use when the parameter is
+     *                         missing.
      *
      * @return \Laminas\Stdlib\ParametersInterface|mixed
      */
@@ -63,10 +63,10 @@ class Request extends \Laminas\Http\PhpEnvironment\Request
      * Return the parameter container responsible for post parameters or a single
      * post parameter.
      *
-     * @param string|null $name    Parameter name to retrieve, or null to get the
+     * @param ?string $name    Parameter name to retrieve, or null to get the
      * whole container.
-     * @param mixed|null  $default Default value to use when the parameter is
-     * missing.
+     * @param mixed   $default Default value to use when the parameter is
+     *                         missing.
      *
      * @return \Laminas\Stdlib\ParametersInterface|mixed
      */
@@ -79,10 +79,10 @@ class Request extends \Laminas\Http\PhpEnvironment\Request
      * Return the parameter container responsible for server parameters or a single
      * parameter value.
      *
-     * @param string|null $name    Parameter name to retrieve, or null to get the
+     * @param ?string $name    Parameter name to retrieve, or null to get the
      * whole container.
-     * @param mixed|null  $default Default value to use when the parameter is
-     * missing.
+     * @param mixed   $default Default value to use when the parameter is
+     *                         missing.
      *
      * @see    http://www.faqs.org/rfcs/rfc3875.html
      * @return \Laminas\Stdlib\ParametersInterface|mixed

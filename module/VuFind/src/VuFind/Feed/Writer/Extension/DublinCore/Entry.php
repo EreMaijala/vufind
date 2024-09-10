@@ -58,7 +58,7 @@ class Entry extends ParentEntry
     /**
      * Date
      *
-     * @var string
+     * @var ?string
      */
     protected $dcDate = null;
 

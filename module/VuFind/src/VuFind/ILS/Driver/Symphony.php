@@ -71,29 +71,15 @@ class Symphony extends AbstractBase implements LoggerAwareInterface
     protected $policies;
 
     /**
-     * Cache manager
-     *
-     * @var CacheManager
-     */
-    protected $cacheManager;
-
-    /**
-     * Record loader
-     *
-     * @var Loader
-     */
-    protected $recordLoader;
-
-    /**
      * Constructor
      *
-     * @param Loader       $loader       Record loader
-     * @param CacheManager $cacheManager Cache manager (optional)
+     * @param Loader        $recordLoader Record loader
+     * @param ?CacheManager $cacheManager Cache manager (optional)
      */
-    public function __construct(Loader $loader, CacheManager $cacheManager = null)
-    {
-        $this->recordLoader = $loader;
-        $this->cacheManager = $cacheManager;
+    public function __construct(
+        protected Loader $recordLoader,
+        protected ?CacheManager $cacheManager = null
+    ) {
     }
 
     /**
@@ -1049,17 +1035,17 @@ class Symphony extends AbstractBase implements LoggerAwareInterface
      * record.
      *
      * @param string $id      The record id to retrieve the holdings for
-     * @param array  $patron  Patron data
+     * @param ?array $patron  Patron data
      * @param array  $options Extra options (not currently used)
      *
      * @throws ILSException
-     * @return array         On success, an associative array with the following
+     * @return array          On success, an associative array with the following
      * keys: id, availability (boolean), status, location, reserve, callnumber,
      * duedate, number, barcode.
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getHolding($id, array $patron = null, array $options = [])
+    public function getHolding($id, ?array $patron = null, array $options = [])
     {
         return $this->getStatus($id);
     }
@@ -1683,9 +1669,9 @@ class Symphony extends AbstractBase implements LoggerAwareInterface
      * This is responsible get a list of valid library locations for holds / recall
      * retrieval
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing or editing a hold. When placing a hold, it contains
      * most of the same values passed to placeHold, minus the patron data. When
      * editing a hold it contains all the hold information returned by getMyHolds.
@@ -1717,9 +1703,9 @@ class Symphony extends AbstractBase implements LoggerAwareInterface
      *
      * Returns the default pick up location set in Symphony.ini
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing a hold; contains most of the same values passed to
      * placeHold, minus the patron data. May be used to limit the pickup options
      * or may be ignored.

@@ -64,9 +64,9 @@ class Query extends AbstractQuery
     /**
      * Constructor.
      *
-     * @param string $string   Search string
-     * @param string $handler  Name of search handler
-     * @param string $operator Operator to apply to query string (null if n/a)
+     * @param string  $string   Search string
+     * @param ?string $handler  Name of search handler
+     * @param ?string $operator Operator to apply to query string (null if n/a)
      */
     public function __construct($string = '', $handler = null, $operator = null)
     {
@@ -148,8 +148,8 @@ class Query extends AbstractQuery
      * Does the query contain the specified term? An optional normalizer can be
      * provided to allow for fuzzier matching.
      *
-     * @param string   $needle     Term to check
-     * @param callable $normalizer Function to normalize text strings (null for
+     * @param string    $needle     Term to check
+     * @param ?callable $normalizer Function to normalize text strings (null for
      * no normalization)
      *
      * @return bool

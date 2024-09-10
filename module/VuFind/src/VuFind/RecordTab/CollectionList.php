@@ -48,7 +48,7 @@ class CollectionList extends AbstractBase
     /**
      * Search results object (null prior to processing)
      *
-     * @var \VuFind\Search\SolrCollection\Results
+     * @var ?\VuFind\Search\SolrCollection\Results
      */
     protected $results = null;
 

@@ -61,9 +61,9 @@ class CurrencyFormatter
     /**
      * Constructor
      *
-     * @param string $defaultCurrency Default currency format (ISO 4217) to use (null
+     * @param ?string $defaultCurrency Default currency format (ISO 4217) to use (null
      * for default from system locale)
-     * @param string $locale          Locale to use for number formatting (null for
+     * @param ?string $locale          Locale to use for number formatting (null for
      * default system locale)
      */
     public function __construct($defaultCurrency = null, $locale = null)
@@ -82,8 +82,8 @@ class CurrencyFormatter
     /**
      * Convert currency from float to display format
      *
-     * @param float  $number   The number to format
-     * @param string $currency Currency format (ISO 4217) to use (null for default)
+     * @param float   $number   The number to format
+     * @param ?string $currency Currency format (ISO 4217) to use (null for default)
      *
      * @return string
      */

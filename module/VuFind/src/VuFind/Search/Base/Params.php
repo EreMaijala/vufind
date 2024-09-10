@@ -85,7 +85,7 @@ class Params
     /**
      * Sort setting
      *
-     * @var string
+     * @var ?string
      */
     protected $sort = null;
 
@@ -120,14 +120,14 @@ class Params
     /**
      * View
      *
-     * @var string
+     * @var ?string
      */
     protected $view = null;
 
     /**
      * Previously-used view (loaded in from session)
      *
-     * @var string
+     * @var ?string
      */
     protected $lastView = null;
 
@@ -516,8 +516,8 @@ class Params
     /**
      * Set a basic search query:
      *
-     * @param string $lookfor The search query
-     * @param string $handler The search handler (null for default)
+     * @param string  $lookfor The search query
+     * @param ?string $handler The search handler (null for default)
      *
      * @return void
      */
@@ -1016,9 +1016,9 @@ class Params
     /**
      * Add a field to facet on.
      *
-     * @param string $newField Field name
-     * @param string $newAlias Optional on-screen display label
-     * @param bool   $ored     Should we treat this as an ORed facet?
+     * @param string  $newField Field name
+     * @param ?string $newAlias Optional on-screen display label
+     * @param bool    $ored     Should we treat this as an ORed facet?
      *
      * @return void
      */
@@ -1069,9 +1069,9 @@ class Params
     /**
      * Get a user-friendly string to describe the provided facet field.
      *
-     * @param string $field   Facet field name.
-     * @param string $value   Facet value.
-     * @param string $default Default field name (null for default behavior).
+     * @param string  $field   Facet field name.
+     * @param ?string $value   Facet value.
+     * @param ?string $default Default field name (null for default behavior).
      *
      * @return string         Human-readable description of field.
      */
@@ -1293,14 +1293,14 @@ class Params
     /**
      * Get information on the current state of the boolean checkbox facets.
      *
-     * @param array $include        List of checkbox filters to return (null for all)
-     * @param bool  $includeDynamic Should we include dynamically-generated
+     * @param ?array $include        List of checkbox filters to return (null for all)
+     * @param bool   $includeDynamic Should we include dynamically-generated
      * checkboxes that are not part of the include list above?
      *
      * @return array
      */
     public function getCheckboxFacets(
-        array $include = null,
+        ?array $include = null,
         bool $includeDynamic = true
     ) {
         // Build up an array of checkbox facets with status booleans and
@@ -2025,9 +2025,9 @@ class Params
     /**
      * Initialize facet settings for the specified configuration sections.
      *
-     * @param string $facetList     Config section containing fields to activate
-     * @param string $facetSettings Config section containing related settings
-     * @param string $cfgFile       Name of configuration to load (null to load
+     * @param string  $facetList     Config section containing fields to activate
+     * @param string  $facetSettings Config section containing related settings
+     * @param ?string $cfgFile       Name of configuration to load (null to load
      * default facets configuration).
      *
      * @return bool                 True if facets set, false if no settings found

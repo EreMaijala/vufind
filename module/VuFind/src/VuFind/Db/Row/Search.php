@@ -153,8 +153,8 @@ class Search extends RowGateway implements
     /**
      * Set schedule for scheduled alert.
      *
-     * @param int    $schedule Schedule.
-     * @param string $url      Site base URL
+     * @param int     $schedule Schedule.
+     * @param ?string $url      Site base URL
      *
      * @return mixed
      *

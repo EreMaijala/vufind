@@ -49,25 +49,17 @@ class HierarchyTree extends AbstractBase
     /**
      * Tree data
      *
-     * @var array
+     * @var ?array
      */
     protected $treeList = null;
-
-    /**
-     * Configuration
-     *
-     * @var \Laminas\Config\Config
-     */
-    protected $config = null;
 
     /**
      * Constructor
      *
      * @param \Laminas\Config\Config $config Configuration
      */
-    public function __construct(\Laminas\Config\Config $config)
+    public function __construct(protected \Laminas\Config\Config $config)
     {
-        $this->config = $config;
     }
 
     /**
@@ -169,13 +161,13 @@ class HierarchyTree extends AbstractBase
     /**
      * Render a hierarchy tree
      *
-     * @param string  $id      Hierarchy ID (omit to use active tree)
+     * @param ?string $id      Hierarchy ID (omit to use active tree)
      * @param ?string $context Context for use by renderer or null for default
      * @param array   $options Additional options (like previewElement)
      *
      * @return string
      */
-    public function renderTree(string $id = null, ?string $context = null, array $options = [])
+    public function renderTree(?string $id = null, ?string $context = null, array $options = [])
     {
         $id ??= $this->getActiveTree();
         $recordDriver = $this->getRecordDriver();

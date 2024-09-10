@@ -89,7 +89,7 @@ class NewGenLib extends AbstractBase
      * record.
      *
      * @param string $RecordID The record id to retrieve the holdings for
-     * @param array  $patron   Patron data
+     * @param ?array $patron   Patron data
      * @param array  $options  Extra options (not currently used)
      *
      * @throws DateException
@@ -100,7 +100,7 @@ class NewGenLib extends AbstractBase
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getHolding($RecordID, array $patron = null, array $options = [])
+    public function getHolding($RecordID, ?array $patron = null, array $options = [])
     {
         $holding = $this->getItemStatus($RecordID);
         for ($i = 0; $i < count($holding); $i++) {
@@ -489,10 +489,10 @@ class NewGenLib extends AbstractBase
      *
      * Retrieve the IDs of items recently added to the catalog.
      *
-     * @param int $page    Page number of results to retrieve (counting starts at 1)
-     * @param int $limit   The size of each page of results to retrieve
-     * @param int $daysOld The maximum age of records to retrieve in days (max. 30)
-     * @param int $fundId  optional fund ID to use for limiting results (use a value
+     * @param int  $page    Page number of results to retrieve (counting starts at 1)
+     * @param int  $limit   The size of each page of results to retrieve
+     * @param int  $daysOld The maximum age of records to retrieve in days (max. 30)
+     * @param ?int $fundId  optional fund ID to use for limiting results (use a value
      * returned by getFunds, or exclude for no limit); note that "fund" may be a
      * misnomer - if funds are not an appropriate way to limit your new item
      * results, you can return a different set of values from getFunds. The

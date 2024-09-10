@@ -203,7 +203,7 @@ abstract class AbstractMultiDriver extends AbstractBase implements \Laminas\Log\
      *
      * @param object $driver ILS Driver
      * @param string $method Method name
-     * @param array  $params Array of passed parameters
+     * @param ?array $params Array of passed parameters
      *
      * @return bool
      */

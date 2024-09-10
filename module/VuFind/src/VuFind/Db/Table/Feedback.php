@@ -51,11 +51,11 @@ class Feedback extends Gateway
     /**
      * Constructor
      *
-     * @param Adapter         $adapter Database adapter
-     * @param PluginManager   $tm      Table manager
-     * @param array           $cfg     Laminas configuration
-     * @param RowGateway|null $rowObj  Row prototype object (null for default)
-     * @param string          $table   Name of database table to interface with
+     * @param Adapter       $adapter Database adapter
+     * @param PluginManager $tm      Table manager
+     * @param array         $cfg     Laminas configuration
+     * @param ?RowGateway   $rowObj  Row prototype object (null for default)
+     * @param string        $table   Name of database table to interface with
      */
     public function __construct(
         Adapter $adapter,
@@ -70,11 +70,11 @@ class Feedback extends Gateway
     /**
      * Get feedback by filter
      *
-     * @param string|null $formName Form name
-     * @param string|null $siteUrl  Site URL
-     * @param string|null $status   Current status
-     * @param string|null $page     Current page
-     * @param int         $limit    Limit per page
+     * @param ?string $formName Form name
+     * @param ?string $siteUrl  Site URL
+     * @param ?string $status   Current status
+     * @param ?string $page     Current page
+     * @param int     $limit    Limit per page
      *
      * @return Paginator
      */

@@ -52,7 +52,7 @@ trait ConnectorCacheTrait
     /**
      * Request cache
      *
-     * @var StorageInterface
+     * @var ?StorageInterface
      */
     protected $cache = null;
 

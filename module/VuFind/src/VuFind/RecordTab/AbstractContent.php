@@ -43,37 +43,23 @@ use VuFind\Content\Loader;
 abstract class AbstractContent extends AbstractBase
 {
     /**
-     * Content loader
-     *
-     * @var Loader
-     */
-    protected $loader;
-
-    /**
-     * Should we hide the tab if no content is found?
-     *
-     * @var bool
-     */
-    protected $hideIfEmpty;
-
-    /**
      * Cache for results.
      *
-     * @var array
+     * @var ?array
      */
     protected $results = null;
 
     /**
      * Constructor
      *
-     * @param Loader $loader      Content loader (null to disable)
-     * @param bool   $hideIfEmpty Should we hide the tab if no content is found?
+     * @param ?Loader $loader      Content loader (null to disable)
+     * @param bool    $hideIfEmpty Should we hide the tab if no content is found?
      * (Note that turning this on has performance implications).
      */
-    public function __construct(Loader $loader = null, $hideIfEmpty = false)
-    {
-        $this->loader = $loader;
-        $this->hideIfEmpty = $hideIfEmpty;
+    public function __construct(
+        protected ?Loader $loader = null,
+        protected $hideIfEmpty = false
+    ) {
     }
 
     /**

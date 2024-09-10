@@ -184,7 +184,7 @@ class Holds
      * holding method to call
      *
      * @param string $id      A Bib ID
-     * @param array  $ids     A list of Source Records (if catalog is for a
+     * @param ?array $ids     A list of Source Records (if catalog is for a
      * consortium)
      * @param array  $options Optional options to pass on to getHolding()
      *

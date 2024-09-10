@@ -551,7 +551,7 @@ class EDS extends DefaultRecord
      * return it's inner XML as an HTML string
      *
      * @param SimpleXml $data  A SimpleXml DOM
-     * @param string    $group Group identifier
+     * @param ?string   $group Group identifier
      *
      * @return string          The HTML string
      */

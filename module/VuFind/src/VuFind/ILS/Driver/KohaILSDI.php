@@ -568,12 +568,12 @@ class KohaILSDI extends AbstractBase implements HttpServiceAwareInterface, Logge
     /**
      * Get Pick Up Locations
      *
-     * This is responsible for gettting a list of valid library locations for
+     * This is responsible for getting a list of valid library locations for
      * holds / recall retrieval
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing or editing a hold. When placing a hold, it contains
      * most of the same values passed to placeHold, minus the patron data. When
      * editing a hold it contains all the hold information returned by getMyHolds.
@@ -668,9 +668,9 @@ class KohaILSDI extends AbstractBase implements HttpServiceAwareInterface, Logge
      *
      * Returns the default pick up location set in KohaILSDI.ini
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing a hold; contains most of the same values passed to
      * placeHold, minus the patron data.    May be used to limit the pickup options
      * or may be ignored.
@@ -814,7 +814,7 @@ class KohaILSDI extends AbstractBase implements HttpServiceAwareInterface, Logge
      * record.
      *
      * @param string $id      The record id to retrieve the holdings for
-     * @param array  $patron  Patron data
+     * @param ?array $patron  Patron data
      * @param array  $options Extra options (not currently used)
      *
      * @throws DateException
@@ -825,7 +825,7 @@ class KohaILSDI extends AbstractBase implements HttpServiceAwareInterface, Logge
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getHolding($id, array $patron = null, array $options = [])
+    public function getHolding($id, ?array $patron = null, array $options = [])
     {
         $this->debug(
             "Function getHolding($id, "
@@ -1050,10 +1050,10 @@ class KohaILSDI extends AbstractBase implements HttpServiceAwareInterface, Logge
     /**
      * This method queries the ILS for new items
      *
-     * @param int $page    Page number of results to retrieve (counting starts at 1)
-     * @param int $limit   The size of each page of results to retrieve
-     * @param int $daysOld The maximum age of records to retrieve in days (max. 30)
-     * @param int $fundId  optional fund ID to use for limiting results (use a value
+     * @param int  $page    Page number of results to retrieve (counting starts at 1)
+     * @param int  $limit   The size of each page of results to retrieve
+     * @param int  $daysOld The maximum age of records to retrieve in days (max. 30)
+     * @param ?int $fundId  optional fund ID to use for limiting results (use a value
      * returned by getFunds, or exclude for no limit); note that "fund" may be a
      * misnomer - if funds are not an appropriate way to limit your new item
      * results, you can return a different set of values from getFunds. The

@@ -48,14 +48,14 @@ class AlmaDatabase extends Database
     /**
      * Alma driver
      *
-     * @var \VuFind\ILS\Driver\Alma
+     * @var ?\VuFind\ILS\Driver\Alma
      */
     protected $almaDriver = null;
 
     /**
      * Alma config
      *
-     * @var array
+     * @var ?array
      */
     protected $almaConfig = null;
 

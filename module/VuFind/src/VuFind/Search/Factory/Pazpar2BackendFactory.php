@@ -65,13 +65,13 @@ class Pazpar2BackendFactory extends AbstractBackendFactory
      *
      * @param ContainerInterface $sm      Service manager
      * @param string             $name    Requested service name (unused)
-     * @param array              $options Extra options (unused)
+     * @param null|array<mixed>  $options Extra options (unused)
      *
      * @return Backend
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function __invoke(ContainerInterface $sm, $name, array $options = null)
+    public function __invoke(ContainerInterface $sm, $name, ?array $options = null)
     {
         $this->setup($sm);
         $this->config = $this->getService(\VuFind\Config\PluginManager::class)->get('Pazpar2');

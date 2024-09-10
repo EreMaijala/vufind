@@ -45,8 +45,8 @@ class Browse extends AbstractHelper
     /**
      * Get the Solr field associated with a particular browse action.
      *
-     * @param string $action Browse action
-     * @param string $backup Backup browse action if no match is found for $action
+     * @param string  $action Browse action
+     * @param ?string $backup Backup browse action if no match is found for $action
      *
      * @return string
      */

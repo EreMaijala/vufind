@@ -152,7 +152,7 @@ class AlmaTest extends \VuFindTest\Unit\ILSDriverTestCase
      * Overwrites $this->driver
      *
      * @param string $test   Name of test fixture to load
-     * @param array  $config Driver configuration (null to use default)
+     * @param ?array $config Driver configuration (null to use default)
      *
      * @return void
      */

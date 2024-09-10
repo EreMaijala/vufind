@@ -50,7 +50,7 @@ class ImportLokaliseCommandTest extends \PHPUnit\Framework\TestCase
     /**
      * Base fixture directory
      *
-     * @var string
+     * @var ?string
      */
     protected $baseFixtureDir = null;
 

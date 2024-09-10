@@ -138,11 +138,11 @@ class LoaderTest extends \PHPUnit\Framework\TestCase
     /**
      * Get a loader object to test.
      *
-     * @param array                                $config      Configuration
-     * @param \VuFind\Content\Covers\PluginManager $manager     Plugin manager (null to create mock)
-     * @param ThemeInfo                            $theme       Theme info object (null to create default)
-     * @param \VuFindHttp\HttpService              $httpService HTTP client factory
-     * @param array|bool                           $mock        Array of functions to mock, or false for real object
+     * @param array                                 $config      Configuration
+     * @param ?\VuFind\Content\Covers\PluginManager $manager     Plugin manager (null to create mock)
+     * @param ?ThemeInfo                            $theme       Theme info object (null to create default)
+     * @param ?\VuFindHttp\HttpService              $httpService HTTP client factory
+     * @param array|bool                            $mock        Array of functions to mock, or false for real object
      *
      * @return Loader|\PHPUnit\Framework\MockObject\MockObject
      */

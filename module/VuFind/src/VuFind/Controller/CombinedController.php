@@ -289,8 +289,8 @@ class CombinedController extends AbstractSearch
     /**
      * Adjust the query context to reflect the current settings.
      *
-     * @param array  $settings   Settings
-     * @param string $searchType Override for search handler name
+     * @param array   $settings   Settings
+     * @param ?string $searchType Override for search handler name
      *
      * @return void
      */

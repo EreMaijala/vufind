@@ -358,18 +358,18 @@ class LoaderTest extends \PHPUnit\Framework\TestCase
     /**
      * Build a loader to test.
      *
-     * @param SearchService  $service        Search service
-     * @param RecordFactory  $factory        Record factory (optional)
-     * @param Cache          $recordCache    Record Cache
-     * @param FallbackLoader $fallbackLoader Fallback record loader
+     * @param SearchService   $service        Search service
+     * @param ?RecordFactory  $factory        Record factory (optional)
+     * @param ?Cache          $recordCache    Record Cache
+     * @param ?FallbackLoader $fallbackLoader Fallback record loader
      *
      * @return Loader
      */
     protected function getLoader(
         SearchService $service,
-        RecordFactory $factory = null,
-        Cache $recordCache = null,
-        FallbackLoader $fallbackLoader = null
+        ?RecordFactory $factory = null,
+        ?Cache $recordCache = null,
+        ?FallbackLoader $fallbackLoader = null
     ) {
         if (null === $factory) {
             $factory = $this->getMockBuilder(\VuFind\RecordDriver\PluginManager::class)

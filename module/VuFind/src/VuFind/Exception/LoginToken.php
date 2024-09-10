@@ -45,9 +45,9 @@ class LoginToken extends \Exception
     /**
      * Constructor
      *
-     * @param string          $message  Exception message
-     * @param int             $userId   User ID
-     * @param \Throwable|null $previous Previous exception
+     * @param string      $message  Exception message
+     * @param int         $userId   User ID
+     * @param ?\Throwable $previous Previous exception
      */
     public function __construct(
         string $message,

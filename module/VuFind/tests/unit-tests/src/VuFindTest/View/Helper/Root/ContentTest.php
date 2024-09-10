@@ -47,11 +47,11 @@ class ContentTest extends \PHPUnit\Framework\TestCase
     /**
      * Perform a test of the helper.
      *
-     * @param string $pageName           Name of the page
-     * @param string $pathPrefix         Path where the template should be located
-     * @param string $expectedPathPrefix Formatted version of $pathPrefix
-     * @param array  $context            Optional array of context variables
-     * @param string $pattern            Optional file system pattern to search page
+     * @param string  $pageName           Name of the page
+     * @param string  $pathPrefix         Path where the template should be located
+     * @param string  $expectedPathPrefix Formatted version of $pathPrefix
+     * @param array   $context            Optional array of context variables
+     * @param ?string $pattern            Optional file system pattern to search page
      *
      * @return void
      */

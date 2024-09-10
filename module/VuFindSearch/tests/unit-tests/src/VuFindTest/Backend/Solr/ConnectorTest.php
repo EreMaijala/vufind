@@ -297,8 +297,8 @@ class ConnectorTest extends TestCase
     /**
      * Create connector with fixture file.
      *
-     * @param string     $fixture Fixture file
-     * @param HttpClient $client  HTTP client
+     * @param ?string     $fixture Fixture file
+     * @param ?HttpClient $client  HTTP client
      *
      * @return Connector
      *

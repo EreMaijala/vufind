@@ -164,9 +164,9 @@ class ChannelLoader
      * Get an array of channel providers matching the provided IDs (or just one,
      * if the channelProvider GET parameter is set).
      *
-     * @param string $source        Search backend ID
-     * @param array  $configSection Configuration section to load ID list from
-     * @param string $activeId      Currently selected channel ID (if any; used
+     * @param string  $source        Search backend ID
+     * @param array   $configSection Configuration section to load ID list from
+     * @param ?string $activeId      Currently selected channel ID (if any; used
      * when making an AJAX request for a single additional channel)
      *
      * @return array

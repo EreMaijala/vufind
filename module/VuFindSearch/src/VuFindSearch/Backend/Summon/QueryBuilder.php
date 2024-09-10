@@ -55,7 +55,7 @@ class QueryBuilder
     /**
      * Lucene syntax helper
      *
-     * @var LuceneSyntaxHelper
+     * @var ?LuceneSyntaxHelper
      */
     protected $luceneHelper = null;
 

@@ -49,28 +49,28 @@ class ImageLoader implements \Laminas\Log\LoggerAwareInterface
     /**
      * Property for storing raw image data; may be null if image is unavailable
      *
-     * @var string
+     * @var ?string
      */
     protected $image = null;
 
     /**
      * Content type of data in $image property
      *
-     * @var string
+     * @var ?string
      */
     protected $contentType = null;
 
     /**
      * Theme tools
      *
-     * @var \VuFindTheme\ThemeInfo
+     * @var ?\VuFindTheme\ThemeInfo
      */
     protected $themeTools = null;
 
     /**
      * User-configured image to load from theme on error.
      *
-     * @var string
+     * @var ?string
      */
     protected $configuredFailImage = null;
 

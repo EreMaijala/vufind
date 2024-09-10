@@ -70,9 +70,9 @@ abstract class AbstractBackendFactory implements FactoryInterface
     /**
      * Create HTTP Client
      *
-     * @param int    $timeout Request timeout
-     * @param array  $options Other options
-     * @param string $url     Request URL (needed for proper local address check when
+     * @param ?int    $timeout Request timeout
+     * @param array   $options Other options
+     * @param ?string $url     Request URL (needed for proper local address check when
      * the client is being proxified)
      *
      * @return \Laminas\Http\Client
@@ -80,7 +80,7 @@ abstract class AbstractBackendFactory implements FactoryInterface
     protected function createHttpClient(
         ?int $timeout = null,
         array $options = [],
-        string $url = null
+        ?string $url = null
     ): \Laminas\Http\Client {
         $client = $this->getService(\VuFindHttp\HttpService::class)->createClient($url);
         if (null !== $timeout) {

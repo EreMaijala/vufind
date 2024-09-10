@@ -53,7 +53,7 @@ class RecordDataFormatterFactory implements FactoryInterface
     /**
      * Schema.org view helper
      *
-     * @var SchemaOrg
+     * @var ?SchemaOrg
      */
     protected $schemaOrgHelper = null;
 
@@ -86,7 +86,7 @@ class RecordDataFormatterFactory implements FactoryInterface
     public function __invoke(
         ContainerInterface $container,
         $requestedName,
-        array $options = null
+        ?array $options = null
     ) {
         if (!empty($options)) {
             throw new \Exception('Unexpected options sent to factory.');

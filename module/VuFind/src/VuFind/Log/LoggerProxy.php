@@ -53,7 +53,7 @@ class LoggerProxy implements \Laminas\Log\LoggerInterface, ExtendedLoggerInterfa
     /**
      * Logger implementation
      *
-     * @var Logger
+     * @var ?Logger
      */
     protected $logger = null;
 

@@ -57,7 +57,7 @@ class UserResource extends Gateway implements DbServiceAwareInterface
      * @param Adapter       $adapter Database adapter
      * @param PluginManager $tm      Table manager
      * @param array         $cfg     Laminas configuration
-     * @param RowGateway    $rowObj  Row prototype object (null for default)
+     * @param ?RowGateway   $rowObj  Row prototype object (null for default)
      * @param string        $table   Name of database table to interface with
      */
     public function __construct(
@@ -150,7 +150,7 @@ class UserResource extends Gateway implements DbServiceAwareInterface
      * @param string|array $resource_id ID (or array of IDs) of resource(s) to
      * unlink (null for ALL matching resources)
      * @param string       $user_id     ID of user removing links
-     * @param string       $list_id     ID of list to unlink
+     * @param ?string      $list_id     ID of list to unlink
      * (null for ALL matching lists, with the destruction of all tags associated
      * with the $resource_id value; true for ALL matching lists, but retaining
      * any tags associated with the $resource_id independently of lists)

@@ -85,7 +85,7 @@ class InjectSpellingListener
     public function __construct(
         BackendInterface $backend,
         array $dictionaries,
-        LoggerInterface $logger = null
+        LoggerInterface $logger
     ) {
         $this->backend = $backend;
         $this->dictionaries = $dictionaries;

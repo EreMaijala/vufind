@@ -45,14 +45,14 @@ class Params extends \VuFind\Search\Solr\Params
      * this is usually either hierarchy_parent_id or
      * hierarchy_top_id
      *
-     * @var string
+     * @var ?string
      */
     protected $collectionField = null;
 
     /**
      * The ID of the collection being searched
      *
-     * @var string
+     * @var ?string
      */
     protected $collectionID = null;
 

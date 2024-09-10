@@ -201,13 +201,13 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      * @param callable               $sessionFactory Factory function returning
      * SessionContainer object for fake data to simulate consistency and reduce Solr
      * hits
-     * @param HttpRequest            $request        HTTP request object (optional)
+     * @param ?HttpRequest           $request        HTTP request object (optional)
      */
     public function __construct(
         \VuFind\Date\Converter $dateConverter,
         SearchService $ss,
         $sessionFactory,
-        HttpRequest $request = null
+        ?HttpRequest $request = null
     ) {
         $this->dateConverter = $dateConverter;
         $this->searchService = $ss;
@@ -466,11 +466,11 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      *
      * @param string $id     set id
      * @param string $number set number for multiple items
-     * @param array  $patron Patron data
+     * @param ?array $patron Patron data
      *
      * @return array
      */
-    protected function getRandomHolding($id, $number, array $patron = null)
+    protected function getRandomHolding($id, $number, ?array $patron = null)
     {
         $status = $this->getFakeStatus();
         $location = $this->getFakeLoc();
@@ -717,14 +717,14 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      * record.
      *
      * @param string $id     The record id to retrieve the holdings for
-     * @param array  $patron Patron data
+     * @param ?array $patron Patron data
      *
      * @return mixed     On success, an associative array with the following keys:
      * id, availability (boolean), status, location, reserve, callnumber.
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    protected function getSimulatedStatus($id, array $patron = null)
+    protected function getSimulatedStatus($id, ?array $patron = null)
     {
         $id = (string)$id;
 
@@ -770,7 +770,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      *      number, barcode, availability, status, location,
      *      reserve, callnumber, duedate, is_holdable, and addLink
      * @param bool   $append  add another record or replace current record
-     * @param array  $patron  Patron data
+     * @param ?array $patron  Patron data
      *
      * @return array
      */
@@ -836,14 +836,14 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      * record.
      *
      * @param string $id      The record id to retrieve the holdings for
-     * @param array  $patron  Patron data
+     * @param ?array $patron  Patron data
      * @param array  $options Extra options
      *
      * @return array On success, an associative array with the following keys:
      * id, availability (boolean), status, location, reserve, callnumber,
      * duedate, number, barcode.
      */
-    public function getHolding($id, array $patron = null, array $options = [])
+    public function getHolding($id, ?array $patron = null, array $options = [])
     {
         $this->checkIntermittentFailure();
 
@@ -1520,9 +1520,9 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      * This is responsible get a list of valid library locations for holds / recall
      * retrieval
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing or editing a hold. When placing a hold, it contains
      * most of the same values passed to placeHold, minus the patron data. When
      * editing a hold it contains all the hold information returned by getMyHolds.
@@ -1584,9 +1584,9 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      *
      * Returns the default pick up location set in HorizonXMLAPI.ini
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing a hold; contains most of the same values passed to
      * placeHold, minus the patron data. May be used to limit the pickup options
      * or may be ignored.
@@ -1607,9 +1607,9 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      *
      * Returns the default request group
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing a hold; contains most of the same values passed to
      * placeHold, minus the patron data. May be used to limit the request group
      * options or may be ignored.
@@ -1631,10 +1631,10 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
     /**
      * Get request groups
      *
-     * @param int   $bibId       BIB ID
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param int    $bibId       BIB ID
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing a hold; contains most of the same values passed to
      * placeHold, minus the patron data. May be used to limit the request group
      * options or may be ignored.
@@ -1741,10 +1741,10 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      *
      * Retrieve the IDs of items recently added to the catalog.
      *
-     * @param int $page    Page number of results to retrieve (counting starts at 1)
-     * @param int $limit   The size of each page of results to retrieve
-     * @param int $daysOld The maximum age of records to retrieve in days (max. 30)
-     * @param int $fundId  optional fund ID to use for limiting results (use a value
+     * @param int  $page    Page number of results to retrieve (counting starts at 1)
+     * @param int  $limit   The size of each page of results to retrieve
+     * @param int  $daysOld The maximum age of records to retrieve in days (max. 30)
+     * @param ?int $fundId  optional fund ID to use for limiting results (use a value
      * returned by getFunds, or exclude for no limit); note that "fund" may be a
      * misnomer - if funds are not an appropriate way to limit your new item
      * results, you can return a different set of values from getFunds. The
@@ -2798,9 +2798,9 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
     /**
      * Get bib records for "trending" items (recently returned with high usage).
      *
-     * @param int   $limit  Maximum number of records to retrieve (default = 30)
-     * @param int   $maxage The maximum number of days' worth of data to examine.
-     * @param array $patron Patron Data
+     * @param int    $limit  Maximum number of records to retrieve (default = 30)
+     * @param int    $maxage The maximum number of days' worth of data to examine.
+     * @param ?array $patron Patron Data
      *
      * @return array
      */

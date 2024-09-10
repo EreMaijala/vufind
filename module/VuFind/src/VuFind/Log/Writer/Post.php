@@ -47,20 +47,6 @@ class Post extends \Laminas\Log\Writer\AbstractWriter
     use VerbosityTrait;
 
     /**
-     * Holds the verbosity level
-     *
-     * @var int
-     */
-    protected $url = null;
-
-    /**
-     * Pre-configured http client
-     *
-     * @var \Laminas\Http\Client
-     */
-    protected $client = null;
-
-    /**
      * Content type
      *
      * @var string
@@ -73,10 +59,10 @@ class Post extends \Laminas\Log\Writer\AbstractWriter
      * @param string $url    URL to open as a stream
      * @param Client $client Pre-configured http client
      */
-    public function __construct($url, Client $client)
-    {
-        $this->url = $url;
-        $this->client = $client;
+    public function __construct(
+        protected $url,
+        protected Client $client
+    ) {
     }
 
     /**

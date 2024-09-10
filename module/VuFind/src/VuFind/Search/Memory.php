@@ -154,7 +154,7 @@ class Memory
      * Store the last accessed search URL in the session for future reference.
      *
      * @param string $url URL to remember
-     * @param int    $id  Search ID to remember
+     * @param ?int   $id  Search ID to remember
      *
      * @return void
      */

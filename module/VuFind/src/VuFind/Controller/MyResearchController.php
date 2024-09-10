@@ -115,7 +115,7 @@ class MyResearchController extends AbstractBase
     /**
      * ILS Pagination Helper
      *
-     * @var PaginationHelper
+     * @var ?PaginationHelper
      */
     protected $paginationHelper = null;
 

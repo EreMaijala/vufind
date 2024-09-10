@@ -84,14 +84,14 @@ class ConsortialVuFind implements RecommendInterface, \Laminas\Log\LoggerAwareIn
     /**
      * Base URL of a search results page
      *
-     * @var string
+     * @var ?string
      */
     protected $resultsBaseUrl = null;
 
     /**
      * Base URL of a record page
      *
-     * @var string
+     * @var ?string
      */
     protected $recordBaseUrl = null;
 

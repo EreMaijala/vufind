@@ -61,7 +61,7 @@ class ResourceTags extends Gateway implements DbServiceAwareInterface
      * @param Adapter       $adapter       Database adapter
      * @param PluginManager $tm            Table manager
      * @param array         $cfg           Laminas configuration
-     * @param RowGateway    $rowObj        Row prototype object (null for default)
+     * @param ?RowGateway   $rowObj        Row prototype object (null for default)
      * @param bool          $caseSensitive Are tags case sensitive?
      * @param string        $table         Name of database table to interface with
      */
@@ -145,10 +145,10 @@ class ResourceTags extends Gateway implements DbServiceAwareInterface
     /**
      * Get resources associated with a particular tag.
      *
-     * @param string $tag           Tag to match
-     * @param string $userId        ID of user owning favorite list
-     * @param string $listId        ID of list to retrieve (null for all favorites)
-     * @param ?bool  $caseSensitive Should tags be case sensitive? (null to use configured default)
+     * @param string  $tag           Tag to match
+     * @param string  $userId        ID of user owning favorite list
+     * @param ?string $listId        ID of list to retrieve (null for all favorites)
+     * @param ?bool   $caseSensitive Should tags be case sensitive? (null to use configured default)
      *
      * @return \Laminas\Db\ResultSet\AbstractResultSet
      */
@@ -315,12 +315,12 @@ class ResourceTags extends Gateway implements DbServiceAwareInterface
     /**
      * Unlink rows for the specified resource.
      *
-     * @param string|array $resource ID (or array of IDs) of resource(s) to
+     * @param string|array      $resource ID (or array of IDs) of resource(s) to
      * unlink (null for ALL matching resources)
-     * @param string       $user     ID of user removing links
-     * @param string       $list     ID of list to unlink (null for ALL matching
+     * @param string            $user     ID of user removing links
+     * @param ?string           $list     ID of list to unlink (null for ALL matching
      * tags, 'none' for tags not in a list, true for tags only found in a list)
-     * @param string|array $tag      ID or array of IDs of tag(s) to unlink (null
+     * @param string|array|null $tag      ID or array of IDs of tag(s) to unlink (null
      * for ALL matching tags)
      *
      * @return void
@@ -363,9 +363,9 @@ class ResourceTags extends Gateway implements DbServiceAwareInterface
     /**
      * Unlink rows for the specified user list.
      *
-     * @param string       $list ID of list to unlink
-     * @param string       $user ID of user removing links
-     * @param string|array $tag  ID or array of IDs of tag(s) to unlink (null
+     * @param string            $list ID of list to unlink
+     * @param string            $user ID of user removing links
+     * @param string|array|null $tag  ID or array of IDs of tag(s) to unlink (null
      * for ALL matching tags)
      *
      * @return void
@@ -456,9 +456,9 @@ class ResourceTags extends Gateway implements DbServiceAwareInterface
     /**
      * Gets unique resources from the table
      *
-     * @param string $userId     ID of user
-     * @param string $resourceId ID of the resource
-     * @param string $tagId      ID of the tag
+     * @param ?string $userId     ID of user
+     * @param ?string $resourceId ID of the resource
+     * @param ?string $tagId      ID of the tag
      *
      * @return \Laminas\Db\ResultSet\AbstractResultSet
      */
@@ -520,10 +520,10 @@ class ResourceTags extends Gateway implements DbServiceAwareInterface
     /**
      * Gets unique tags from the table
      *
-     * @param string $userId        ID of user
-     * @param string $resourceId    ID of the resource
-     * @param string $tagId         ID of the tag
-     * @param ?bool  $caseSensitive Should tags be case sensitive? (null to use configured default)
+     * @param ?string $userId        ID of user
+     * @param ?string $resourceId    ID of the resource
+     * @param ?string $tagId         ID of the tag
+     * @param ?bool   $caseSensitive Should tags be case sensitive? (null to use configured default)
      *
      * @return \Laminas\Db\ResultSet\AbstractResultSet
      */
@@ -584,9 +584,9 @@ class ResourceTags extends Gateway implements DbServiceAwareInterface
     /**
      * Gets unique users from the table
      *
-     * @param string $userId     ID of user
-     * @param string $resourceId ID of the resource
-     * @param string $tagId      ID of the tag
+     * @param ?string $userId     ID of user
+     * @param ?string $resourceId ID of the resource
+     * @param ?string $tagId      ID of the tag
      *
      * @return \Laminas\Db\ResultSet\AbstractResultSet
      */

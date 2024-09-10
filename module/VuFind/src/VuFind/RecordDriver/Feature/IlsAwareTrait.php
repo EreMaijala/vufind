@@ -50,7 +50,7 @@ trait IlsAwareTrait
     /**
      * ILS connection
      *
-     * @var \VuFind\ILS\Connection
+     * @var ?\VuFind\ILS\Connection
      */
     protected $ils = null;
 
@@ -64,14 +64,14 @@ trait IlsAwareTrait
     /**
      * Hold logic
      *
-     * @var \VuFind\ILS\Logic\Holds
+     * @var ?\VuFind\ILS\Logic\Holds
      */
     protected $holdLogic = null;
 
     /**
      * Title hold logic
      *
-     * @var \VuFind\ILS\Logic\TitleHolds
+     * @var ?\VuFind\ILS\Logic\TitleHolds
      */
     protected $titleHoldLogic = null;
 

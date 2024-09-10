@@ -76,7 +76,7 @@ class Service
      *
      * @return void
      */
-    public function __construct(EventManagerInterface $events = null)
+    public function __construct(?EventManagerInterface $events = null)
     {
         if (null !== $events) {
             $this->setEventManager($events);

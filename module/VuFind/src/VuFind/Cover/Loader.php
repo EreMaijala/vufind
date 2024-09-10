@@ -105,63 +105,63 @@ class Loader extends \VuFind\ImageLoader
     /**
      * User ISBNs parameter
      *
-     * @var ISBN[]
+     * @var ?ISBN[]
      */
     protected $isbns = null;
 
     /**
      * User ISSN parameter
      *
-     * @var string
+     * @var ?string
      */
     protected $issn = null;
 
     /**
      * User OCLC number parameter
      *
-     * @var string
+     * @var ?string
      */
     protected $oclc = null;
 
     /**
      * User UPC number parameter
      *
-     * @var string
+     * @var ?string
      */
     protected $upc = null;
 
     /**
      * User National bibliography number parameter
      *
-     * @var array
+     * @var ?array
      */
     protected $nbn = null;
 
     /**
      * User ISMN parameter
      *
-     * @var ISMN
+     * @var ?ISMN
      */
     protected $ismn = null;
 
     /**
      * User UUID parameter
      *
-     * @var string
+     * @var ?string
      */
     protected $uuid = null;
 
     /**
      * User record id number parameter
      *
-     * @var string
+     * @var ?string
      */
     protected $recordid = null;
 
     /**
      * User record source parameter
      *
-     * @var string
+     * @var ?string
      */
     protected $source = null;
 

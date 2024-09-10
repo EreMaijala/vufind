@@ -63,8 +63,8 @@ class ParentTemplate extends \Laminas\View\Helper\AbstractHelper
     /**
      * Returns an template path according the configured theme
      *
-     * @param string $template    template name like 'footer.phtml'
-     * @param string $targetTheme specific parent to inherit from
+     * @param string  $template    template name like 'footer.phtml'
+     * @param ?string $targetTheme specific parent to inherit from
      *
      * @return string path, null if image not found
      * @throws Exception if no file exists at path

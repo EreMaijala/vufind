@@ -71,13 +71,6 @@ class Koha extends AbstractBase
     protected $locCodes;
 
     /**
-     * Date converter object
-     *
-     * @var \VuFind\Date\Converter
-     */
-    protected $dateConverter = null;
-
-    /**
      * Should we validate passwords against Koha system?
      *
      * @var boolean
@@ -108,9 +101,8 @@ class Koha extends AbstractBase
      *
      * @param \VuFind\Date\Converter $dateConverter Date converter
      */
-    public function __construct(\VuFind\Date\Converter $dateConverter)
+    public function __construct(protected \VuFind\Date\Converter $dateConverter)
     {
-        $this->dateConverter = $dateConverter;
     }
 
     /**
@@ -181,7 +173,7 @@ class Koha extends AbstractBase
      * record.
      *
      * @param string $id      The record id to retrieve the holdings for
-     * @param array  $patron  Patron data
+     * @param ?array $patron  Patron data
      * @param array  $options Extra options (not currently used)
      *
      * @throws DateException
@@ -192,7 +184,7 @@ class Koha extends AbstractBase
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getHolding($id, array $patron = null, array $options = [])
+    public function getHolding($id, ?array $patron = null, array $options = [])
     {
         $holding = [];
         $available = true;

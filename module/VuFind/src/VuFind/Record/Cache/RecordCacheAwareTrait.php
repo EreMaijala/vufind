@@ -43,7 +43,7 @@ trait RecordCacheAwareTrait
     /**
      * Record cache
      *
-     * @var \VuFind\Record\Cache
+     * @var ?\VuFind\Record\Cache
      */
     protected $recordCache = null;
 

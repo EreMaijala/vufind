@@ -45,7 +45,7 @@ class DisplayLanguageOption extends \Laminas\View\Helper\AbstractHelper
     /**
      * Translator (or null if unavailable)
      *
-     * @var TranslatorInterface
+     * @var ?TranslatorInterface
      */
     protected $translator = null;
 

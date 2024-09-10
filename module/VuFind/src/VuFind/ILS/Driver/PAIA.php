@@ -76,7 +76,7 @@ class PAIA extends DAIA
     /**
      * Timeout in seconds to be used for PAIA http requests
      *
-     * @var int
+     * @var ?int
      */
     protected $paiaTimeout = null;
 
@@ -228,7 +228,7 @@ class PAIA extends DAIA
 
         // use PAIA specific timeout setting for http requests if configured
         if ((isset($this->config['PAIA']['timeout']))) {
-            $this->paiaTimeout = $this->config['PAIA']['timeout'];
+            $this->paiaTimeout = (int)$this->config['PAIA']['timeout'];
         }
 
         // do we have caching enabled for PAIA
@@ -456,9 +456,9 @@ class PAIA extends DAIA
     /**
      * Get Default Pick Up Location
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing a hold; contains most of the same values passed to
      * placeHold, minus the patron data. May be used to limit the pickup options
      * or may be ignored.
@@ -711,8 +711,8 @@ class PAIA extends DAIA
      * Gets additional array fields for the item.
      * Override this method in your custom PAIA driver if necessary.
      *
-     * @param array $fee    The fee array from PAIA
-     * @param array $patron The patron array from patronLogin
+     * @param array  $fee    The fee array from PAIA
+     * @param ?array $patron The patron array from patronLogin
      *
      * @return array Additional fee data for the item
      */
@@ -880,12 +880,12 @@ class PAIA extends DAIA
     /**
      * Get Pick Up Locations
      *
-     * This is responsible for gettting a list of valid library locations for
+     * This is responsible for getting a list of valid library locations for
      * holds / recall retrieval
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing or editing a hold. When placing a hold, it contains
      * most of the same values passed to placeHold, minus the patron data. When
      * editing a hold it contains all the hold information returned by getMyHolds.

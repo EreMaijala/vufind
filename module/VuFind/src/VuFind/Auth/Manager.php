@@ -229,7 +229,7 @@ class Manager implements
     /**
      * Is persistent login supported by the authentication method?
      *
-     * @param string $method Authentication method (overrides currently selected method)
+     * @param ?string $method Authentication method (overrides currently selected method)
      *
      * @return bool
      */

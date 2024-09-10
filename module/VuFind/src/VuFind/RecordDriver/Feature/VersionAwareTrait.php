@@ -48,16 +48,16 @@ trait VersionAwareTrait
     /**
      * Cached result of other versions (work expressions) count
      *
-     * @var int
+     * @var ?int
      */
     protected $otherVersionsCount = null;
 
     /**
      * Cached result of other versions (work expressions)
      *
-     * @var \VuFindSearch\Response\RecordCollectionInterface
+     * @var ?\VuFindSearch\Response\RecordCollectionInterface
      */
-    protected $otherVersions;
+    protected $otherVersions = null;
 
     /**
      * Return count of other versions available
@@ -70,7 +70,7 @@ trait VersionAwareTrait
             return false;
         }
 
-        if (!isset($this->otherVersionsCount)) {
+        if (null === $this->otherVersionsCount) {
             if (!($keys = $this->tryMethod('getWorkKeys'))) {
                 if (!($this instanceof VersionAwareInterface)) {
                     throw new \Exception(
@@ -107,7 +107,7 @@ trait VersionAwareTrait
             return false;
         }
 
-        if (!isset($this->otherVersions)) {
+        if (null === $this->otherVersions) {
             $command = new SearchCommand(
                 $this->getSourceIdentifier(),
                 new WorkKeysQuery($this->getUniqueID(), false, $keys),

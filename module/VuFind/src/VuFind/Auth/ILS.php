@@ -53,7 +53,7 @@ class ILS extends AbstractBase
     /**
      * Catalog connection
      *
-     * @var \VuFind\ILS\Connection
+     * @var ?\VuFind\ILS\Connection
      */
     protected $catalog = null;
 

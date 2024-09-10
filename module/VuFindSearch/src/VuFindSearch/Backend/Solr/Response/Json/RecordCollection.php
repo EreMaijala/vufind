@@ -75,7 +75,7 @@ class RecordCollection extends AbstractRecordCollection
     /**
      * Facet fields.
      *
-     * @var array
+     * @var ?array
      */
     protected $facetFields = null;
 

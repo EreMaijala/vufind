@@ -157,9 +157,9 @@ class Relais implements \Laminas\Log\LoggerAwareInterface
     /**
      * Place a request
      *
-     * @param string $oclc   OCLC number to look up
-     * @param string $auth   Authentication ID from authenticatePatron()
-     * @param string $patron Patron ID (null to use default from config)
+     * @param string  $oclc   OCLC number to look up
+     * @param string  $auth   Authentication ID from authenticatePatron()
+     * @param ?string $patron Patron ID (null to use default from config)
      *
      * @return string
      * @throws \Exception

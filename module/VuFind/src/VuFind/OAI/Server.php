@@ -110,7 +110,7 @@ class Server
     /**
      * Solr field for set membership
      *
-     * @var string
+     * @var ?string
      */
     protected $setField = null;
 
@@ -124,7 +124,7 @@ class Server
     /**
      * Namespace used for ID prefixing (if any)
      *
-     * @var string
+     * @var ?string
      */
     protected $idNamespace = null;
 
@@ -152,7 +152,7 @@ class Server
     /**
      * Record link helper (optional)
      *
-     * @var \VuFind\View\Helper\Root\RecordLinker
+     * @var ?\VuFind\View\Helper\Root\RecordLinker
      */
     protected $recordLinkerHelper = null;
 
@@ -173,7 +173,7 @@ class Server
     /*
      * Record formatter
      *
-     * @var RecordFormatter
+     * @var ?RecordFormatter
      */
     protected $recordFormatter = null;
 
@@ -196,7 +196,7 @@ class Server
      * Limit on display of deleted records (in days); older deleted records will not
      * be returned by the server. Set to null for no limit.
      *
-     * @var int
+     * @var ?int
      */
     protected $deleteLifetime = null;
 

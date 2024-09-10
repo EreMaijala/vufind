@@ -57,7 +57,7 @@ class PrimoPermissionHandler
     /**
      * Institution code applicable for the user
      *
-     * @var string
+     * @var ?string
      */
     protected $instCode = null;
 

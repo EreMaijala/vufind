@@ -95,7 +95,7 @@ class AbstractBase extends AbstractActionController implements AccessPermissionI
      * Leave at null to use the defaultDeniedControllerBehavior set in
      * permissionBehavior.ini (normally 'promptLogin' unless changed).
      *
-     * @var string
+     * @var ?string
      */
     protected $accessDeniedBehavior = null;
 
@@ -215,8 +215,8 @@ class AbstractBase extends AbstractActionController implements AccessPermissionI
     /**
      * Create a new ViewModel to use as an email form.
      *
-     * @param array  $params         Parameters to pass to ViewModel constructor.
-     * @param string $defaultSubject Default subject line to use.
+     * @param ?array  $params         Parameters to pass to ViewModel constructor.
+     * @param ?string $defaultSubject Default subject line to use.
      *
      * @return ViewModel
      */

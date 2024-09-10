@@ -50,7 +50,7 @@ trait AjaxResponseTrait
     /**
      * AJAX Handler plugin manager
      *
-     * @var PluginManager
+     * @var ?PluginManager
      */
     protected $ajaxManager = null;
 
@@ -85,7 +85,7 @@ trait AjaxResponseTrait
      *
      * @param string $type     Content type to output
      * @param mixed  $data     The response data
-     * @param int    $httpCode A custom HTTP Status Code
+     * @param ?int   $httpCode A custom HTTP Status Code
      *
      * @return \Laminas\Http\Response
      * @throws \Exception

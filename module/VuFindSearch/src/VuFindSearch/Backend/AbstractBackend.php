@@ -49,14 +49,14 @@ abstract class AbstractBackend implements BackendInterface, LoggerAwareInterface
     /**
      * Record collection factory.
      *
-     * @var RecordCollectionFactoryInterface
+     * @var ?RecordCollectionFactoryInterface
      */
     protected $collectionFactory = null;
 
     /**
      * Backend identifier.
      *
-     * @var string
+     * @var ?string
      */
     protected $identifier = null;
 

@@ -60,7 +60,7 @@ class Settings
     /**
      * Session manager (if instantiated)
      *
-     * @var SessionManager
+     * @var ?SessionManager
      */
     protected $manager = null;
 

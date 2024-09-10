@@ -56,7 +56,7 @@ class PluginFactory extends \VuFind\ServiceManager\AbstractPluginFactory
      *
      * @param ContainerInterface $container     Service container
      * @param string             $requestedName Name of service
-     * @param array              $extras        Extra options
+     * @param ?array             $options       Options (unused)
      *
      * @return object
      *
@@ -65,7 +65,7 @@ class PluginFactory extends \VuFind\ServiceManager\AbstractPluginFactory
     public function __invoke(
         ContainerInterface $container,
         $requestedName,
-        array $extras = null
+        ?array $options = null
     ) {
         $paramsService = preg_replace('/Results$/', 'Params', $requestedName);
         $params = $container->get(\VuFind\Search\Params\PluginManager::class)
@@ -77,7 +77,7 @@ class PluginFactory extends \VuFind\ServiceManager\AbstractPluginFactory
             $params,
             $searchService,
             $recordLoader,
-            ...($extras ?: [])
+            ...($options ?: [])
         );
     }
 }

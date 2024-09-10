@@ -46,7 +46,7 @@ class SwitchTab implements RecommendInterface
     /**
      * Current tab settings
      *
-     * @var array
+     * @var ?array
      */
     protected $tabSelections = null;
 

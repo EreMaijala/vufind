@@ -53,7 +53,7 @@ class ContentPagesTest extends \PHPUnit\Framework\TestCase
     /**
      * Mock container
      *
-     * @var MockContainer
+     * @var ?MockContainer
      */
     protected $container = null;
 

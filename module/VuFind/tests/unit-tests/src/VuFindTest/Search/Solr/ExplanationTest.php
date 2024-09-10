@@ -775,8 +775,8 @@ class ExplanationTest extends \PHPUnit\Framework\TestCase
     /**
      * Creates an Explanation object with all the required mocks.
      *
-     * @param array $result Result of the Solr request
-     * @param array $config Optional searches.ini configs
+     * @param array  $result Result of the Solr request
+     * @param ?array $config Optional searches.ini configs
      *
      * @return Explanation
      */

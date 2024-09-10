@@ -50,7 +50,7 @@ class NormalizeCommandTest extends \PHPUnit\Framework\TestCase
     /**
      * Language fixture directory
      *
-     * @var string
+     * @var ?string
      */
     protected $languageFixtureDir = null;
 

@@ -122,8 +122,8 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
      * Scan
      *
      * @param string $clause   The CQL clause specifying the start point
-     * @param int    $pos      The position of the start point in the response
-     * @param int    $maxTerms The maximum number of terms to return
+     * @param ?int   $pos      The position of the start point in the response
+     * @param ?int   $maxTerms The maximum number of terms to return
      *
      * @return string          XML response
      */
@@ -197,7 +197,7 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
      * Submit REST Request
      *
      * @param string $method  HTTP Method to use: GET or POST
-     * @param array  $params  An array of parameters for the request
+     * @param ?array $params  An array of parameters for the request
      * @param bool   $process Should we convert the MARCXML?
      *
      * @return string|SimpleXMLElement The response from the XServer

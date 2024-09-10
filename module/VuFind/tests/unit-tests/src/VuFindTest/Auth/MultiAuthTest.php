@@ -48,11 +48,11 @@ class MultiAuthTest extends \PHPUnit\Framework\TestCase
     /**
      * Get an authentication object.
      *
-     * @param Config $config Configuration to use (null for default)
+     * @param ?Config $config Configuration to use (null for default)
      *
      * @return MultiAuth
      */
-    public function getAuthObject(Config $config = null): MultiAuth
+    public function getAuthObject(?Config $config = null): MultiAuth
     {
         $container = new \VuFindTest\Container\MockContainer($this);
         $container->set(\VuFind\Log\Logger::class, $this->createMock(\Laminas\Log\LoggerInterface::class));

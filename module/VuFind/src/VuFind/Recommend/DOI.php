@@ -47,7 +47,7 @@ class DOI implements RecommendInterface
     /**
      * DOI found in search query (or null for none)
      *
-     * @var string
+     * @var ?string
      */
     protected $match = null;
 

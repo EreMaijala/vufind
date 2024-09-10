@@ -72,14 +72,14 @@ class Folio extends AbstractAPI implements
     /**
      * Authentication tenant (X-Okapi-Tenant)
      *
-     * @var string
+     * @var ?string
      */
     protected $tenant = null;
 
     /**
      * Authentication token (X-Okapi-Token)
      *
-     * @var string
+     * @var ?string
      */
     protected $token = null;
 
@@ -821,14 +821,14 @@ class Folio extends AbstractAPI implements
      * This method queries the ILS for holding information.
      *
      * @param string $bibId   Bib-level id
-     * @param array  $patron  Patron login information from $this->patronLogin
+     * @param ?array $patron  Patron login information from $this->patronLogin
      * @param array  $options Extra options (not currently used)
      *
      * @return array An array of associative holding arrays
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getHolding($bibId, array $patron = null, array $options = [])
+    public function getHolding($bibId, ?array $patron = null, array $options = [])
     {
         $showDueDate = $this->config['Availability']['showDueDate'] ?? true;
         $showTime = $this->config['Availability']['showTime'] ?? false;
@@ -1394,8 +1394,8 @@ class Folio extends AbstractAPI implements
      * This is responsible get a list of valid locations for holds / recall
      * retrieval
      *
-     * @param array $patron   Patron information returned by $this->patronLogin
-     * @param array $holdInfo Optional array, only passed in when getting a list
+     * @param array  $patron   Patron information returned by $this->patronLogin
+     * @param ?array $holdInfo Optional array, only passed in when getting a list
      * in the context of placing or editing a hold. When placing a hold, it contains
      * most of the same values passed to placeHold, minus the patron data. When
      * editing a hold it contains all the hold information returned by getMyHolds.
@@ -2233,10 +2233,10 @@ class Folio extends AbstractAPI implements
      *
      * Retrieve the IDs of items recently added to the catalog.
      *
-     * @param int $page    Page number of results to retrieve (counting starts at 1)
-     * @param int $limit   The size of each page of results to retrieve
-     * @param int $daysOld The maximum age of records to retrieve in days (max. 30)
-     * @param int $fundId  optional fund ID to use for limiting results (use a value
+     * @param int  $page    Page number of results to retrieve (counting starts at 1)
+     * @param int  $limit   The size of each page of results to retrieve
+     * @param int  $daysOld The maximum age of records to retrieve in days (max. 30)
+     * @param ?int $fundId  optional fund ID to use for limiting results (use a value
      * returned by getFunds, or exclude for no limit); note that "fund" may be a
      * misnomer - if funds are not an appropriate way to limit your new item
      * results, you can return a different set of values from getFunds. The

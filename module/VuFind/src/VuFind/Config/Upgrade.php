@@ -128,11 +128,11 @@ class Upgrade
     /**
      * Constructor
      *
-     * @param string $from   Version we're upgrading from.
-     * @param string $to     Version we're upgrading to.
-     * @param string $oldDir Directory containing old configurations.
-     * @param string $rawDir Directory containing raw new configurations.
-     * @param string $newDir Directory to write updated new configurations into
+     * @param string  $from   Version we're upgrading from.
+     * @param string  $to     Version we're upgrading to.
+     * @param string  $oldDir Directory containing old configurations.
+     * @param string  $rawDir Directory containing raw new configurations.
+     * @param ?string $newDir Directory to write updated new configurations into
      * (leave null to disable writes -- used in test mode).
      */
     public function __construct($from, $to, $oldDir, $rawDir, $newDir = null)
@@ -441,8 +441,8 @@ class Upgrade
     /**
      * Check for invalid theme setting.
      *
-     * @param string $setting Name of setting in [Site] section to check.
-     * @param string $default Default value to use if invalid option was found.
+     * @param string  $setting Name of setting in [Site] section to check.
+     * @param ?string $default Default value to use if invalid option was found.
      *
      * @return void
      */

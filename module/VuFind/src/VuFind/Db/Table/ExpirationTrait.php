@@ -60,9 +60,9 @@ trait ExpirationTrait
      * Delete expired records. Allows setting of 'from' and 'to' ID's so that rows
      * can be deleted in small batches.
      *
-     * @param string   $dateLimit Date threshold of an "expired" record in format
+     * @param string $dateLimit Date threshold of an "expired" record in format
      * 'Y-m-d H:i:s'.
-     * @param int|null $limit     Maximum number of rows to delete or null for no
+     * @param ?int   $limit     Maximum number of rows to delete or null for no
      * limit.
      *
      * @return int Number of rows deleted

@@ -70,7 +70,7 @@ class NotifyCommand extends Command implements TranslatorAwareInterface
     /**
      * Output interface
      *
-     * @var OutputInterface
+     * @var ?OutputInterface
      */
     protected $output = null;
 

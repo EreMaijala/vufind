@@ -60,7 +60,7 @@ class SearchRunner
     /**
      * Event manager.
      *
-     * @var EventManager
+     * @var ?EventManager
      */
     protected $events = null;
 

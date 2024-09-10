@@ -75,7 +75,7 @@ class AbstractExpireCommand extends Command
      * Default age of rows (in days) to delete. $minAge is used if $defaultAge is
      * null.
      *
-     * @var int|null
+     * @var ?int
      */
     protected $defaultAge = null;
 

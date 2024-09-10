@@ -139,7 +139,7 @@ trait ConcatTrait
     /**
      * Future order of the concatenated file
      *
-     * @var number
+     * @var ?int
      */
     protected $concatIndex = null;
 

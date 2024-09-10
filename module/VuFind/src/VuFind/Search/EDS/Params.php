@@ -193,9 +193,9 @@ class Params extends AbstractEDSParams
     /**
      * Add a field to facet on.
      *
-     * @param string $newField Field name
-     * @param string $newAlias Optional on-screen display label
-     * @param bool   $ored     Should we treat this as an ORed facet?
+     * @param string  $newField Field name
+     * @param ?string $newAlias Optional on-screen display label
+     * @param bool    $ored     Should we treat this as an ORed facet?
      *
      * @return void
      */
@@ -231,9 +231,9 @@ class Params extends AbstractEDSParams
     /**
      * Get a user-friendly string to describe the provided facet field.
      *
-     * @param string $field   Facet field name.
-     * @param string $value   Facet value.
-     * @param string $default Default field name (null for default behavior).
+     * @param string  $field   Facet field name.
+     * @param ?string $value   Facet value.
+     * @param ?string $default Default field name (null for default behavior).
      *
      * @return string         Human-readable description of field.
      */

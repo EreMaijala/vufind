@@ -47,14 +47,14 @@ abstract class AbstractBase
     /**
      * Hierarchical record to work on
      *
-     * @var \VuFind\RecordDriver\AbstractBase
+     * @var ?\VuFind\RecordDriver\AbstractBase
      */
     protected $recordDriver = null;
 
     /**
      * Source of hierarchy data
      *
-     * @var \VuFind\Hierarchy\TreeDataSource\AbstractBase
+     * @var ?\VuFind\Hierarchy\TreeDataSource\AbstractBase
      */
     protected $dataSource = null;
 

@@ -73,14 +73,14 @@ class ThemeInfo
     /**
      * Theme configuration cache
      *
-     * @var array
+     * @var ?array
      */
     protected $allThemeInfo = null;
 
     /**
      * Cache for merged configs
      *
-     * @var StorageInterface
+     * @var ?StorageInterface
      */
     protected $cache = null;
 

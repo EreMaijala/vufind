@@ -72,7 +72,7 @@ class TranslatorFactory implements DelegatorFactoryInterface
         ContainerInterface $container,
         $name,
         callable $callback,
-        array $options = null
+        ?array $options = null
     ) {
         $translator = $callback();
         if (!extension_loaded('intl')) {

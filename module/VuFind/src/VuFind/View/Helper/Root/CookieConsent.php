@@ -68,7 +68,7 @@ class CookieConsent extends \Laminas\View\Helper\AbstractHelper implements Trans
     /**
      * Server name
      *
-     * @var string
+     * @var ?string
      */
     protected $hostName = null;
 

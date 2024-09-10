@@ -72,10 +72,10 @@ class SpecBuilder
     /**
      * Set a generic spec line.
      *
-     * @param string $key        Label to associate with this spec line
-     * @param string $dataMethod Method of data retrieval for rendering element
-     * @param string $renderType Type of rendering to use to generate output
-     * @param array  $options    Additional options
+     * @param string  $key        Label to associate with this spec line
+     * @param string  $dataMethod Method of data retrieval for rendering element
+     * @param ?string $renderType Type of rendering to use to generate output
+     * @param array   $options    Additional options
      *
      * @return void
      */
@@ -152,7 +152,7 @@ class SpecBuilder
      * Reorder the specs to match the provided array of keys.
      *
      * @param array $orderedKeys Keys in the desired order
-     * @param int   $defaultPos  Position to use for elements not included in
+     * @param ?int  $defaultPos  Position to use for elements not included in
      * $orderedKeys (null to put unrecognized items at end of list).
      *
      * @return void

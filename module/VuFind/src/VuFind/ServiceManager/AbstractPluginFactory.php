@@ -100,7 +100,7 @@ abstract class AbstractPluginFactory implements AbstractFactoryInterface
      *
      * @param ContainerInterface $container     Service container
      * @param string             $requestedName Name of service
-     * @param array              $options       Options (unused)
+     * @param ?array             $options       Options (unused)
      *
      * @return object
      *
@@ -109,7 +109,7 @@ abstract class AbstractPluginFactory implements AbstractFactoryInterface
     public function __invoke(
         ContainerInterface $container,
         $requestedName,
-        array $options = null
+        ?array $options = null
     ) {
         $class = $this->getClassName($requestedName);
         return new $class();

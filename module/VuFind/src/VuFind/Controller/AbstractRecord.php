@@ -59,14 +59,14 @@ class AbstractRecord extends AbstractBase
     /**
      * Array of available tab options
      *
-     * @var array
+     * @var ?array
      */
     protected $allTabs = null;
 
     /**
      * Default tab to display (configured at record driver level)
      *
-     * @var string
+     * @var ?string
      */
     protected $defaultTab = null;
 
@@ -80,14 +80,14 @@ class AbstractRecord extends AbstractBase
     /**
      * Array of background tabs
      *
-     * @var array
+     * @var ?array
      */
     protected $backgroundTabs = null;
 
     /**
      * Array of extra scripts for tabs
      *
-     * @var array
+     * @var ?array
      */
     protected $tabsExtraScripts = null;
 
@@ -101,7 +101,7 @@ class AbstractRecord extends AbstractBase
     /**
      * Record driver
      *
-     * @var AbstractRecordDriver
+     * @var ?AbstractRecordDriver
      */
     protected $driver = null;
 
@@ -786,13 +786,13 @@ class AbstractRecord extends AbstractBase
      * init() method since we don't want to perform an expensive search twice
      * when homeAction() forwards to another method.
      *
-     * @param ParamBag $params Search backend parameters
-     * @param bool     $force  Set to true to force a reload of the record, even if
+     * @param ?ParamBag $params Search backend parameters
+     * @param bool      $force  Set to true to force a reload of the record, even if
      * already loaded (useful if loading a record using different parameters)
      *
      * @return AbstractRecordDriver
      */
-    protected function loadRecord(ParamBag $params = null, bool $force = false)
+    protected function loadRecord(?ParamBag $params = null, bool $force = false)
     {
         // Only load the record if it has not already been loaded. Note that
         // when determining record ID, we check both the route match (the most

@@ -130,8 +130,8 @@ class AbstractEDSParams extends \VuFind\Search\Base\Params
     /**
      * Get facet operator for the specified field
      *
-     * @param string $field             Field name
-     * @param string $specifiedOperator Operator specified on a config filter line
+     * @param string  $field             Field name
+     * @param ?string $specifiedOperator Operator specified on a config filter line
      *
      * @return string
      */

@@ -73,12 +73,12 @@ class HttpDownloadException extends \Exception implements HttpStatusInterface
     /**
      * Constructor
      *
-     * @param string          $message         Exception message
-     * @param string          $url             URL we tried to download
-     * @param int|null        $statusCode      HTTP status code
-     * @param Headers|null    $responseHeaders HTTP response headers
-     * @param string|null     $responseBody    HTTP response body
-     * @param \Throwable|null $previous        Previous exception
+     * @param string      $message         Exception message
+     * @param string      $url             URL we tried to download
+     * @param ?int        $statusCode      HTTP status code
+     * @param ?Headers    $responseHeaders HTTP response headers
+     * @param ?string     $responseBody    HTTP response body
+     * @param ?\Throwable $previous        Previous exception
      */
     public function __construct(
         string $message,

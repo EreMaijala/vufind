@@ -47,7 +47,7 @@ abstract class AbstractBase implements \Laminas\Log\LoggerAwareInterface
     /**
      * Hierarchy driver
      *
-     * @var \VuFind\Hierarchy\Driver\AbstractBase
+     * @var ?\VuFind\Hierarchy\Driver\AbstractBase
      */
     protected $hierarchyDriver = null;
 

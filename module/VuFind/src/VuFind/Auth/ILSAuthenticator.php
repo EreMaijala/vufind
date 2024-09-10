@@ -63,7 +63,7 @@ class ILSAuthenticator implements DbServiceAwareInterface
     /**
      * Authentication manager
      *
-     * @var Manager
+     * @var ?Manager
      */
     protected $authManager = null;
 
@@ -77,14 +77,14 @@ class ILSAuthenticator implements DbServiceAwareInterface
     /**
      * Is encryption enabled?
      *
-     * @var bool
+     * @var ?bool
      */
     protected $encryptionEnabled = null;
 
     /**
      * Encryption key used for catalog passwords (null if encryption disabled):
      *
-     * @var string
+     * @var ?string
      */
     protected $encryptionKey = null;
 

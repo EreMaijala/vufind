@@ -44,14 +44,14 @@ trait PreviousUniqueIdTrait
     /**
      * Previous unique ID (if applicable).
      *
-     * @var string
+     * @var ?string
      */
     protected $previousUniqueId = null;
 
     /**
      * Get previous unique ID (or null if not applicable).
      *
-     * @return string
+     * @return ?string
      */
     public function getPreviousUniqueId()
     {

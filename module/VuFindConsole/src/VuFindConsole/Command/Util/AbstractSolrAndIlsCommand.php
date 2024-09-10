@@ -53,9 +53,9 @@ abstract class AbstractSolrAndIlsCommand extends AbstractSolrCommand
     /**
      * Constructor
      *
-     * @param Writer      $solr Solr writer
-     * @param Connection  $ils  ILS connection object
-     * @param string|null $name The name of the command; passing null means it
+     * @param Writer     $solr Solr writer
+     * @param Connection $ils  ILS connection object
+     * @param ?string    $name The name of the command; passing null means it
      * must be set in configure()
      */
     public function __construct(Writer $solr, Connection $ils, $name = null)

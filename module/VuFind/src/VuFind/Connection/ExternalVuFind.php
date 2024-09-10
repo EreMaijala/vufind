@@ -50,7 +50,7 @@ class ExternalVuFind implements
     /**
      * Base URL of the LibGuides API
      *
-     * @var string
+     * @var ?string
      */
     protected $baseUrl = null;
 

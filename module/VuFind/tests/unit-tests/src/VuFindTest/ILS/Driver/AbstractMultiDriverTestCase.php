@@ -217,8 +217,8 @@ abstract class AbstractMultiDriverTestCase extends \PHPUnit\Framework\TestCase
     /**
      * Method to get a patron with the given username
      *
-     * @param string $username The username to use
-     * @param string $instance The instance to append before the username
+     * @param string  $username The username to use
+     * @param ?string $instance The instance to append before the username
      *
      * @return array A patron array.
      */
@@ -284,7 +284,7 @@ abstract class AbstractMultiDriverTestCase extends \PHPUnit\Framework\TestCase
      * Get a mock driver
      *
      * @param string $type    Type of driver to make
-     * @param array  $methods Array of methods to stub
+     * @param ?array $methods Array of methods to stub
      *
      * @return \VuFind\ILS\Driver\AbstractBase
      */

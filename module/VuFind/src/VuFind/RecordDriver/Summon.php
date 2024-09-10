@@ -62,7 +62,7 @@ class Summon extends DefaultRecord implements Feature\PreviousUniqueIdInterface
     /**
      * Date converter
      *
-     * @var \VuFind\Date\Converter
+     * @var ?\VuFind\Date\Converter
      */
     protected $dateConverter = null;
 

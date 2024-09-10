@@ -65,7 +65,7 @@ class Search extends Gateway implements DbServiceAwareInterface
      * @param Adapter       $adapter Database adapter
      * @param PluginManager $tm      Table manager
      * @param array         $cfg     Laminas configuration
-     * @param RowGateway    $rowObj  Row prototype object (null for default)
+     * @param ?RowGateway   $rowObj  Row prototype object (null for default)
      * @param string        $table   Name of database table to interface with
      */
     public function __construct(
@@ -128,7 +128,7 @@ class Search extends Gateway implements DbServiceAwareInterface
      * Destroy unsaved searches belonging to the specified session/user.
      *
      * @param string $sid Session ID of current user.
-     * @param int    $uid User ID of current user (optional).
+     * @param ?int   $uid User ID of current user (optional).
      *
      * @return void
      *
@@ -143,7 +143,7 @@ class Search extends Gateway implements DbServiceAwareInterface
      * Get an array of rows for the specified user.
      *
      * @param string $sid Session ID of current user.
-     * @param int    $uid User ID of current user (optional).
+     * @param ?int   $uid User ID of current user (optional).
      *
      * @return array      Matching SearchEntry objects.
      *

@@ -50,6 +50,11 @@ class FormTest extends \PHPUnit\Framework\TestCase
 {
     use \VuFindTest\Feature\FixtureTrait;
 
+    /**
+     * YAML reader
+     *
+     * @var ?\VuFind\Config\YamlReader&MockObject
+     */
     protected $mockTestFormYamlReader = null;
 
     /**

@@ -93,7 +93,7 @@ class ResultScroller extends AbstractPlugin
     /**
      * Currently active scroll data
      *
-     * @var \stdClass
+     * @var ?\stdClass
      */
     protected $data = null;
 
@@ -630,7 +630,7 @@ class ResultScroller extends AbstractPlugin
      * return the IDs of the records in an array.
      *
      * @param object $searchObject The search object to use to execute the search
-     * @param int    $page         The page number to fetch (null for current)
+     * @param ?int   $page         The page number to fetch (null for current)
      *
      * @return array
      */

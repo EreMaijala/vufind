@@ -98,17 +98,17 @@ class WebCrawlCommandTest extends \PHPUnit\Framework\TestCase
     /**
      * Get a mock command object
      *
-     * @param Importer $importer Importer object
-     * @param Writer   $solr     Solr writer object
-     * @param Config   $config   Configuration
-     * @param array    $methods  Methods to mock
+     * @param ?Importer $importer Importer object
+     * @param ?Writer   $solr     Solr writer object
+     * @param ?Config   $config   Configuration
+     * @param array     $methods  Methods to mock
      *
      * @return WebCrawlCommand
      */
     protected function getMockCommand(
-        Importer $importer = null,
-        Writer $solr = null,
-        Config $config = null,
+        ?Importer $importer = null,
+        ?Writer $solr = null,
+        ?Config $config = null,
         array $methods = ['downloadFile', 'removeTempFile']
     ) {
         return $this->getMockBuilder(WebCrawlCommand::class)

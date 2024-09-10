@@ -113,8 +113,8 @@ class PermissionDeniedManager
     /**
      * Get behavior to apply when a controller denies a permission.
      *
-     * @param string $permission      Permission that has been denied
-     * @param string $defaultBehavior Default behavior to use if none configured
+     * @param string  $permission      Permission that has been denied
+     * @param ?string $defaultBehavior Default behavior to use if none configured
      * (null to use default configured in this class, false to take no action).
      *
      * @return array|bool Associative array of behavior for the given

@@ -65,7 +65,7 @@ abstract class Results
     /**
      * Total number of results available
      *
-     * @var int
+     * @var ?int
      */
     protected $resultTotal = null;
 
@@ -79,7 +79,7 @@ abstract class Results
     /**
      * Override (only for use in very rare cases)
      *
-     * @var int
+     * @var ?int
      */
     protected $startRecordOverride = null;
 
@@ -87,56 +87,56 @@ abstract class Results
      * Array of results (represented as Record Driver objects) retrieved on latest
      * search
      *
-     * @var array
+     * @var ?array
      */
     protected $results = null;
 
     /**
      * Any errors reported by the search backend
      *
-     * @var array
+     * @var ?array
      */
     protected $errors = null;
 
     /**
      * An ID number for saving/retrieving search
      *
-     * @var int
+     * @var ?int
      */
     protected $searchId = null;
 
     /**
      * Is this a user-saved search?
      *
-     * @var bool
+     * @var ?bool
      */
     protected $savedSearch = null;
 
     /**
      * How frequently will a user be notified about this search (0 = never)?
      *
-     * @var int
+     * @var ?int
      */
     protected $notificationFrequency = null;
 
     /**
      * Query start time
      *
-     * @var float
+     * @var ?float
      */
     protected $queryStartTime = null;
 
     /**
      * Query end time
      *
-     * @var float
+     * @var ?float
      */
     protected $queryEndTime = null;
 
     /**
      * Query time (total)
      *
-     * @var float
+     * @var ?float
      */
     protected $queryTime = null;
 
@@ -150,7 +150,7 @@ abstract class Results
     /**
      * Spelling suggestions
      *
-     * @var array
+     * @var ?array
      */
     protected $suggestions = null;
 
@@ -178,14 +178,14 @@ abstract class Results
     /**
      * URL query helper factory
      *
-     * @var UrlQueryHelperFactory
+     * @var ?UrlQueryHelperFactory
      */
     protected $urlQueryHelperFactory = null;
 
     /**
      * Hierarchical facet helper
      *
-     * @var HierarchicalFacetHelperInterface
+     * @var ?HierarchicalFacetHelperInterface
      */
     protected $hierarchicalFacetHelper = null;
 
@@ -854,13 +854,13 @@ abstract class Results
      * A helper method that converts the list of facets for the last search from
      * RecordCollection's facet list.
      *
-     * @param array $facetList Facet list
-     * @param array $filter    Array of field => on-screen description listing
+     * @param array  $facetList Facet list
+     * @param ?array $filter    Array of field => on-screen description listing
      * all of the desired facet fields; set to null to get all configured values.
      *
      * @return array Facets data arrays
      */
-    protected function buildFacetList(array $facetList, array $filter = null): array
+    protected function buildFacetList(array $facetList, ?array $filter = null): array
     {
         // If there is no filter, we'll use all facets as the filter:
         if (null === $filter) {

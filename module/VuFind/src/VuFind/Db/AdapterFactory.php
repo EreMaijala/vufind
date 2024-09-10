@@ -59,10 +59,10 @@ class AdapterFactory implements \Laminas\ServiceManager\Factory\FactoryInterface
     /**
      * Constructor
      *
-     * @param Config $config VuFind configuration (provided when used as service;
+     * @param ?Config $config VuFind configuration (provided when used as service;
      * omitted when used as factory)
      */
-    public function __construct(Config $config = null)
+    public function __construct(?Config $config = null)
     {
         $this->config = $config ?: new Config([]);
     }
@@ -84,7 +84,7 @@ class AdapterFactory implements \Laminas\ServiceManager\Factory\FactoryInterface
     public function __invoke(
         ContainerInterface $container,
         $requestedName,
-        array $options = null
+        ?array $options = null
     ) {
         if (!empty($options)) {
             throw new \Exception('Unexpected options sent to factory!');
@@ -97,9 +97,9 @@ class AdapterFactory implements \Laminas\ServiceManager\Factory\FactoryInterface
     /**
      * Obtain a Laminas\DB connection using standard VuFind configuration.
      *
-     * @param string $overrideUser Username override (leave null to use username
+     * @param ?string $overrideUser Username override (leave null to use username
      * from config.ini)
-     * @param string $overridePass Password override (leave null to use password
+     * @param ?string $overridePass Password override (leave null to use password
      * from config.ini)
      *
      * @return Adapter

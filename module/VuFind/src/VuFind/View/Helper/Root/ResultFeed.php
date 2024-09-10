@@ -56,7 +56,7 @@ class ResultFeed extends AbstractHelper implements TranslatorAwareInterface
     /**
      * Override title
      *
-     * @var string
+     * @var ?string
      */
     protected $overrideTitle = null;
 
@@ -107,7 +107,7 @@ class ResultFeed extends AbstractHelper implements TranslatorAwareInterface
      *
      * @param \VuFind\Search\Base\Results $results     Search results to convert to
      * feed
-     * @param string                      $currentPath Base path to display in feed
+     * @param ?string                     $currentPath Base path to display in feed
      * (leave null to load dynamically using currentpath view helper)
      *
      * @return Feed

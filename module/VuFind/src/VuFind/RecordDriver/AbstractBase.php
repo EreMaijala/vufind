@@ -96,9 +96,9 @@ abstract class AbstractBase implements
     /**
      * Constructor
      *
-     * @param \Laminas\Config\Config $mainConfig   VuFind main configuration (omit
+     * @param ?\Laminas\Config\Config $mainConfig   VuFind main configuration (omit
      * for built-in defaults)
-     * @param \Laminas\Config\Config $recordConfig Record-specific configuration file
+     * @param ?\Laminas\Config\Config $recordConfig Record-specific configuration file
      * (omit to use $mainConfig as $recordConfig)
      */
     public function __construct($mainConfig = null, $recordConfig = null)
@@ -335,8 +335,8 @@ abstract class AbstractBase implements
     /**
      * Get notes associated with this record in user lists.
      *
-     * @param int $list_id ID of list to load tags from (null for all lists)
-     * @param int $user_id ID of user to load tags from (null for all users)
+     * @param ?int $list_id ID of list to load tags from (null for all lists)
+     * @param ?int $user_id ID of user to load tags from (null for all users)
      *
      * @return array
      *

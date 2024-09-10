@@ -90,7 +90,7 @@ final class ILSTest extends \PHPUnit\Framework\TestCase
      * Get the object to test.
      *
      * @param \VuFind\ILS\Driver\AbstractBase $driver Mock ILS driver to test with.
-     * @param array                           $patron Logged in patron for mock
+     * @param ?array                          $patron Logged in patron for mock
      * authenticator (null for none)
      *
      * @return \VuFind\Auth\ILS

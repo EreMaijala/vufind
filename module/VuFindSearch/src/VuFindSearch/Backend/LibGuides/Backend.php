@@ -59,7 +59,7 @@ class Backend extends AbstractBackend
     /**
      * Query builder.
      *
-     * @var QueryBuilder
+     * @var ?QueryBuilder
      */
     protected $queryBuilder = null;
 
@@ -73,16 +73,16 @@ class Backend extends AbstractBackend
     /**
      * Constructor.
      *
-     * @param Connector                        $connector     LibGuides connector
-     * @param RecordCollectionFactoryInterface $factory       Record collection
+     * @param Connector                         $connector     LibGuides connector
+     * @param ?RecordCollectionFactoryInterface $factory       Record collection
      * factory (null for default)
-     * @param string                           $defaultSearch Default search query
+     * @param string                            $defaultSearch Default search query
      *
      * @return void
      */
     public function __construct(
         Connector $connector,
-        RecordCollectionFactoryInterface $factory = null,
+        ?RecordCollectionFactoryInterface $factory = null,
         $defaultSearch = null
     ) {
         if (null !== $factory) {
@@ -99,7 +99,7 @@ class Backend extends AbstractBackend
      * @param AbstractQuery $query  Search query
      * @param int           $offset Search offset
      * @param int           $limit  Search limit
-     * @param ParamBag      $params Search backend parameters
+     * @param ?ParamBag     $params Search backend parameters
      *
      * @return RecordCollectionInterface
      */
@@ -107,7 +107,7 @@ class Backend extends AbstractBackend
         AbstractQuery $query,
         $offset,
         $limit,
-        ParamBag $params = null
+        ?ParamBag $params = null
     ) {
         $baseParams = $this->getQueryBuilder()->build($query);
         if (null !== $params) {
@@ -138,12 +138,12 @@ class Backend extends AbstractBackend
     /**
      * Retrieve a single document.
      *
-     * @param string   $id     Document identifier
-     * @param ParamBag $params Search backend parameters
+     * @param string    $id     Document identifier
+     * @param ?ParamBag $params Search backend parameters
      *
      * @return RecordCollectionInterface
      */
-    public function retrieve($id, ParamBag $params = null)
+    public function retrieve($id, ?ParamBag $params = null)
     {
         throw new \Exception('retrieve() not supported by LibGuides.');
     }

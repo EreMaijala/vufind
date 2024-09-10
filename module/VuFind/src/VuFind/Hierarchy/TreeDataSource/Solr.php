@@ -74,7 +74,7 @@ class Solr extends AbstractBase
     /**
      * Cache directory
      *
-     * @var string
+     * @var ?string
      */
     protected $cacheDir = null;
 
@@ -95,7 +95,7 @@ class Solr extends AbstractBase
     /**
      * Hierarchy cache file prefix.
      *
-     * @var string
+     * @var ?string
      */
     protected $cachePrefix = null;
 

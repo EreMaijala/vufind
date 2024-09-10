@@ -522,7 +522,7 @@ abstract class MinkTestCase extends \PHPUnit\Framework\TestCase
      * Includes a check for $ to be available to make sure jQuery has been loaded.
      *
      * @param string $statement JavaScript statement to evaluate
-     * @param int    $timeout   Wait timeout (in ms)
+     * @param ?int   $timeout   Wait timeout (in ms)
      *
      * @return mixed
      */
@@ -815,7 +815,7 @@ abstract class MinkTestCase extends \PHPUnit\Framework\TestCase
      * @param callable $callback    Callback used to get the results
      * @param callable $compareFunc Callback used to compare the results
      * @param callable $assertion   Assertion to make
-     * @param int      $timeout     Wait timeout (in ms)
+     * @param ?int     $timeout     Wait timeout (in ms)
      *
      * @return void
      */
@@ -824,7 +824,7 @@ abstract class MinkTestCase extends \PHPUnit\Framework\TestCase
         callable $callback,
         callable $compareFunc,
         callable $assertion,
-        int $timeout = null
+        ?int $timeout = null
     ) {
         $timeout ??= $this->getDefaultTimeout();
         $result = null;
@@ -855,14 +855,14 @@ abstract class MinkTestCase extends \PHPUnit\Framework\TestCase
      *
      * @param mixed    $expected Expected value
      * @param callable $callback Callback
-     * @param int      $timeout  Wait timeout (in ms)
+     * @param ?int     $timeout  Wait timeout (in ms)
      *
      * @return void
      */
     protected function assertEqualsWithTimeout(
         $expected,
         callable $callback,
-        int $timeout = null
+        ?int $timeout = null
     ) {
         $this->assertWithTimeout(
             $expected,
@@ -880,14 +880,14 @@ abstract class MinkTestCase extends \PHPUnit\Framework\TestCase
      *
      * @param string   $expected Expected value
      * @param callable $callback Callback
-     * @param int      $timeout  Wait timeout (in ms)
+     * @param ?in      $timeout  Wait timeout (in ms)
      *
      * @return void
      */
     protected function assertStringContainsStringWithTimeout(
         string $expected,
         callable $callback,
-        int $timeout = null
+        ?int $timeout = null
     ) {
         $this->assertWithTimeout(
             $expected,
@@ -923,7 +923,7 @@ abstract class MinkTestCase extends \PHPUnit\Framework\TestCase
      *
      * @param Element $page    Current page object
      * @param string  $query   Search term(s)
-     * @param string  $handler Search type (optional)
+     * @param ?string $handler Search type (optional)
      *
      * @return void
      *
@@ -946,13 +946,13 @@ abstract class MinkTestCase extends \PHPUnit\Framework\TestCase
      * Wait for page load (full page or any element) to complete
      *
      * @param Element $page    Page element
-     * @param int     $timeout Wait timeout (in ms)
+     * @param ?int    $timeout Wait timeout (in ms)
      *
      * @return void
      */
     protected function waitForPageLoad(
         Element $page,
-        int $timeout = null
+        ?int $timeout = null
     ) {
         $timeout ??= $this->getDefaultTimeout();
         $session = $this->getMinkSession();

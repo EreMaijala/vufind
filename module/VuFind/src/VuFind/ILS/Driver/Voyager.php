@@ -123,7 +123,7 @@ class Voyager extends AbstractBase implements TranslatorAwareInterface, \Laminas
      *
      * @param string $func   Function name or description
      * @param string $sql    The SQL statement
-     * @param array  $params SQL bind parameters
+     * @param ?array $params SQL bind parameters
      *
      * @return void
      */
@@ -1062,7 +1062,7 @@ class Voyager extends AbstractBase implements TranslatorAwareInterface, \Laminas
      *
      * @param array  $data   Item Data
      * @param string $id     The BIB record id
-     * @param array  $patron Patron Data
+     * @param ?array $patron Patron Data
      *
      * @throws DateException
      * @throws ILSException
@@ -1152,7 +1152,7 @@ class Voyager extends AbstractBase implements TranslatorAwareInterface, \Laminas
      * record.
      *
      * @param string $id      The record id to retrieve the holdings for
-     * @param array  $patron  Patron data
+     * @param ?array $patron  Patron data
      * @param array  $options Extra options (not currently used)
      *
      * @throws DateException
@@ -1163,7 +1163,7 @@ class Voyager extends AbstractBase implements TranslatorAwareInterface, \Laminas
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getHolding($id, array $patron = null, array $options = [])
+    public function getHolding($id, ?array $patron = null, array $options = [])
     {
         $possibleQueries = [];
 
@@ -2112,10 +2112,10 @@ class Voyager extends AbstractBase implements TranslatorAwareInterface, \Laminas
      *
      * Retrieve the IDs of items recently added to the catalog.
      *
-     * @param int $page    Page number of results to retrieve (counting starts at 1)
-     * @param int $limit   The size of each page of results to retrieve
-     * @param int $daysOld The maximum age of records to retrieve in days (max. 30)
-     * @param int $fundId  optional fund ID to use for limiting results (use a value
+     * @param int  $page    Page number of results to retrieve (counting starts at 1)
+     * @param int  $limit   The size of each page of results to retrieve
+     * @param int  $daysOld The maximum age of records to retrieve in days (max. 30)
+     * @param ?int $fundId  optional fund ID to use for limiting results (use a value
      * returned by getFunds, or exclude for no limit); note that "fund" may be a
      * misnomer - if funds are not an appropriate way to limit your new item
      * results, you can return a different set of values from getFunds. The
@@ -2540,9 +2540,9 @@ class Voyager extends AbstractBase implements TranslatorAwareInterface, \Laminas
     /**
      * Get bib records for "trending" items (recently returned with high usage).
      *
-     * @param int   $limit  Maximum number of records to retrieve (default = 30)
-     * @param int   $maxage The maximum number of days' worth of data to examine.
-     * @param array $patron Patron Data
+     * @param int    $limit  Maximum number of records to retrieve (default = 30)
+     * @param int    $maxage The maximum number of days' worth of data to examine.
+     * @param ?array $patron Patron Data
      *
      * @return array
      *

@@ -55,7 +55,7 @@ class Params extends \VuFind\Search\Base\Params
      * Search with facet.contains
      * cf. https://lucene.apache.org/solr/guide/7_3/faceting.html
      *
-     * @var string
+     * @var ?string
      */
     protected $facetContains = null;
 
@@ -63,49 +63,49 @@ class Params extends \VuFind\Search\Base\Params
      * Ignore Case when using facet.contains
      * cf. https://lucene.apache.org/solr/guide/7_3/faceting.html
      *
-     * @var bool
+     * @var ?bool
      */
     protected $facetContainsIgnoreCase = null;
 
     /**
      * Offset for facet results
      *
-     * @var int
+     * @var ?int
      */
     protected $facetOffset = null;
 
     /**
      * Prefix for facet searching
      *
-     * @var string
+     * @var ?string
      */
     protected $facetPrefix = null;
 
     /**
      * Sorting order for facet search results
      *
-     * @var string
+     * @var ?string
      */
     protected $facetSort = null;
 
     /**
      * Sorting order of single facet by index
      *
-     * @var array
+     * @var ?array
      */
     protected $indexSortedFacets = null;
 
     /**
      * Fields for visual faceting
      *
-     * @var string
+     * @var ?string
      */
     protected $pivotFacets = null;
 
     /**
      * Hierarchical Facet Helper
      *
-     * @var HierarchicalFacetHelper
+     * @var ?HierarchicalFacetHelper
      */
     protected $facetHelper;
 
@@ -138,12 +138,12 @@ class Params extends \VuFind\Search\Base\Params
      *
      * @param \VuFind\Search\Base\Options  $options      Options to use
      * @param \VuFind\Config\PluginManager $configLoader Config loader
-     * @param HierarchicalFacetHelper      $facetHelper  Hierarchical facet helper
+     * @param ?HierarchicalFacetHelper     $facetHelper  Hierarchical facet helper
      */
     public function __construct(
         $options,
         \VuFind\Config\PluginManager $configLoader,
-        HierarchicalFacetHelper $facetHelper = null
+        ?HierarchicalFacetHelper $facetHelper = null
     ) {
         parent::__construct($options, $configLoader);
         $this->facetHelper = $facetHelper;
@@ -359,10 +359,10 @@ class Params extends \VuFind\Search\Base\Params
     /**
      * Initialize facet settings for the specified configuration sections.
      *
-     * @param string $facetList     Config section containing fields to activate
-     * @param string $facetSettings Config section containing related settings
-     * @param string $cfgFile       Name of configuration to load (null to load
-     * default facets configuration).
+     * @param string  $facetList     Config section containing fields to activate
+     * @param string  $facetSettings Config section containing related settings
+     * @param ?string $cfgFile       Name of configuration to load (null to load
+     *                               default facets configuration).
      *
      * @return bool                 True if facets set, false if no settings found
      */
@@ -704,14 +704,14 @@ class Params extends \VuFind\Search\Base\Params
     /**
      * Get information on the current state of the boolean checkbox facets.
      *
-     * @param array $include        List of checkbox filters to return (null for all)
-     * @param bool  $includeDynamic Should we include dynamically-generated
+     * @param ?array $include        List of checkbox filters to return (null for all)
+     * @param bool   $includeDynamic Should we include dynamically-generated
      * checkboxes that are not part of the include list above?
      *
      * @return array
      */
     public function getCheckboxFacets(
-        array $include = null,
+        ?array $include = null,
         bool $includeDynamic = true
     ) {
         // Grab checkbox facet details using the standard method:

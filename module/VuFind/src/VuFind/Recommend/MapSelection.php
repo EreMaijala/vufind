@@ -80,14 +80,14 @@ class MapSelection implements
     /**
      * Selected coordinates
      *
-     * @var string
+     * @var ?string
      */
     protected $selectedCoordinates = null;
 
     /**
      * Search parameters
      *
-     * @var object
+     * @var ?object
      */
     protected $searchParams = null;
 

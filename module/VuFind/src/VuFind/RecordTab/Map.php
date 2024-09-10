@@ -47,13 +47,6 @@ use function count;
 class Map extends AbstractBase
 {
     /**
-     * Should Map Tab be displayed?
-     *
-     * @var bool
-     */
-    protected $mapTabDisplay = false;
-
-    /**
      * Should we display coordinates as part of labels?
      *
      * @var bool
@@ -63,7 +56,7 @@ class Map extends AbstractBase
     /**
      * Map labels setting from config.ini.
      *
-     * @var string
+     * @var ?string
      */
     protected $mapLabels = null;
 
@@ -82,25 +75,18 @@ class Map extends AbstractBase
     protected $basemapOptions = [];
 
     /**
-     * Configuration file path resolver
-     *
-     * @var PathResolver
-     */
-    protected $pathResolver;
-
-    /**
      * Constructor
      *
-     * @param bool         $mapTabDisplay  Display Map
-     * @param array        $basemapOptions basemap settings
-     * @param array        $mapTabOptions  MapTab settings
-     * @param PathResolver $pathResolver   Config file path resolver
+     * @param bool          $mapTabDisplay  Display Map
+     * @param array         $basemapOptions basemap settings
+     * @param array         $mapTabOptions  MapTab settings
+     * @param ?PathResolver $pathResolver   Config file path resolver
      */
     public function __construct(
-        $mapTabDisplay = false,
+        protected $mapTabDisplay = false,
         $basemapOptions = [],
         $mapTabOptions = [],
-        PathResolver $pathResolver = null
+        protected ?PathResolver $pathResolver = null
     ) {
         if ($mapTabDisplay) {
             $this->mapTabDisplay = $mapTabDisplay;
@@ -113,7 +99,6 @@ class Map extends AbstractBase
             $this->basemapOptions[0] = $basemapOptions['basemap_url'];
             $this->basemapOptions[1] = $basemapOptions['basemap_attribution'];
         }
-        $this->pathResolver = $pathResolver;
     }
 
     /**

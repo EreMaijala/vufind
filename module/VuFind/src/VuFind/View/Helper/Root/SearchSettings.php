@@ -53,7 +53,7 @@ class SearchSettings extends \Laminas\View\Helper\AbstractHelper
     /**
      * Search params
      *
-     * @var Params
+     * @var ?Params
      */
     protected $params = null;
 

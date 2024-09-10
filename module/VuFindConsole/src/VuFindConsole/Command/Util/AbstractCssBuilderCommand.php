@@ -62,8 +62,8 @@ abstract class AbstractCssBuilderCommand extends Command
     /**
      * Constructor
      *
-     * @param string      $cacheDir Cache directory for compiler
-     * @param string|null $name     The name of the command; passing null means it
+     * @param string  $cacheDir Cache directory for compiler
+     * @param ?string $name     The name of the command; passing null means it
      * must be set in configure()
      */
     public function __construct($cacheDir, $name = null)

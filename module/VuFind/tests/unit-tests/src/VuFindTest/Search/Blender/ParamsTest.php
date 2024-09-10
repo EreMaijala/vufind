@@ -241,7 +241,7 @@ class ParamsTest extends \PHPUnit\Framework\TestCase
     /**
      * Mock config manager
      *
-     * @var object
+     * @var ?object
      */
     protected $configManager = null;
 
@@ -1112,8 +1112,8 @@ class ParamsTest extends \PHPUnit\Framework\TestCase
     /**
      * Get Params class
      *
-     * @param array $config   Blender configuration, overrides defaults
-     * @param array $mappings Blender mappings, overrides defaults
+     * @param ?array $config   Blender configuration, overrides defaults
+     * @param ?array $mappings Blender mappings, overrides defaults
      *
      * @return Params
      */

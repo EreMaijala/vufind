@@ -333,7 +333,7 @@ class Virtua extends AbstractBase implements \VuFindHttp\HttpServiceAwareInterfa
      * record.
      *
      * @param string $id      The record id to retrieve the holdings for
-     * @param array  $patron  Patron data
+     * @param ?array $patron  Patron data
      * @param array  $options Extra options (not currently used)
      *
      * @throws DateException
@@ -344,7 +344,7 @@ class Virtua extends AbstractBase implements \VuFindHttp\HttpServiceAwareInterfa
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getHolding($id, array $patron = null, array $options = [])
+    public function getHolding($id, ?array $patron = null, array $options = [])
     {
         // Strip off the prefix from vtls exports
         $db_id = str_replace('vtls', '', $id);
@@ -1888,11 +1888,11 @@ class Virtua extends AbstractBase implements \VuFindHttp\HttpServiceAwareInterfa
      * Support method -- perform an HTTP request. This will be a GET request unless
      * either $postParams or $rawPost is set to a non-null value.
      *
-     * @param string $url        Target URL for request
-     * @param array  $postParams Associative array of POST parameters (null for
-     * none).
-     * @param string $rawPost    String representing raw POST parameters (null for
-     * none).
+     * @param string  $url        Target URL for request
+     * @param ?array  $postParams Associative array of POST parameters (null for
+     *                            none).
+     * @param ?string $rawPost    String representing raw POST parameters (null for
+     *                            none).
      *
      * @throws ILSException
      * @return string Response body

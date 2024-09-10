@@ -343,7 +343,7 @@ class Horizon extends AbstractBase implements LoggerAwareInterface
      * record.
      *
      * @param string $id      The record id to retrieve the holdings for
-     * @param array  $patron  Patron data
+     * @param ?array $patron  Patron data
      * @param array  $options Extra options (not currently used)
      *
      * @throws DateException
@@ -354,7 +354,7 @@ class Horizon extends AbstractBase implements LoggerAwareInterface
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getHolding($id, array $patron = null, array $options = [])
+    public function getHolding($id, ?array $patron = null, array $options = [])
     {
         $sqlArray = $this->getHoldingSql($id);
         $sql = $this->buildSqlFromArray($sqlArray);
@@ -1050,12 +1050,12 @@ class Horizon extends AbstractBase implements LoggerAwareInterface
      * Guide". The minimum setup is to set the "Track First Availability" flag for
      * each appropriate item status.
      *
-     * @param int $page    Not implemented in this driver - Sybase does not have SQL
-     *                     query paging functionality.
-     * @param int $limit   The maximum number of results to retrieve
-     * @param int $daysOld The maximum age of records to retrieve in days (max. 30)
-     * @param int $fundId  Not implemented in this driver - The contributing library
-     *                     does not use acquisitions.
+     * @param int  $page    Not implemented in this driver - Sybase does not have SQL
+     *                      query paging functionality.
+     * @param int  $limit   The maximum number of results to retrieve
+     * @param int  $daysOld The maximum age of records to retrieve in days (max. 30)
+     * @param ?int $fundId  Not implemented in this driver - The contributing library
+     *                      does not use acquisitions.
      *
      * @return array       Associative array with 'count' and 'results' keys
      *

@@ -65,8 +65,8 @@ abstract class AbstractJsonRecordCollectionFactory implements RecordCollectionFa
     /**
      * Constructor.
      *
-     * @param callable $recordFactory   Record factory callback (null for default)
-     * @param string   $collectionClass Class of collection
+     * @param ?callable $recordFactory   Record factory callback (null for default)
+     * @param ?string   $collectionClass Class of collection
      *
      * @return void
      */

@@ -51,7 +51,7 @@ abstract class AbstractBase implements
      * Permission that must be granted to access this module (null for no
      * restriction)
      *
-     * @var string
+     * @var ?string
      */
     protected $accessPermission = null;
 

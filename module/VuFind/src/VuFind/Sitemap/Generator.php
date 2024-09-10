@@ -80,7 +80,7 @@ class Generator
      *
      * @var string
      */
-    protected $fileLocation;
+    protected $fileLocation = null;
 
     /**
      * Base path to sitemap files, including base filename
@@ -106,7 +106,7 @@ class Generator
     /**
      * Verbose callback
      *
-     * @var callable
+     * @var ?callable
      */
     protected $verbose = null;
 
@@ -201,11 +201,11 @@ class Generator
     /**
      * Get/set output file path
      *
-     * @param string $newLocation New path
+     * @param ?string $newLocation New path
      *
-     * @return string Current or new path
+     * @return ?string Current or new path
      */
-    public function setFileLocation(?string $newLocation = null): string
+    public function setFileLocation(?string $newLocation = null): ?string
     {
         if (null !== $newLocation) {
             $this->fileLocation = $newLocation;

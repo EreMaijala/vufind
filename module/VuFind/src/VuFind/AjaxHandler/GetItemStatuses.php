@@ -176,14 +176,14 @@ class GetItemStatuses extends AbstractBase implements
      * Based on settings and the number of callnumbers, return callnumber handler
      * Use callnumbers before pickValue is run.
      *
-     * @param array  $list           Array of callnumbers.
-     * @param string $displaySetting config.ini setting -- first, all or msg
+     * @param ?array  $list           Array of callnumbers.
+     * @param ?string $displaySetting config.ini setting -- first, all or msg
      *
      * @return string
      */
     protected function getCallnumberHandler($list = null, $displaySetting = null)
     {
-        if ($displaySetting == 'msg' && count($list) > 1) {
+        if ($displaySetting == 'msg' && count($list ?? []) > 1) {
             return false;
         }
         return $this->config->Item_Status->callnumber_handler ?? false;

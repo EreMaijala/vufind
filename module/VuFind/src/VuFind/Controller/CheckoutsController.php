@@ -69,7 +69,7 @@ class CheckoutsController extends AbstractBase
     /**
      * Session container
      *
-     * @var \Laminas\Session\Container
+     * @var ?\Laminas\Session\Container
      */
     protected $sessionContainer = null;
 

@@ -50,31 +50,15 @@ class SimilarItemsCarousel extends AbstractBase
     protected $results;
 
     /**
-     * Search service
-     *
-     * @var \VuFindSearch\Service
-     */
-    protected $searchService;
-
-    /**
-     * Configuration
-     *
-     * @var \Laminas\Config\Config
-     */
-    protected $config;
-
-    /**
      * Constructor
      *
-     * @param \VuFindSearch\Service   $search Search service
-     * @param ?\Laminas\Config\Config $config Configuration
+     * @param \VuFindSearch\Service   $searchService Search service
+     * @param ?\Laminas\Config\Config $config        Configuration
      */
     public function __construct(
-        \VuFindSearch\Service $search,
-        ?\Laminas\Config\Config $config = null
+        protected \VuFindSearch\Service $searchService,
+        protected ?\Laminas\Config\Config $config = null
     ) {
-        $this->searchService = $search;
-        $this->config = $config;
     }
 
     /**

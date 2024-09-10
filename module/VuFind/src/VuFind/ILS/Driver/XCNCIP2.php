@@ -82,28 +82,14 @@ class XCNCIP2 extends AbstractBase implements
     /**
      * Pickup locations
      *
-     * @var array
+     * @var ?array
      */
     protected $pickupLocations = null;
 
     /**
-     * Date converter object
-     *
-     * @var \VuFind\Date\Converter
-     */
-    protected $dateConverter;
-
-    /**
-     * Config file path resolver
-     *
-     * @var PathResolver
-     */
-    protected $pathResolver;
-
-    /**
      * From agency id
      *
-     * @var string
+     * @var ?string
      */
     protected $fromAgency = null;
 
@@ -307,11 +293,11 @@ class XCNCIP2 extends AbstractBase implements
      * Constructor
      *
      * @param \VuFind\Date\Converter $dateConverter Date converter object
-     * @param PathResolver           $pathResolver  Config file path resolver
+     * @param ?PathResolver          $pathResolver  Config file path resolver
      */
     public function __construct(
-        \VuFind\Date\Converter $dateConverter,
-        PathResolver $pathResolver = null
+        protected \VuFind\Date\Converter $dateConverter,
+        protected ?PathResolver $pathResolver = null
     ) {
         $this->dateConverter = $dateConverter;
         $this->pathResolver = $pathResolver;
@@ -781,9 +767,9 @@ class XCNCIP2 extends AbstractBase implements
     /**
      * Build NCIP2 request XML for item status information.
      *
-     * @param array  $idList     IDs to look up.
-     * @param string $resumption Resumption token (null for first page of set).
-     * @param string $agency     Agency ID.
+     * @param array   $idList     IDs to look up.
+     * @param string  $resumption Resumption token (null for first page of set).
+     * @param ?string $agency     Agency ID.
      *
      * @return string            XML request
      */
@@ -922,8 +908,8 @@ class XCNCIP2 extends AbstractBase implements
      * consortial record.
      *
      * @param string $id     The record id to retrieve the holdings for
-     * @param array  $patron Patron data
-     * @param array  $ids    The (consortial) source records for the record id
+     * @param ?array $patron Patron data
+     * @param ?array $ids    The (consortial) source records for the record id
      *
      * @throws DateException
      * @throws ILSException
@@ -1020,7 +1006,7 @@ class XCNCIP2 extends AbstractBase implements
      * record.
      *
      * @param string $id      The record id to retrieve the holdings for
-     * @param array  $patron  Patron data
+     * @param ?array $patron  Patron data
      * @param array  $options Extra options (not currently used)
      *
      * @throws DateException
@@ -1031,7 +1017,7 @@ class XCNCIP2 extends AbstractBase implements
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getHolding($id, array $patron = null, array $options = [])
+    public function getHolding($id, ?array $patron = null, array $options = [])
     {
         $ids = null;
         if (! $this->consortium) {
@@ -1490,10 +1476,10 @@ class XCNCIP2 extends AbstractBase implements
      *
      * Retrieve the IDs of items recently added to the catalog.
      *
-     * @param int $page    Page number of results to retrieve (counting starts at 1)
-     * @param int $limit   The size of each page of results to retrieve
-     * @param int $daysOld The maximum age of records to retrieve in days (max. 30)
-     * @param int $fundId  optional fund ID to use for limiting results (use a value
+     * @param int  $page    Page number of results to retrieve (counting starts at 1)
+     * @param int  $limit   The size of each page of results to retrieve
+     * @param int  $daysOld The maximum age of records to retrieve in days (max. 30)
+     * @param ?int $fundId  optional fund ID to use for limiting results (use a value
      * returned by getFunds, or exclude for no limit); note that "fund" may be a
      * misnomer - if funds are not an appropriate way to limit your new item
      * results, you can return a different set of values from getFunds. The
@@ -1645,9 +1631,9 @@ class XCNCIP2 extends AbstractBase implements
      *
      * Returns the default pick up location set in HorizonXMLAPI.ini
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing a hold; contains most of the same values passed to
      * placeHold, minus the patron data. May be used to limit the pickup options
      * or may be ignored.
@@ -1715,9 +1701,9 @@ class XCNCIP2 extends AbstractBase implements
      * This is responsible get a list of valid library locations for holds / recall
      * retrieval
      *
-     * @param array $patron      Patron information returned by the patronLogin
-     * method.
-     * @param array $holdDetails Optional array, only passed in when getting a list
+     * @param array  $patron      Patron information returned by the patronLogin
+     *                            method.
+     * @param ?array $holdDetails Optional array, only passed in when getting a list
      * in the context of placing or editing a hold. When placing a hold, it contains
      * most of the same values passed to placeHold, minus the patron data. When
      * editing a hold it contains all the hold information returned by getMyHolds.
@@ -2414,9 +2400,9 @@ class XCNCIP2 extends AbstractBase implements
     /**
      * Get ItemId element XML
      *
-     * @param string      $agency Agency id
-     * @param string      $itemId Item id
-     * @param null|string $idType Item id type
+     * @param string  $agency Agency id
+     * @param string  $itemId Item id
+     * @param ?string $idType Item id type
      *
      * @return string ItemId element XML string
      */
@@ -2435,8 +2421,8 @@ class XCNCIP2 extends AbstractBase implements
     /**
      * Get UserId element XML
      *
-     * @param string $patronAgency Patron agency id
-     * @param string $patronId     Internal patron identifier
+     * @param string  $patronAgency Patron agency id
+     * @param ?string $patronId     Internal patron identifier
      *
      * @return string Get UserId element XML string
      */
@@ -2681,8 +2667,8 @@ class XCNCIP2 extends AbstractBase implements
     /**
      * Get Lookup user response
      *
-     * @param string      $username User name
-     * @param string|null $password User password
+     * @param string  $username User name
+     * @param ?string $password User password
      *
      * @return \SimpleXMLElement
      * @throws ILSException

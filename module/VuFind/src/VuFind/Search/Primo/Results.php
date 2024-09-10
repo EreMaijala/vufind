@@ -43,9 +43,9 @@ use VuFindSearch\Command\SearchCommand;
 class Results extends \VuFind\Search\Base\Results
 {
     /**
-     * Facet details:
+     * Facet details.
      *
-     * @var array
+     * @var ?array
      */
     protected $responseFacets = null;
 

@@ -59,7 +59,7 @@ interface ConnectorInterface
      * @param array  $terms       Associative array:
      *     index       string: primo index to search (default "any")
      *     lookfor     string: actual search terms
-     * @param array  $params      Associative array of optional arguments:
+     * @param ?array $params      Associative array of optional arguments:
      *     phrase      bool:   true if it's a quoted phrase (default false)
      *     onCampus    bool:   (default true)
      *     didyoumean  bool:   (default false)

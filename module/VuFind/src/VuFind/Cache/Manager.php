@@ -174,8 +174,8 @@ class Manager
     /**
      * Retrieve the specified cache object.
      *
-     * @param string      $name      Name of the requested cache.
-     * @param string|null $namespace Optional namespace to use. Defaults to the
+     * @param string  $name      Name of the requested cache.
+     * @param ?string $namespace Optional namespace to use. Defaults to the
      * value of $name.
      *
      * @return StorageInterface

@@ -61,7 +61,7 @@ class Tags extends Gateway implements DbServiceAwareInterface
      * @param Adapter       $adapter       Database adapter
      * @param PluginManager $tm            Table manager
      * @param array         $cfg           Laminas configuration
-     * @param RowGateway    $rowObj        Row prototype object (null for default)
+     * @param ?RowGateway   $rowObj        Row prototype object (null for default)
      * @param bool          $caseSensitive Are tags case sensitive?
      * @param string        $table         Name of database table to interface with
      */
@@ -444,10 +444,10 @@ class Tags extends Gateway implements DbServiceAwareInterface
     /**
      * Get a list of tags based on a sort method ($sort)
      *
-     * @param string   $sort          Sort/search parameter
-     * @param int      $limit         Maximum number of tags (default = 100, < 1 = no limit)
-     * @param callback $extra_where   Extra code to modify $select (null for none)
-     * @param ?bool    $caseSensitive Should tags be case sensitive? (null to use configured default)
+     * @param string    $sort          Sort/search parameter
+     * @param int       $limit         Maximum number of tags (default = 100, < 1 = no limit)
+     * @param ?callable $extra_where   Extra code to modify $select (null for none)
+     * @param ?bool     $caseSensitive Should tags be case sensitive? (null to use configured default)
      *
      * @return array Tag details.
      */

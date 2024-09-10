@@ -47,7 +47,7 @@ trait ApiTrait
     /**
      * Callback function in JSONP mode
      *
-     * @var string
+     * @var ?string
      */
     protected $jsonpCallback = null;
 
@@ -143,7 +143,7 @@ trait ApiTrait
      *
      * @param mixed  $data     The response data
      * @param string $status   Status of the request
-     * @param int    $httpCode A custom HTTP Status Code
+     * @param ?int   $httpCode A custom HTTP Status Code
      * @param string $message  Status message
      *
      * @return \Laminas\Http\Response
