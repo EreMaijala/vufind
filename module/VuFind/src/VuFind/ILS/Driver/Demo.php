@@ -1562,6 +1562,12 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
                 'locationDisplay' => 'Campus D',
             ];
         }
+        if (($holdDetails['requestGroupId'] ?? '') == 1) {
+            $result[] = [
+                'locationID' => 'E',
+                'locationDisplay' => 'Campus E',
+            ];
+        }
 
         if (isset($this->config['Holds']['excludePickupLocations'])) {
             $excluded
