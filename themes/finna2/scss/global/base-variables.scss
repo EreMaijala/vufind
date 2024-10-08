@@ -1,0 +1,42 @@
+//
+// Finna Base Variables for Improved SCSS Support
+// --------------------------------------------------
+
+//== Colors
+//
+//## Gray and brand colors for use across Bootstrap.
+
+$gray: #2b2b2b !default;
+
+$gray-darker:            darken($gray, 40%) !default;
+$gray-dark:              darken($gray, 10%) !default;
+$gray-light:             lighten($gray, 18%) !default; // mix($body-bg, contrast($body-bg), 40%)
+$gray-slightly-lighter:  lighten($gray, 29%) !default;
+$gray-mid-light:         lighten($gray, 40%) !default; // dark background: mix($body-bg, contrast($body-bg), 65%)
+$gray-lighter:           lighten($gray, 65%) !default; // dark background: mix($body-bg, contrast($body-bg), 80%)
+$gray-ultralight:        lighten($gray, 80%) !default; // dark background: mix($body-bg, contrast($body-bg), 95%)
+
+// Brand Colors
+$brand-primary: #007c90 !default;
+$brand-secondary: #007c90 !default;
+$brand-third: #007c90 !default;
+$brand-fourth: #007c90 !default;
+$brand-success: #33843B !default;
+$brand-warning: #9E943D !default;
+$brand-danger: #a94442 !default;
+$brand-info: #007c90 !default;
+
+//== Custom Finna styling
+$body-bg: #fff !default;
+
+
+// Extra extra small screen / phone (e.g. iPhone 5)
+$screen-xxs: 400px !default;
+$screen-xxs-min: $screen-xxs !default;
+$screen-xxs-max: ($screen-xs-min - 1) !default;
+
+$screen-xlg: 1400px !default;
+$screen-xlg-min: $screen-xlg !default;
+
+//## Font size, line-height for content pages
+$content-font-size-base: 16px !default;
