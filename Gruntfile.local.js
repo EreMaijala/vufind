@@ -57,96 +57,101 @@ module.exports = function(grunt) {
           dest: 'themes/custom/scss'
         },
       ];
+    const replacements = [
+        // Activate SCSS
+        {
+          pattern: /\/\* #SCSS>/gi,
+          replacement: "/* #SCSS> */",
+          order: -1 // Do before anything else
+        },
+        {
+          pattern: /<#SCSS \*\//gi,
+          replacement: "/* <#SCSS */",
+          order: -1
+        },
+        // Deactivate LESS
+        {
+          pattern: /\/\* #LESS> \*\/.*?\/\* <#LESS \*\//gis,
+          replacement: "",
+          order: -1
+        },
+        { // Change separator in @include statements
+          pattern: /@include ([^\(]+)\(([^\)]+)\);/gi,
+          replacement: function mixinCommas(match, $1, $2) {
+            return '@include ' + $1 + '(' + $2.replace(/;/g, ',') + ');';
+          },
+          order: 4 // after defaults included in less-to-sass
+        },
+        { // Remove unquote
+          pattern: /unquote\("([^"]+)"\)/gi,
+          replacement: function ununquote(match, $1) {
+            return $1;
+          },
+          order: 4
+        },
+        { // Fix tilde literals
+          pattern: /~'(.*?)'/gi,
+          replacement: '$1',
+          order: 4
+        },
+        { // Inline &:extends converted
+          pattern: /&:extend\(([^\)]+?)( all)?\)/gi,
+          replacement: '@extend $1',
+          order: 4
+        },
+        { // Wrap variables in calcs with #{}
+          pattern: /calc\([^;]+/gi,
+          replacement: function calcVariables(match) {
+            return match.replace(/(\$[\w\-]+)/gi, '#{$1}');
+          },
+          order: 4
+        },
+        { // Wrap variables set to css variables with #{}
+          pattern: /(--[\w-:]+:\s*)((\$|darken\(|lighten\()[^;]+)/gi,
+          replacement: '$1#{$2}',
+          order: 5
+        },
+        { // Remove !default from extends (icons.scss)
+          pattern: /@extend ([^;}]+) !default;/gi,
+          replacement: '@extend $1;',
+          order: 6
+        },
+        { // Revert invalid @ => $ changes for css rules:
+          pattern: /\$(supports|container) \(/gi,
+          replacement: '@$1 (',
+          order: 7
+        },
+        { // Revert @if => $if change:
+          pattern: /\$if \(/gi,
+          replacement: '@if (',
+          order: 7
+        },
+        { // Revert @use => $use change:
+          pattern: /\$use '/gi,
+          replacement: "@use '",
+          order: 7
+        },
+        { // Fix comparison:
+          pattern: / ==< /gi,
+          replacement: ' <= ',
+          order: 7
+        },
+      ];
+    if (!grunt.option('no-default')) {
+      replacements.push(
+        { // Add !default (but avoid messing with function params):
+          pattern: /(?<!\(.*)(\$.+):(.+);/g,
+          replacement: '$1:$2 !default;',
+          order: 8
+        }
+      );
+    }
     console.log(themeDir ? "Converting theme " + themeDir : "Converting Finna default themes");
     grunt.config.set('lessToSass', {
      convert: {
         files: files,
         options: {
-          replacements: [
-            // Activate SCSS
-            {
-              pattern: /\/\* #SCSS>/gi,
-              replacement: "/* #SCSS> */",
-              order: -1 // Do before anything else
-            },
-            {
-              pattern: /<#SCSS \*\//gi,
-              replacement: "/* <#SCSS */",
-              order: -1
-            },
-            // Deactivate LESS
-            {
-              pattern: /\/\* #LESS> \*\/.*?\/\* <#LESS \*\//gis,
-              replacement: "",
-              order: -1
-            },
-            { // Change separator in @include statements
-              pattern: /@include ([^\(]+)\(([^\)]+)\);/gi,
-              replacement: function mixinCommas(match, $1, $2) {
-                return '@include ' + $1 + '(' + $2.replace(/;/g, ',') + ');';
-              },
-              order: 4 // after defaults included in less-to-sass
-            },
-            { // Remove unquote
-              pattern: /unquote\("([^"]+)"\)/gi,
-              replacement: function ununquote(match, $1) {
-                return $1;
-              },
-              order: 4
-            },
-            { // Fix tilde literals
-              pattern: /~'(.*?)'/gi,
-              replacement: '$1',
-              order: 4
-            },
-            { // Inline &:extends converted
-              pattern: /&:extend\(([^\)]+?)( all)?\)/gi,
-              replacement: '@extend $1',
-              order: 4
-            },
-            { // Wrap variables in calcs with #{}
-              pattern: /calc\([^;]+/gi,
-              replacement: function calcVariables(match) {
-                return match.replace(/(\$[\w\-]+)/gi, '#{$1}');
-              },
-              order: 4
-            },
-            { // Wrap variables set to css variables with #{}
-              pattern: /(--[\w-:]+:\s*)((\$|darken\(|lighten\()[^;]+)/gi,
-              replacement: '$1#{$2}',
-              order: 5
-            },
-            { // Remove !default from extends (icons.scss)
-              pattern: /@extend ([^;}]+) !default;/gi,
-              replacement: '@extend $1;',
-              order: 6
-            },
-            { // Revert invalid @ => $ changes for css rules:
-              pattern: /\$(supports|container) \(/gi,
-              replacement: '@$1 (',
-              order: 7
-            },
-            { // Revert @if => $if change:
-              pattern: /\$if \(/gi,
-              replacement: '@if (',
-              order: 7
-            },
-            { // Revert @use => $use change:
-              pattern: /\$use '/gi,
-              replacement: "@use '",
-              order: 7
-            },
-            { // Fix comparison:
-              pattern: / ==< /gi,
-              replacement: ' <= ',
-              order: 7
-            },
-            { // Add !default (but avoid messing with function params):
-              pattern: /(?<!\(.*)(\$.+):(.+);/g,
-              replacement: '$1:$2 !default;',
-              order: 8
-            }
-          ]
+          replacements: replacements
         }
       }
     });

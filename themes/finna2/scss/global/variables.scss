@@ -12,14 +12,6 @@ $logo-color: #fff !default;
 $aoe-brand-primary: #ccf5e7 !default;
 $action-link-color: $brand-primary !default;
 
-// Extra extra small screen / phone (e.g. iPhone 5)
-$screen-xxs: 400px !default;
-$screen-xxs-min: $screen-xxs !default;
-$screen-xxs-max: ($screen-xs-min - 1) !default;
-
-$screen-xlg: 1400px !default;
-$screen-xlg-min: $screen-xlg !default;
-
 //== Custom Finna styling
 $background-image-url: url('../images/logo_background.jpg') !default;
 $background-image-attachment: scroll;  // set to fixed or scroll (fixed doesnt scoll along with page) !default;
@@ -163,7 +155,6 @@ $font-size-icon-large: 1.5em !default;
 
 
 //## Font size, line-height for content pages
-$content-font-size-base: 16px !default;
 $content-line-height-base: 1.5 !default;
 $content-headings-font-size-h1: floor(($content-font-size-base * 1.777)) !default;
 $content-headings-font-size-h2: floor(($content-font-size-base * 1.5)) !default;
