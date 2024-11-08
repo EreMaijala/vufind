@@ -30,7 +30,7 @@
 namespace VuFindSearch\Backend\Exception;
 
 use Exception;
-use Laminas\Http\Response;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * HTTP error exception.
@@ -46,7 +46,7 @@ abstract class HttpErrorException extends BackendException
     /**
      * Server response.
      *
-     * @var Response
+     * @var ResponseInterface
      */
     protected $response;
 
@@ -56,11 +56,11 @@ abstract class HttpErrorException extends BackendException
      * Returns a RequestErrorException or RemoteErrorException depending on
      * the response's status code.
      *
-     * @param Response $response Server response
+     * @param ResponseInterface $response Server response
      *
      * @return RequestErrorException|RemoteErrorException
      */
-    public static function createFromResponse(Response $response)
+    public static function createFromResponse(ResponseInterface $response)
     {
         $status = $response->getStatusCode();
         $phrase = $response->getReasonPhrase();
@@ -82,17 +82,17 @@ abstract class HttpErrorException extends BackendException
     /**
      * Constructor.
      *
-     * @param string    $message  Exception message
-     * @param int       $code     Exception code
-     * @param Response  $response Server response
-     * @param Exception $prev     Previous exception
+     * @param string            $message  Exception message
+     * @param int               $code     Exception code
+     * @param ResponseInterface $response Server response
+     * @param Exception         $prev     Previous exception
      *
      * @return void
      */
     public function __construct(
         $message,
         $code,
-        Response $response,
+        ResponseInterface $response,
         Exception $prev = null
     ) {
         parent::__construct($message, $code, $prev);

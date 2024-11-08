@@ -29,6 +29,7 @@
 
 namespace VuFind\Search\Factory;
 
+use Closure;
 use Laminas\Config\Config;
 use Psr\Container\ContainerInterface;
 use VuFind\Search\Solr\CustomFilterListener;
@@ -480,7 +481,7 @@ abstract class AbstractSolrBackendFactory extends AbstractBackendFactory
      */
     protected function createConnector()
     {
-        $timeout = $this->getIndexConfig('timeout', 30);
+        $defaultTimeout = $this->getIndexConfig('timeout', 30);
         $searchConfig = $this->config->get($this->searchConfig);
         $defaultFields = $searchConfig->General->default_record_fields ?? '*';
 
@@ -506,13 +507,11 @@ abstract class AbstractSolrBackendFactory extends AbstractBackendFactory
         $connector = new $this->connectorClass(
             $this->getSolrUrl(),
             new HandlerMap($handlers),
-            function (string $url) use ($timeout) {
-                return $this->createHttpClient(
-                    $timeout,
-                    $this->getHttpOptions($url),
-                    $url
-                );
-            },
+            Closure::fromCallable(
+                function (string $url, ?float $timeout = null) use ($defaultTimeout) {
+                    return $this->createHttpClient($url, $timeout ?? $defaultTimeout);
+                }
+            ),
             $this->uniqueKey
         );
 
@@ -525,20 +524,6 @@ abstract class AbstractSolrBackendFactory extends AbstractBackendFactory
         }
 
         return $connector;
-    }
-
-    /**
-     * Get HTTP options for the client
-     *
-     * @param string $url URL being requested
-     *
-     * @return array
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    protected function getHttpOptions(string $url): array
-    {
-        return [];
     }
 
     /**

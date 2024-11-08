@@ -1,7 +1,7 @@
 <?php
 
 /**
- * SOLR 4.x error listener.
+ * SOLR error listener.
  *
  * PHP version 8
  *
@@ -30,12 +30,12 @@
 namespace VuFind\Search\Solr\V4;
 
 use Laminas\EventManager\EventInterface;
-use Laminas\Http\Response;
+use Psr\Http\Message\ResponseInterface;
 use VuFind\Search\Solr\AbstractErrorListener;
 use VuFindSearch\Backend\Exception\HttpErrorException;
 
 /**
- * SOLR 3.x error listener.
+ * SOLR error listener.
  *
  * @category VuFind
  * @package  Search
@@ -114,20 +114,18 @@ class ErrorListener extends AbstractErrorListener
     /**
      * Return normalized media type identifier.
      *
-     * @param Response $response HTTP response
+     * @param ResponseInterface $response HTTP response
      *
      * @return string One of `json', `xml', or `other'
      */
-    protected function getResponseBodyMediaType(Response $response)
+    protected function getResponseBodyMediaType(ResponseInterface $response)
     {
-        if ($response->getHeaders()->has('content-type')) {
-            $type = $response->getHeaders()->get('content-type')->getFieldValue();
-            if (str_starts_with($type, 'application/json')) {
-                return self::TYPE_JSON;
-            }
-            if (str_starts_with($type, 'application/xml')) {
-                return self::TYPE_XML;
-            }
+        $type = $response->getHeaderLine('content-type');
+        if (str_starts_with($type, 'application/json')) {
+            return self::TYPE_JSON;
+        }
+        if (str_starts_with($type, 'application/xml')) {
+            return self::TYPE_XML;
         }
         return self::TYPE_OTHER;
     }

@@ -426,7 +426,7 @@ class Backend extends AbstractBackend implements
      * Write a document to Solr. Return an array of details about the updated index.
      *
      * @param DocumentInterface $doc     Document to write
-     * @param ?int              $timeout Timeout value (null for default)
+     * @param ?float            $timeout Timeout value (null for default)
      * @param string            $handler Handler to use
      * @param ?ParamBag         $params  Search backend parameters
      *
@@ -434,15 +434,15 @@ class Backend extends AbstractBackend implements
      */
     public function writeDocument(
         DocumentInterface $doc,
-        int $timeout = null,
+        ?float $timeout = null,
         string $handler = 'update',
         ?ParamBag $params = null
     ) {
         $connector = $this->getConnector();
 
         // Write!
-        $connector->callWithHttpOptions(
-            is_int($timeout ?? null) ? compact('timeout') : [],
+        $connector->callWithHttpTimeout(
+            $timeout,
             'write',
             $doc,
             $handler,

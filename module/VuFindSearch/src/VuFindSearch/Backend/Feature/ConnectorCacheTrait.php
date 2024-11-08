@@ -37,6 +37,7 @@ use Laminas\Cache\Storage\Adapter\Memcached;
 use Laminas\Cache\Storage\StorageInterface;
 use Laminas\Http\Client as HttpClient;
 use Laminas\Log\LoggerInterface;
+use Psr\Http\Message\RequestInterface;
 
 /**
  * Caching support trait for connectors.
@@ -75,9 +76,9 @@ trait ConnectorCacheTrait
      *
      * @return string
      */
-    public function getCacheKey(HttpClient $client): string
+    public function getCacheKey(RequestInterface $request): string
     {
-        return md5($client->getRequest()->toString());
+        return md5(var_export($request, true));
     }
 
     /**

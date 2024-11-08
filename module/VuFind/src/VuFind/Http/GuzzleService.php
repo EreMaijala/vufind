@@ -29,10 +29,10 @@
 
 namespace VuFind\Http;
 
+use Psr\Http\Client\ClientInterface;
+
 /**
  * Guzzle service.
- *
- * N.B. Use only for dependencies that require Guzzle.
  *
  * @category VuFind
  * @package  Http
@@ -41,7 +41,7 @@ namespace VuFind\Http;
  * @link     https://vufind.org/wiki/development
  * @todo     Merge with PSR-18 HTTP Client Service when implemented
  */
-class GuzzleService
+class GuzzleService implements HttpServiceInterface
 {
     /**
      * Default regular expression matching a request to localhost.
@@ -61,14 +61,12 @@ class GuzzleService
      * Regular expression matching a request to localhost or hosts
      * that are not proxied.
      *
-     * @see \Laminas\Http\Client\Adapter\Proxy::$config
-     *
      * @var string
      */
     protected $localAddressesRegEx = self::LOCAL_ADDRESS_RE;
 
     /**
-     * Mappings from VuFind HTTP settings to Guzzle
+     * Mappings from VuFind Legacy HTTP settings to Guzzle
      *
      * @var array
      */
@@ -98,15 +96,17 @@ class GuzzleService
      * @param ?string $url     Target URL (required for proper proxy setup for non-local addresses)
      * @param ?float  $timeout Request timeout in seconds (overrides configuration)
      *
-     * @return \GuzzleHttp\ClientInterface
+     * @return ClientInterface
      */
-    public function createClient(?string $url = null, ?float $timeout = null): \GuzzleHttp\ClientInterface
+    public function createClient(?string $url = null, ?float $timeout = null): ClientInterface
     {
         return new \GuzzleHttp\Client($this->getGuzzleConfig($url, $timeout));
     }
 
     /**
      * Get Guzzle options
+     *
+     * Maps legacy laminas-http settings to Guzzle's equivalents and sets the proxy configuration.
      *
      * @param ?string $url     Target URL (required for proper proxy setup for non-local addresses)
      * @param ?float  $timeout Request timeout in seconds

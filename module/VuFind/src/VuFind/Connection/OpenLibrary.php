@@ -29,6 +29,10 @@
 
 namespace VuFind\Connection;
 
+use GuzzleHttp\Psr7\Request;
+use VuFind\Http\GuzzleService;
+use VuFind\Http\HttpServiceInterface;
+
 use function count;
 
 /**
@@ -45,20 +49,12 @@ use function count;
 class OpenLibrary
 {
     /**
-     * HTTP client
-     *
-     * @var \Laminas\Http\Client
-     */
-    protected $client;
-
-    /**
      * Constructor
      *
-     * @param \Laminas\Http\Client $client HTTP client
+     * @param GuzzleService $httpService HTTP client service
      */
-    public function __construct(\Laminas\Http\Client $client)
+    public function __construct(protected HttpServiceInterface $httpClientService)
     {
-        $this->client = $client;
     }
 
     /**
@@ -137,9 +133,10 @@ class OpenLibrary
         $result = [];
 
         // find out if there are any reviews
-        $response = $this->client->setUri($url)->setMethod('GET')->send();
+        $client = $this->httpClientService->createClient($url);
+        $response = $client->sendRequest(new Request('GET', $url));
         // Was the request successful?
-        if ($response->isSuccess()) {
+        if ($response->getStatusCode() === 200) {
             // grab the response:
             $json = $response->getBody();
             // parse json

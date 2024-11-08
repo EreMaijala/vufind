@@ -29,6 +29,7 @@
 
 namespace VuFind\Search\Factory;
 
+use Closure;
 use LmcRbacMvc\Service\AuthorizationService;
 use Psr\Container\ContainerInterface;
 use VuFind\Search\Primo\InjectOnCampusListener;
@@ -219,13 +220,11 @@ class PrimoBackendFactory extends AbstractBackendFactory
             $this->primoConfig->General->jwt_url ?? '',
             $this->primoConfig->General->search_url,
             $instCode,
-            function (string $url) use ($timeout) {
-                return $this->createHttpClient(
-                    $timeout,
-                    $this->getHttpOptions($url),
-                    $url
-                );
-            },
+            Closure::fromCallable(
+                function (string $url) use ($timeout) {
+                    return $this->createHttpClient($url, $timeout);
+                }
+            ),
             $session
         );
         $connector->setLogger($this->logger);
@@ -292,19 +291,5 @@ class PrimoBackendFactory extends AbstractBackendFactory
 
         // If no PermissionHandler can be set, return null
         return null;
-    }
-
-    /**
-     * Get HTTP options for the client
-     *
-     * @param string $url URL being requested
-     *
-     * @return array
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    protected function getHttpOptions(string $url): array
-    {
-        return [];
     }
 }

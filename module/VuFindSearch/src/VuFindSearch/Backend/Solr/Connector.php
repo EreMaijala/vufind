@@ -31,10 +31,12 @@
 
 namespace VuFindSearch\Backend\Solr;
 
-use Laminas\Http\Client\Adapter\Exception\TimeoutException;
-use Laminas\Http\Client as HttpClient;
-use Laminas\Http\Request;
-use Laminas\Uri\Http;
+use Closure;
+use GuzzleHttp\Psr7\Request as Request;
+use GuzzleHttp\Psr7\Utils;
+use Psr\Http\Client\NetworkExceptionInterface;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\UriInterface;
 use VuFindSearch\Backend\Exception\BackendException;
 use VuFindSearch\Backend\Exception\HttpErrorException;
 use VuFindSearch\Backend\Exception\RemoteErrorException;
@@ -77,66 +79,26 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     public const MAX_GET_URL_LENGTH = 2048;
 
     /**
-     * HTTP client factory
-     *
-     * @var callable
-     */
-    protected $clientFactory;
-
-    /**
-     * URL or an array of alternative URLs of the SOLR core.
-     *
-     * @var string|array
-     */
-    protected $url;
-
-    /**
-     * Handler map.
-     *
-     * @var HandlerMap
-     */
-    protected $map;
-
-    /**
-     * Solr field used to store unique identifier
-     *
-     * @var string
-     */
-    protected $uniqueKey;
-
-    /**
      * Url of the last request
      *
-     * @var ?Http
+     * @var ?UriInterface
      */
-    protected $lastUrl = null;
+    protected ?UriInterface $lastUrl = null;
 
     /**
      * Constructor
      *
-     * @param string|array        $url       SOLR core URL or an array of alternative
-     * URLs
-     * @param HandlerMap          $map       Handler map
-     * @param callable|HttpClient $cf        HTTP client factory or a client to clone
-     * @param string              $uniqueKey Solr field used to store unique
-     * identifier
+     * @param string|array $url       SOLR core URL or an array of alternative URLs
+     * @param HandlerMap   $map       Handler map
+     * @param Closure      $cf        HTTP client factory or a client to clone
+     * @param string       $uniqueKey Solr field used to store unique identifier
      */
     public function __construct(
-        $url,
-        HandlerMap $map,
-        $cf,
-        $uniqueKey = 'id'
+        protected string|array $url,
+        protected HandlerMap $map,
+        protected Closure $clientFactory,
+        protected string $uniqueKey = 'id'
     ) {
-        $this->url = $url;
-        $this->map = $map;
-        $this->uniqueKey = $uniqueKey;
-        if ($cf instanceof HttpClient) {
-            $this->clientFactory = function () use ($cf) {
-                return clone $cf;
-            };
-        } else {
-            $this->clientFactory = $cf;
-        }
     }
 
     /// Public API
@@ -174,9 +136,9 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     /**
      * Get the last request url.
      *
-     * @return ?Http
+     * @return ?UriInterface
      */
-    public function getLastUrl()
+    public function getLastUrl(): ?UriInterface
     {
         return $this->lastUrl;
     }
@@ -288,12 +250,12 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
         if (count($params) > 0) {
             $urlSuffix .= '?' . implode('&', $params->request());
         }
-        $callback = function ($client) use ($document) {
-            $client->setEncType($document->getContentType());
+        $callback = function (RequestInterface $request) use ($document): RequestInterface {
             $body = $document->getContent();
-            $client->setRawBody($body);
-            $client->getRequest()->getHeaders()
-                ->addHeaderLine('Content-Length', strlen($body));
+            return $request
+                ->withHeader('Content-Type', $document->getContentType())
+                ->withHeader('Content-Length', strlen($body))
+                ->withBody(Utils::streamFor($body));
         };
         return $this->trySolrUrls('POST', $urlSuffix, $callback);
     }
@@ -314,14 +276,15 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
         $urlSuffix = '/' . $handler;
         $paramString = implode('&', $params->request());
         if (strlen($paramString) > self::MAX_GET_URL_LENGTH) {
-            $method = Request::METHOD_POST;
-            $callback = function ($client) use ($paramString) {
-                $client->setRawBody($paramString);
-                $client->setEncType(HttpClient::ENC_URLENCODED);
-                $client->setHeaders(['Content-Length' => strlen($paramString)]);
+            $method = 'POST';
+            $callback = function (RequestInterface $request) use ($paramString): RequestInterface {
+                return $request
+                    ->withHeader('Content-Type', 'application/x-www-form-urlencoded')
+                    ->withHeader('Content-Length', strlen($paramString))
+                    ->withBody(Utils::streamFor($paramString));
             };
         } else {
-            $method = Request::METHOD_GET;
+            $method = 'GET';
             $urlSuffix .= '?' . $paramString;
             $callback = null;
         }
@@ -333,14 +296,14 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     /**
      * Call a method with provided options for the HTTP client
      *
-     * @param array  $options HTTP client options
+     * @param float  $timeout HTTP Timeout
      * @param string $method  Method to call
      * @param array  ...$args Method parameters
      *
      * @return mixed
      */
-    public function callWithHttpOptions(
-        array $options,
+    public function callWithHttpTimeout(
+        float $timeout,
         string $method,
         ...$args
     ) {
@@ -355,11 +318,9 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
         try {
             $this->clientFactory = function (string $url) use (
                 $originalFactory,
-                $options
+                $timeout
             ) {
-                $client = $originalFactory($url);
-                $client->setOptions($options);
-                return $client;
+                return $originalFactory($url, $timeout);
             };
             return call_user_func_array([$this, $method], $args);
         } finally {
@@ -377,7 +338,7 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     protected function isRethrowableSolrException($ex)
     {
         // Solr can return 404 when the instance hasn't completed startup, so allow that to be retried:
-        return $ex instanceof TimeoutException
+        return $ex instanceof NetworkExceptionInterface
             || (($ex instanceof RequestErrorException) && $ex->getResponse()->getStatusCode() !== 404);
     }
 
@@ -429,21 +390,22 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
         // Loop through all base URLs and try them in turn until one works.
         $cacheKey = null;
         foreach ((array)$this->url as $base) {
-            $client = ($this->clientFactory)($base . $urlSuffix);
-            $client->setMethod($method);
+            $fullUrl = $base . $urlSuffix;
+            $request = (new Request($method, $fullUrl))
+                ->withMethod($method);
             if (is_callable($callback)) {
-                $callback($client);
+                $callback($request);
             }
             // Always create the cache key from the first server, and only after any
             // callback has been called above.
             if ($cacheable && $this->cache && null === $cacheKey) {
-                $cacheKey = $this->getCacheKey($client);
+                $cacheKey = $this->getCacheKey($request);
                 if ($result = $this->getCachedData($cacheKey)) {
                     return $result;
                 }
             }
             try {
-                $result = $this->send($client);
+                $result = $this->send($request);
                 if ($cacheKey) {
                     $this->putCachedData($cacheKey, $result);
                 }
@@ -476,37 +438,39 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     /**
      * Send request the SOLR and return the response.
      *
-     * @param HttpClient $client Prepared HTTP client
+     * @param RequestInterface $request Prepared request
      *
      * @return string Response body
      *
      * @throws RemoteErrorException  SOLR signaled a server error (HTTP 5xx)
      * @throws RequestErrorException SOLR signaled a client error (HTTP 4xx)
      */
-    protected function send(HttpClient $client)
+    protected function send(RequestInterface $request)
     {
         $this->debug(
-            sprintf('=> %s %s', $client->getMethod(), $client->getUri())
+            sprintf('=> %s %s', $request->getMethod(), $request->getUri())
         );
 
-        $this->lastUrl = $client->getUri();
+        $this->lastUrl = $request->getUri();
 
+        $client = ($this->clientFactory)((string)$this->lastUrl);
         $time     = microtime(true);
-        $response = $client->send();
+        $response = $client->sendRequest($request);
         $time     = microtime(true) - $time;
 
+        $statusCode = $response->getStatusCode();
         $this->debug(
             sprintf(
                 '<= %s %s',
-                $response->getStatusCode(),
+                $statusCode,
                 $response->getReasonPhrase()
             ),
             ['time' => $time]
         );
 
-        if (!$response->isSuccess()) {
+        if (200 < $statusCode || 299 > $statusCode) {
             // Return a more detailed error message for a 400 error:
-            if ($response->getStatusCode() === 400) {
+            if (400 === $statusCode) {
                 $json = json_decode($response->getBody(), true);
                 $msgParts = ['400', $response->getReasonPhrase()];
                 if ($msg = $json['error']['msg'] ?? '') {

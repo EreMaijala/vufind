@@ -575,6 +575,7 @@ $config = [
             'VuFind\HierarchyTreeRendererPluginManager' => 'VuFind\Hierarchy\TreeRenderer\PluginManager',
             'VuFind\HMAC' => 'VuFind\Crypt\HMAC',
             'VuFind\Http' => 'VuFindHttp\HttpService',
+            'VuFind\Http\HttpServiceInterface' => 'VuFind\Http\GuzzleService',
             'VuFind\ILSAuthenticator' => 'VuFind\Auth\ILSAuthenticator',
             'VuFind\ILSConnection' => 'VuFind\ILS\Connection',
             'VuFind\ILSDriverPluginManager' => 'VuFind\ILS\Driver\PluginManager',
