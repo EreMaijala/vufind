@@ -29,6 +29,7 @@
 
 namespace VuFind\Search\Factory;
 
+use Closure;
 use Psr\Container\ContainerInterface;
 use VuFindSearch\Backend\EDS\Backend;
 use VuFindSearch\Backend\EDS\Connector;
@@ -153,16 +154,20 @@ class EdsBackendFactory extends AbstractBackendFactory
     protected function createConnector()
     {
         $options = $this->createConnectorOptions();
-        $httpOptions = [
-            'sslverifypeer'
-                => (bool)($this->edsConfig->General->sslverifypeer ?? true),
-        ];
         $connector = new Connector(
             $options,
-            $this->createHttpClient(
-                $this->edsConfig->General->timeout ?? 120,
-                $httpOptions
-            )
+            Closure::fromCallable(
+                function (string $url, ?float $timeout = null) {
+                    $httpOptions = [
+                        'verify' => (bool)($this->edsConfig->General->sslverifypeer ?? true),
+                    ];
+                    return $this->createHttpClient(
+                        $url,
+                        $this->edsConfig->General->timeout ?? 120,
+                        $httpOptions
+                    );
+                }
+            ),
         );
         $connector->setLogger($this->logger);
         if ($cache = $this->createConnectorCache($this->edsConfig)) {

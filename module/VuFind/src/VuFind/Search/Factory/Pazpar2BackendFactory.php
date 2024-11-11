@@ -29,6 +29,7 @@
 
 namespace VuFind\Search\Factory;
 
+use Closure;
 use Psr\Container\ContainerInterface;
 use VuFindSearch\Backend\Pazpar2\Backend;
 use VuFindSearch\Backend\Pazpar2\Connector;
@@ -115,7 +116,7 @@ class Pazpar2BackendFactory extends AbstractBackendFactory
     {
         $connector = new Connector(
             $this->config->General->base_url,
-            $this->createHttpClient()
+            Closure::fromCallable([$this, 'createHttpClient'])
         );
         $connector->setLogger($this->logger);
         return $connector;

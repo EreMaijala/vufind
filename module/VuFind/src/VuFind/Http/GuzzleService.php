@@ -91,16 +91,17 @@ class GuzzleService implements HttpServiceInterface
     }
 
     /**
-     * Return a new Guzzle client.
+     * Return a new Guzzle client as a PSR-18 client interface.
      *
      * @param ?string $url     Target URL (required for proper proxy setup for non-local addresses)
      * @param ?float  $timeout Request timeout in seconds (overrides configuration)
+     * @param array   $options Additional options (similar to Http section in config.ini)
      *
      * @return ClientInterface
      */
-    public function createClient(?string $url = null, ?float $timeout = null): ClientInterface
+    public function createClient(?string $url = null, ?float $timeout = null, array $options = []): ClientInterface
     {
-        return new \GuzzleHttp\Client($this->getGuzzleConfig($url, $timeout));
+        return new \GuzzleHttp\Client($this->getGuzzleConfig($url, $timeout, $options));
     }
 
     /**
@@ -110,12 +111,13 @@ class GuzzleService implements HttpServiceInterface
      *
      * @param ?string $url     Target URL (required for proper proxy setup for non-local addresses)
      * @param ?float  $timeout Request timeout in seconds
+     * @param array   $options Additional options
      *
      * @return array
      */
-    protected function getGuzzleConfig(?string $url, ?float $timeout): array
+    protected function getGuzzleConfig(?string $url, ?float $timeout, array $options = []): array
     {
-        $guzzleConfig = $this->config['Http'] ?? [];
+        $guzzleConfig = array_merge($this->config['Http'] ?? [], $options);
 
         // Map known one-to-one configuration settings to Guzzle settings:
         $guzzleConfig = array_combine(
@@ -152,13 +154,15 @@ class GuzzleService implements HttpServiceInterface
             unset($guzzleConfig['useragent']);
         }
 
-        // Handle sslcapath, sslcafile and sslverifypeer:
-        if ($guzzleConfig['sslverifypeer'] ?? true) {
-            if ($verify = $guzzleConfig['sslcafile'] ?? $guzzleConfig['sslcapath'] ?? null) {
-                $guzzleConfig['verify'] = $verify;
+        // Handle sslcapath, sslcafile and sslverifypeer, but apply them only if 'verify' is not already set:
+        if (!isset($guzzleConfig['verify'])) {
+            if ($guzzleConfig['sslverifypeer'] ?? true) {
+                if ($verify = $guzzleConfig['sslcafile'] ?? $guzzleConfig['sslcapath'] ?? null) {
+                    $guzzleConfig['verify'] = $verify;
+                }
+            } else {
+                $guzzleConfig['verify'] = false;
             }
-        } else {
-            $guzzleConfig['verify'] = false;
         }
         unset($guzzleConfig['sslverifypeer']);
         unset($guzzleConfig['sslcapath']);

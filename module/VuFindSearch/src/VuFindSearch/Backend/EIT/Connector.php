@@ -29,7 +29,10 @@
 
 namespace VuFindSearch\Backend\EIT;
 
+use Closure;
+use GuzzleHttp\Psr7\Request;
 use Laminas\Http\Client;
+use VuFindSearch\Backend\Exception\BackendException;
 use VuFindSearch\Backend\Exception\HttpErrorException;
 use VuFindSearch\ParamBag;
 
@@ -49,56 +52,21 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     use \VuFind\Log\LoggerAwareTrait;
 
     /**
-     * Base url for searches
-     *
-     * @var string
-     */
-    protected $base;
-
-    /**
-     * The HTTP_Request object used for REST transactions
-     *
-     * @var Client
-     */
-    protected $client;
-
-    /**
-     * EBSCO EIT Profile used for authentication
-     *
-     * @var string
-     */
-    protected $prof;
-
-    /**
-     * Password associated with the EBSCO EIT Profile
-     *
-     * @var string
-     */
-    protected $pwd;
-
-    /**
-     * Array of 3-character EBSCO database abbreviations to include in search
-     *
-     * @var array
-     */
-    protected $dbs = [];
-
-    /**
      * Constructor
      *
-     * @param string $base   Base URL
-     * @param Client $client HTTP client
-     * @param string $prof   Profile
-     * @param string $pwd    Password
-     * @param string $dbs    Database list (comma-separated abbrevs.)
+     * @param string  $base              Base URL
+     * @param Closure $httpClientFactory HTTP client factory
+     * @param string  $prof              Profile
+     * @param string  $pwd               Password
+     * @param string  $dbs               Database list (comma-separated abbrevs.)
      */
-    public function __construct($base, Client $client, $prof, $pwd, $dbs)
-    {
-        $this->base = $base;
-        $this->client = $client;
-        $this->prof = $prof;
-        $this->pwd = $pwd;
-        $this->dbs = $dbs;
+    public function __construct(
+        protected string $base,
+        protected Closure $httpClientFactory,
+        protected string $prof,
+        protected string $pwd,
+        protected string $dbs
+    ) {
     }
 
     /**
@@ -117,8 +85,7 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
         $params->set('numrec', $limit);
         $params->set('prof', $this->prof);
         $params->set('pwd', $this->pwd);
-        $response = $this->call('GET', $params->getArrayCopy());
-        $xml = simplexml_load_string($response);
+        $xml = $this->call('GET', $params->getArrayCopy());
         $finalDocs = [];
         foreach ($xml->SearchResults->records->rec ?? [] as $doc) {
             $finalDocs[] = simplexml_load_string($doc->asXML());
@@ -131,29 +98,13 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     }
 
     /**
-     * Check for HTTP errors in a response.
-     *
-     * @param \Laminas\Http\Response $result The response to check.
-     *
-     * @throws \VuFindSearch\Backend\Exception\BackendException
-     * @return void
-     */
-    public function checkForHttpError($result)
-    {
-        if (!$result->isSuccess()) {
-            throw HttpErrorException::createFromResponse($result);
-        }
-    }
-
-    /**
      * Make an API call
      *
-     * @param string $method GET or POST
-     * @param array  $params Parameters to send
+     * @param array $params Parameters to send
      *
      * @return \SimpleXMLElement
      */
-    protected function call($method = 'GET', $params = null)
+    protected function call($params = null)
     {
         $queryString = '';
         if ($params) {
@@ -182,13 +133,19 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
         $this->debug('Connect: ' . $url);
 
         // Send Request
-        $this->client->resetParameters();
-        $this->client->setUri($url);
-        $result = $this->client->setMethod($method)->send();
-        $body = $result->getBody();
+        $request = new Request('GET', $url);
+        $client = ($this->httpClientFactory)($url);
+        $response = $client->sendRequest($request);
+        if ($response->getStatusCode() !== 200) {
+            throw HttpErrorException::createFromResponse($response);
+        }
+        $body = (string)$response->getBody();
         $xml = simplexml_load_string($body);
         $this->debug($this->varDump($xml));
-        return $body;
+        if (false === $xml) {
+            throw new BackendException('Failed to parse response');
+        }
+        return $xml;
     }
 
     /**
@@ -207,9 +164,7 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
         $params->set('prof', $this->prof);
         $params->set('pwd', $this->pwd);
         $params->set('query', $query);
-        $this->client->resetParameters();
-        $response = $this->call('GET', $params->getArrayCopy());
-        $xml = simplexml_load_string($response);
+        $xml = $this->call('GET', $params->getArrayCopy());
         $finalDocs = [];
         foreach ($xml->SearchResults->records->rec ?? [] as $doc) {
             $finalDocs[] = simplexml_load_string($doc->asXML());

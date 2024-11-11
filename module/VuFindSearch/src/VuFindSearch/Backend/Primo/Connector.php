@@ -34,7 +34,8 @@
 
 namespace VuFindSearch\Backend\Primo;
 
-use Laminas\Http\Client as HttpClient;
+use Closure;
+use GuzzleHttp\Psr7\Request;
 
 use function array_key_exists;
 use function count;
@@ -62,20 +63,6 @@ class Connector implements ConnectorInterface, \Laminas\Log\LoggerAwareInterface
 {
     use \VuFind\Log\LoggerAwareTrait;
     use \VuFindSearch\Backend\Feature\ConnectorCacheTrait;
-
-    /**
-     * HTTP client used for API transactions
-     *
-     * @var HttpClient
-     */
-    public $client;
-
-    /**
-     * Institution code
-     *
-     * @var string
-     */
-    protected $inst;
 
     /**
      * Base URL for API
@@ -108,12 +95,12 @@ class Connector implements ConnectorInterface, \Laminas\Log\LoggerAwareInterface
      *
      * Sets up the Primo API Client
      *
-     * @param string     $url    Primo API URL (either a host name and port or a full
-     * path to the brief search including a trailing question mark)
-     * @param string     $inst   Institution code
-     * @param HttpClient $client HTTP client
+     * @param string     $url               Primo API URL (either a host name and port or a full path to the brief
+     * search including a trailing question mark)
+     * @param string     $inst              Institution code
+     * @param Closure    $httpClientFactory HTTP client factory
      */
-    public function __construct($url, $inst, $client)
+    public function __construct(string $url, protected string $inst, protected Closure $httpClientFactory)
     {
         $parts = parse_url($url);
         if (empty($parts['path']) || $parts['path'] == '/') {
@@ -125,9 +112,6 @@ class Connector implements ConnectorInterface, \Laminas\Log\LoggerAwareInterface
         if (!empty($parts['query'])) {
             $this->host .= $parts['query'] . '&';
         }
-
-        $this->inst = $inst;
-        $this->client = $client;
     }
 
     /**
@@ -358,37 +342,31 @@ class Connector implements ConnectorInterface, \Laminas\Log\LoggerAwareInterface
      *
      * @param string $qs        Query string
      * @param array  $params    Request parameters
-     * @param string $method    HTTP method
      * @param bool   $cacheable Whether the request is cacheable
      *
      * @return object    The parsed primo data
      * @throws \Exception
      */
-    protected function call($qs, $params = [], $method = 'GET', $cacheable = true)
+    protected function call($qs, $params = [], $cacheable = true)
     {
-        $this->debug("{$method}: {$this->host}{$qs}");
-        $this->client->resetParameters();
-        $baseUrl = null;
-        if ($method == 'GET') {
-            $baseUrl = $this->host . $qs;
-        } elseif ($method == 'POST') {
-            throw new \Exception('POST not supported');
-        }
+        $this->debug("GET: {$this->host}{$qs}");
 
-        $this->client->setUri($baseUrl);
-        $this->client->setMethod($method);
+        $url = $this->host . $qs;
+        $request = new Request('GET', $url);
+
         // Check cache:
         $resultBody = null;
         $cacheKey = null;
         if ($cacheable && $this->cache) {
-            $cacheKey = $this->getCacheKey($this->client);
+            $cacheKey = $this->getCacheKey($request);
             $resultBody = $this->getCachedData($cacheKey);
         }
         if (null === $resultBody) {
             // Send request:
-            $result = $this->client->send();
-            $resultBody = $result->getBody();
-            if (!$result->isSuccess()) {
+            $client = ($this->httpClientFactory)($url);
+            $response = $client->sendRequest($request);
+            $resultBody = (string)$response->getBody();
+            if ($response->getStatusCode() !== 200) {
                 throw new \Exception($resultBody);
             }
             if ($cacheKey) {

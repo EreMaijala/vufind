@@ -73,13 +73,14 @@ abstract class AbstractBackendFactory implements FactoryInterface
      *
      * @param string $url     Request URL (needed for proper local address check when
      * the client is being proxified)
-     * @param ?int   $timeout Request timeout (optional)
+     * @param ?float $timeout Request timeout (optional)
+     * @param array  $options Additional options (similar to Http section in config.ini)
      *
      * @return ClientInterface
      */
-    protected function createHttpClient(string $url, ?int $timeout = null): ClientInterface
+    protected function createHttpClient(string $url, ?float $timeout = null, array $options = []): ClientInterface
     {
-        return $this->getService(\VuFind\Http\HttpServiceInterface::class)->createClient($url, $timeout);
+        return $this->getService(\VuFind\Http\HttpServiceInterface::class)->createClient($url, $timeout, $options);
     }
 
     /**

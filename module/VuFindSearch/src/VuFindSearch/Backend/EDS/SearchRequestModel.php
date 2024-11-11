@@ -224,7 +224,7 @@ class SearchRequestModel
     /**
      * Converts properties to a querystring to send to the EdsAPI
      *
-     * @return string
+     * @return array
      */
     public function convertToQueryStringParameterArray()
     {

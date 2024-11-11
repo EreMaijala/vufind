@@ -29,8 +29,8 @@
 
 namespace VuFindSearch\Backend\Pazpar2;
 
-use Laminas\Http\Client;
-use Laminas\Http\Request;
+use Closure;
+use GuzzleHttp\Psr7\Request;
 use VuFindSearch\Backend\Exception\HttpErrorException;
 use VuFindSearch\ParamBag;
 
@@ -50,20 +50,6 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     use \VuFind\Log\LoggerAwareTrait;
 
     /**
-     * Base url for searches
-     *
-     * @var string
-     */
-    protected $base;
-
-    /**
-     * The HTTP_Request object used for REST transactions
-     *
-     * @var Client
-     */
-    protected $client;
-
-    /**
      * Session ID
      *
      * @var string
@@ -73,19 +59,16 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     /**
      * Constructor
      *
-     * @param string $base     Base URL for Pazpar2
-     * @param Client $client   An HTTP client object
-     * @param bool   $autoInit Should we auto-initialize the Pazpar2 connection?
+     * @param string  $base              Base URL for Pazpar2
+     * @param Closure $httpClientFactory HTTP client factory
+     * @param bool    $autoInit          Should we auto-initialize the Pazpar2 connection?
      */
-    public function __construct($base, Client $client, $autoInit = false)
+    public function __construct(protected string $base, protected Closure $httpClientFactory, bool $autoInit = false)
     {
         $this->base = $base;
         if (empty($this->base)) {
             throw new \Exception('Missing Pazpar2 base URL.');
         }
-
-        $this->client = $client;
-        $this->client->setMethod(Request::METHOD_GET);  // always use GET
 
         if ($autoInit) {
             $this->init();
@@ -133,9 +116,11 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
         }
         $params->set('command', $command);
 
-        $this->client->setUri($this->base . '?' . implode('&', $params->request()));
-        $xmlStr = $this->send($this->client);
-        $xml = simplexml_load_string($xmlStr);
+        $url = $this->base . '?' . implode('&', $params->request());
+        $request = new Request('GET', $url);
+        $client = ($this->httpClientFactory)($url);
+        $response = $client->sendRequest($request);
+        $xml = simplexml_load_string((string)$response->getBody());
 
         // If our session has expired, start a new session
         if (
@@ -146,43 +131,6 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
             return $this->query($command, $data);
         }
         return $xml;
-    }
-
-    /**
-     * Send a request and return the response.
-     *
-     * @param Client $client Prepare HTTP client
-     *
-     * @return string Response body
-     *
-     * @throws \VuFindSearch\Backend\Exception\RemoteErrorException  Server
-     * signaled a server error (HTTP 5xx)
-     * @throws \VuFindSearch\Backend\Exception\RequestErrorException Server
-     * signaled a client error (HTTP 4xx)
-     */
-    protected function send(Client $client)
-    {
-        $this->debug(
-            sprintf('=> %s %s', $client->getMethod(), $client->getUri())
-        );
-
-        $time     = microtime(true);
-        $response = $client->send();
-        $time     = microtime(true) - $time;
-
-        $this->debug(
-            sprintf(
-                '<= %s %s',
-                $response->getStatusCode(),
-                $response->getReasonPhrase()
-            ),
-            ['time' => $time]
-        );
-
-        if (!$response->isSuccess()) {
-            throw HttpErrorException::createFromResponse($response);
-        }
-        return $response->getBody();
     }
 
     /**
@@ -250,13 +198,13 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
      *
      * TODO: Make the array more useful to get the correct format?
      *
-     * @param string $settings settings to be sets
+     * @param ParamBag $settings settings to be sets
      *
      * @return bool Success/failure status
      */
-    public function settings($settings = false)
+    public function settings($settings = null)
     {
-        if ($settings === false) {
+        if ($settings === null) {
             return false;
         }
         $set = $this->query('settings', $settings);

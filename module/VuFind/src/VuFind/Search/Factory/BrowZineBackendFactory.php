@@ -29,6 +29,7 @@
 
 namespace VuFind\Search\Factory;
 
+use Closure;
 use Psr\Container\ContainerInterface;
 use VuFind\Config\Feature\SecretTrait;
 use VuFindSearch\Backend\BrowZine\Backend;
@@ -122,7 +123,11 @@ class BrowZineBackendFactory extends AbstractBackendFactory
 
         // Create connector:
         $connector = new Connector(
-            $this->createHttpClient($this->browzineConfig->General->timeout ?? 30),
+            Closure::fromCallable(
+                function (string $url, ?float $timeout = null) {
+                    return $this->createHttpClient($url, $this->browzineConfig->General->timeout ?? 30);
+                }
+            ),
             $token,
             $this->browzineConfig->General->library_id
         );

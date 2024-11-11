@@ -29,7 +29,8 @@
 
 namespace VuFindSearch\Backend\BrowZine;
 
-use Laminas\Http\Client as HttpClient;
+use Closure;
+use GuzzleHttp\Psr7\Request;
 
 /**
  * BrowZine connector.
@@ -52,27 +53,6 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     protected $base = 'https://api.thirdiron.com/public/v1/';
 
     /**
-     * The HTTP Request client used for API transactions
-     *
-     * @var HttpClient
-     */
-    protected $client;
-
-    /**
-     * The API access token
-     *
-     * @var string
-     */
-    protected $token;
-
-    /**
-     * The library ID number to use
-     *
-     * @var string
-     */
-    protected $libraryId;
-
-    /**
      * Constructor
      *
      * Sets up the BrowZine Client
@@ -81,11 +61,11 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
      * @param string     $token  API access token
      * @param string     $id     Library ID number
      */
-    public function __construct(HttpClient $client, $token, $id)
-    {
-        $this->client = $client;
-        $this->token = $token;
-        $this->libraryId = $id;
+    public function __construct(
+        protected Closure $httpClientFactory,
+        protected string $token,
+        protected string $libraryId
+    ) {
     }
 
     /**
@@ -132,13 +112,14 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     /**
      * Get a full request URL for a relative path
      *
-     * @param string $path URL path for service
+     * @param string $path   URL path for service
+     * @param array  $params Get params
      *
      * @return string
      */
-    protected function getUri($path)
+    protected function getUri(string $path, array $params)
     {
-        return $this->base . 'libraries/' . $this->libraryId . '/' . $path;
+        return $this->base . 'libraries/' . $this->libraryId . '/' . $path . '?' . http_build_query($params);
     }
 
     /**
@@ -152,15 +133,14 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     protected function request($path, $params = [])
     {
         $params['access_token'] = $this->token;
-        $uri = $this->getUri($path);
+        $uri = $this->getUri($path, $params);
         $this->debug('BrowZine request: ' . $uri);
-        $this->client->setUri($uri);
-        $this->client->setParameterGet($params);
-        $result = $this->client->send();
-        if ($result->isSuccess()) {
-            return json_decode($result->getBody(), true);
+        $client = ($this->httpClientFactory)('GET');
+        $response = $client->sendRequest(new Request('GET', $uri));
+        if ($response->getStatusCode() === 200) {
+            return json_decode($response->getBody(), true);
         } else {
-            $this->debug('API failure; status: ' . $result->getStatusCode());
+            $this->debug('API failure; status: ' . $response->getStatusCode());
         }
         return null;
     }

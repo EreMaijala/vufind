@@ -30,6 +30,7 @@
 
 namespace VuFind\Connection;
 
+use Closure;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
@@ -78,10 +79,14 @@ class LibGuidesFactory implements FactoryInterface
         if (!isset($config->General->client_secret)) {
             throw new \Exception('client_secret key missing from configuration.');
         }
-        $client = $container->get(\VuFindHttp\HttpService::class)->createClient();
         return new $requestedName(
             $config,
-            $client
+            Closure::fromCallable(
+                function ($url) {
+                    $httpService = $this->$this->getService(\VuFind\Http\HttpServiceInterface::class);
+                    return $httpService->createHttpClient($url);
+                }
+            )
         );
     }
 }

@@ -182,7 +182,11 @@ class PrimoBackendFactory extends AbstractBackendFactory
         $connector = new $this->connectorClass(
             $this->primoConfig->General->url,
             $instCode,
-            $this->createHttpClient($this->primoConfig->General->timeout ?? 30)
+            Closure::fromCallable(
+                function ($url) {
+                    return $this->createHttpClient($url, $this->primoConfig->General->timeout ?? 30);
+                }
+            )
         );
         $connector->setLogger($this->logger);
         if ($cache = $this->createConnectorCache($this->primoConfig)) {

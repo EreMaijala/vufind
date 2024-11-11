@@ -30,7 +30,8 @@
 
 namespace VuFindSearch\Backend\LibGuides;
 
-use Laminas\Http\Client as HttpClient;
+use Closure;
+use GuzzleHttp\Psr7\Request;
 
 use function array_slice;
 use function count;
@@ -51,20 +52,6 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     use \VuFind\Log\LoggerAwareTrait;
 
     /**
-     * The HTTP_Request object used for API transactions
-     *
-     * @var HttpClient
-     */
-    public $client;
-
-    /**
-     * Institution code
-     *
-     * @var string
-     */
-    protected $iid;
-
-    /**
      * Base URL for API
      *
      * @var string
@@ -72,33 +59,23 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     protected $host;
 
     /**
-     * API version number
-     *
-     * @var float
-     */
-    protected $apiVersion;
-
-    /**
-     * Optionally load & display the description of each resource
-     *
-     * @var bool
-     */
-    protected $displayDescription;
-
-    /**
      * Constructor
      *
      * Sets up the LibGuides Client
      *
-     * @param string     $iid                Institution ID
-     * @param HttpClient $client             HTTP client
-     * @param float      $apiVersion         API version number
-     * @param string     $baseUrl            API base URL (optional)
-     * @param bool       $displayDescription Optionally load & display the description of each resource
+     * @param string  $iid               Institution ID
+     * @param Closure $httpClientFactory HTTP client factory
+     * @param float   $apiVersion        API version number
+     * @param string  $baseUrl           API base URL (optional)
+     * @param bool    $displayDescription Optionally load & display the description of each resource
      */
-    public function __construct($iid, $client, $apiVersion = 1, $baseUrl = null, $displayDescription = false)
-    {
-        $this->apiVersion = $apiVersion;
+    public function __construct(
+        protected string $iid,
+        protected Closure $httpClientFactory,
+        protected float $apiVersion = 1,
+        protected ?string $baseUrl = null,
+        protected bool $displayDescription = false
+    ) {
         if (empty($baseUrl)) {
             $this->host = ($this->apiVersion < 2)
                 ? 'http://api.libguides.com/api_search.php?'
@@ -107,9 +84,6 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
             // Ensure appropriate number of question marks:
             $this->host = rtrim($baseUrl, '?') . '?';
         }
-        $this->iid = $iid;
-        $this->client = $client;
-        $this->displayDescription = $displayDescription;
     }
 
     /**
@@ -154,40 +128,33 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     /**
      * Small wrapper for sendRequest, process to simplify error handling.
      *
-     * @param string $qs     Query string
-     * @param string $method HTTP method
+     * @param string $qs Query string
      *
-     * @return object    The parsed data
+     * @return array The parsed data
      * @throws \Exception
      */
-    protected function call($qs, $method = 'GET')
+    protected function call(string $qs): array
     {
-        $this->debug("{$method}: {$this->host}{$qs}");
-        $this->client->resetParameters();
-        $baseUrl = null;
-        if ($method == 'GET') {
-            $baseUrl = $this->host . $qs;
-        } elseif ($method == 'POST') {
-            throw new \Exception('POST not supported');
-        }
+        $url = $this->host . $qs;
+        $this->debug("GET: $url");
 
-        // Send Request
-        $this->client->setUri($baseUrl);
-        $result = $this->client->setMethod($method)->send();
-        if (!$result->isSuccess()) {
-            throw new \Exception($result->getBody());
+        $request = new Request('GET', $url);
+        $client = ($this->httpClientFactory)($url);
+        $response = $client->sendRequest($request);
+        if ($response->getStatusCode() !== 200) {
+            throw new \Exception($response->getBody());
         }
-        return $this->process($result->getBody());
+        return $this->process((string)$response->getBody());
     }
 
     /**
      * Translate API response into more convenient format.
      *
-     * @param array $data The raw response
+     * @param string $data The raw response
      *
-     * @return array      The processed response
+     * @return array       The processed response
      */
-    protected function process($data)
+    protected function process(string $data): array
     {
         // make sure data exists
         if (strlen($data) == 0) {

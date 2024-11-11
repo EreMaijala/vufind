@@ -468,7 +468,7 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
             ['time' => $time]
         );
 
-        if (200 < $statusCode || 299 > $statusCode) {
+        if ($statusCode !== 200) {
             // Return a more detailed error message for a 400 error:
             if (400 === $statusCode) {
                 $json = json_decode($response->getBody(), true);
@@ -484,6 +484,6 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
             }
             throw HttpErrorException::createFromResponse($response);
         }
-        return $response->getBody();
+        return (string)$response->getBody();
     }
 }

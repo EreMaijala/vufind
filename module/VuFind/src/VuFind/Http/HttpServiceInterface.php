@@ -55,8 +55,9 @@ interface HttpServiceInterface
      *
      * @param ?string $url     Target URL (required for proper proxy setup for non-local addresses)
      * @param ?float  $timeout Request timeout in seconds (overrides configuration)
+     * @param array   $options Additional options (similar to Http section in config.ini)
      *
      * @return ClientInterface
      */
-    public function createClient(?string $url = null, ?float $timeout = null): ClientInterface;
+    public function createClient(?string $url = null, ?float $timeout = null, array $options = []): ClientInterface;
 }

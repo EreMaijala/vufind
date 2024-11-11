@@ -35,6 +35,8 @@
 
 namespace VuFindSearch\Backend\Primo;
 
+use Closure;
+use GuzzleHttp\Psr7\Request;
 use Laminas\Session\Container as SessionContainer;
 
 use function array_key_exists;
@@ -60,41 +62,6 @@ class RestConnector implements ConnectorInterface, \Laminas\Log\LoggerAwareInter
 {
     use \VuFind\Log\LoggerAwareTrait;
     use \VuFindSearch\Backend\Feature\ConnectorCacheTrait;
-
-    /**
-     * HTTP client factory
-     *
-     * @var callable
-     */
-    protected $clientFactory;
-
-    /**
-     * Primo JWT API URL
-     *
-     * @var string
-     */
-    protected $jwtUrl;
-
-    /**
-     * Primo REST API search URL
-     *
-     * @var string
-     */
-    protected $searchUrl;
-
-    /**
-     * Institution code
-     *
-     * @var string
-     */
-    protected $inst;
-
-    /**
-     * Session container
-     *
-     * @var SessionContainer
-     */
-    protected $session;
 
     /**
      * Response for an empty search
@@ -138,26 +105,20 @@ class RestConnector implements ConnectorInterface, \Laminas\Log\LoggerAwareInter
      *
      * Sets up the Primo API Client
      *
-     * @param string           $jwtUrl        Primo JWT API URL
-     * @param string           $searchUrl     Primo REST API search URL
-     * @param string           $instCode      Institution code (used as view ID, i.e. the
-     * vid parameter unless specified in the URL)
-     * @param callable         $clientFactory HTTP client factory
-     * @param SessionContainer $session       Session container
+     * @param string           $jwtUrl            Primo JWT API URL
+     * @param string           $searchUrl         Primo REST API search URL
+     * @param string           $inst              Institution code (used as view ID, i.e. the vid parameter unless specified
+     * in the URL)
+     * @param Closure          $httpClientFactory HTTP client factory
+     * @param SessionContainer $session           Session container
      */
     public function __construct(
-        string $jwtUrl,
-        string $searchUrl,
-        string $instCode,
-        callable $clientFactory,
-        SessionContainer $session
+        protected string $jwtUrl,
+        protected string $searchUrl,
+        protected string $inst,
+        protected Closure $httpClientFactory,
+        protected SessionContainer $session
     ) {
-        $this->jwtUrl = $jwtUrl;
-        $this->searchUrl = $searchUrl;
-        $this->inst = $instCode;
-
-        $this->clientFactory = $clientFactory;
-        $this->session = $session;
     }
 
     /**
@@ -387,42 +348,30 @@ class RestConnector implements ConnectorInterface, \Laminas\Log\LoggerAwareInter
         $url = $this->getUrl($this->searchUrl);
         $url .= (str_contains($url, '?') ? '&' : '?') . $qs;
         $this->debug("GET: $url");
-        $client = ($this->clientFactory)($url);
-        $client->setMethod('GET');
+        $client = ($this->httpClientFactory)($url);
         // Check cache:
         $resultBody = null;
         $cacheKey = null;
+        $request = new Request('GET', $url);
         if ($this->cache) {
-            $cacheKey = $this->getCacheKey($client);
+            $cacheKey = $this->getCacheKey($request);
             $resultBody = $this->getCachedData($cacheKey);
         }
         if (null === $resultBody) {
             if ($jwt = $this->getJWT()) {
-                $client->setHeaders(
-                    [
-                        'Authorization' => [
-                            "Bearer $jwt",
-                        ],
-                    ]
-                );
+                $request = $request->withHeader('Authorization', "Bearer $jwt");
             }
             // Send request:
-            $result = $client->send();
-            if ($jwt && $result->getStatusCode() === 403) {
+            $response = $client->sendRequest($request);
+            if ($jwt && $response->getStatusCode() === 403) {
                 // Reset JWT and try again:
                 $jwt = $this->getJWT(true);
-                $client->setHeaders(
-                    [
-                        'Authorization' => [
-                            "Bearer $jwt",
-                        ],
-                    ]
-                );
-                $result = $client->send();
+                $request = $request->withHeader('Authorization', "Bearer $jwt");
+                $response = $client->sendRequest($request);
             }
-            $resultBody = $result->getBody();
-            if (!$result->isSuccess()) {
-                $this->logError("Request $url failed with error code " . $result->getStatusCode() . ": $resultBody");
+            $resultBody = (string)$response->getBody();
+            if ($response->getStatusCode() !== 200) {
+                $this->logError("Request $url failed with error code " . $response->getStatusCode() . ": $resultBody");
                 throw new \Exception($resultBody);
             }
             if ($cacheKey) {
@@ -676,7 +625,7 @@ class RestConnector implements ConnectorInterface, \Laminas\Log\LoggerAwareInter
         if (!$renew && isset($this->session->jwt)) {
             return $this->session->jwt;
         }
-        $client = ($this->clientFactory)($this->getUrl($this->jwtUrl));
+        $client = ($this->httpClientFactory)($this->getUrl($this->jwtUrl));
         $result = $client->setMethod('GET')->send();
         $resultBody = $result->getBody();
         if (!$result->isSuccess()) {

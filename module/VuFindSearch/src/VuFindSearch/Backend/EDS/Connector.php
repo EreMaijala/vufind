@@ -31,6 +31,9 @@
 
 namespace VuFindSearch\Backend\EDS;
 
+use Closure;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Utils;
 use Laminas\Http\Client as HttpClient;
 use Laminas\Log\LoggerAwareInterface;
 
@@ -51,13 +54,6 @@ class Connector extends Base implements LoggerAwareInterface
     use \VuFindSearch\Backend\Feature\ConnectorCacheTrait;
 
     /**
-     * The HTTP Request object to execute EDS API transactions
-     *
-     * @var HttpClient
-     */
-    protected $client;
-
-    /**
      * Constructor
      *
      * Sets up the EDS API Client
@@ -71,10 +67,9 @@ class Connector extends Base implements LoggerAwareInterface
      *    </ul>
      * @param HttpClient $client   HTTP client object
      */
-    public function __construct($settings, $client)
+    public function __construct($settings, protected Closure $httpClientFactory)
     {
         parent::__construct($settings);
-        $this->client = $client;
     }
 
     /**
@@ -102,32 +97,30 @@ class Connector extends Base implements LoggerAwareInterface
     ) {
         $this->debug("{$method}: {$baseUrl}?{$queryString}");
 
-        $this->client->resetParameters();
-
-        $this->client->setHeaders($headers);
-        $this->client->setMethod($method);
-
-        if ($method == 'GET' && !empty($queryString)) {
-            $baseUrl .= '?' . $queryString;
-        } elseif ($method == 'POST' && isset($messageBody)) {
-            $this->client->setRawBody($messageBody);
+        $url = $method == 'GET' && !empty($queryString) ? $baseUrl . "?$queryString" : $baseUrl;
+        $request = new Request($method, $url, $headers);
+        // Add content-type after other headers to ensure that it overrides any in $headers:
+        if ($messageFormat) {
+            $request = $request->withHeader('Content-Type', $messageFormat);
         }
-        $this->client->setUri($baseUrl);
-        $this->client->setEncType($messageFormat);
+        if ($method == 'POST' && isset($messageBody)) {
+            $request = $request->withBody(Utils::streamFor($messageBody));
+        }
 
         // Check cache:
         $cacheKey = null;
         if ($cacheable && $this->cache) {
-            $cacheKey = $this->getCacheKey($this->client);
+            $cacheKey = $this->getCacheKey($request);
             if ($result = $this->getCachedData($cacheKey)) {
                 return $result;
             }
         }
 
         // Send request:
-        $result = $this->client->send();
-        $resultBody = $result->getBody();
-        if (!$result->isSuccess()) {
+        $client = ($this->httpClientFactory)($baseUrl);
+        $response = $client->sendRequest($request);
+        $resultBody = (string)$response->getBody();
+        if ($response->getStatusCode() !== 200) {
             $decodedError = json_decode($resultBody, true);
             throw new ApiException($decodedError ?: $resultBody);
         }
