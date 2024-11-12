@@ -29,6 +29,7 @@
 
 namespace VuFind\Search\Factory;
 
+use Closure;
 use Psr\Container\ContainerInterface;
 use SerialsSolutions\Summon\Laminas as Connector;
 use VuFindSearch\Backend\Solr\LuceneSyntaxHelper;
@@ -125,7 +126,11 @@ class SummonBackendFactory extends AbstractBackendFactory
             $id,
             $key,
             $options,
-            $this->createHttpClient($this->summonConfig->General->timeout ?? 30)
+            Closure::fromCallable(
+                function ($url) {
+                    return $this->createHttpClient($url, $this->summonConfig->General->timeout ?? 30);
+                }
+            )
         );
         $connector->setLogger($this->logger);
         return $connector;

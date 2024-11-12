@@ -30,15 +30,16 @@
 
 namespace VuFindSearch\Backend\WorldCat2;
 
+use Closure;
 use Exception;
-use Laminas\Http\Client\Exception\RuntimeException as ExceptionRuntimeException;
-use Laminas\Http\Exception\InvalidArgumentException;
-use Laminas\Http\Exception\RuntimeException;
-use Laminas\Http\Response;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Response;
 use Laminas\Log\LoggerAwareInterface;
 use Laminas\Session\Container;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
+use Psr\Http\Client\ClientExceptionInterface;
+use Psr\Http\Client\NetworkExceptionInterface;
 use VuFind\Log\LoggerAwareTrait;
 use VuFindSearch\ParamBag;
 
@@ -65,13 +66,13 @@ class Connector implements LoggerAwareInterface
     /**
      * Constructor
      *
-     * @param \Laminas\Http\Client $client       An HTTP client object
-     * @param GenericProvider      $authProvider OAuth2 provider
-     * @param Container            $session      Session container for persisting data
-     * @param array                $options      Additional config settings
+     * @param Closure         $client       An HTTP client object
+     * @param GenericProvider $authProvider OAuth2 provider
+     * @param Container       $session      Session container for persisting data
+     * @param array           $options      Additional config settings
      */
     public function __construct(
-        protected \Laminas\Http\Client $client,
+        protected Closure $httpClientFactory,
         protected GenericProvider $authProvider,
         protected Container $session,
         protected array $options = []
@@ -100,26 +101,26 @@ class Connector implements LoggerAwareInterface
      *
      * @return Response
      * @throws IdentityProviderException
-     * @throws InvalidArgumentException
-     * @throws RuntimeException
-     * @throws ExceptionRuntimeException
+     * @throws ClientExceptionInterface
+     * @throws NetworkExceptionInterface
      */
     protected function makeApiCall(string $path): Response
     {
         if (!isset($this->session->token)) {
             $this->session->token = $this->getToken();
         }
-        $headers = ['Authorization: Bearer ' . $this->session->token];
-        $this->client->setHeaders($headers);
-        $this->client->setUri($this->baseUrl . $path);
+
         $this->debug($path);
-        $response = $this->client->send();
+        $url = $this->baseUrl . $path;
+        $request = (new Request('GET', $url))
+            ->withHeader('Authorization', 'Bearer ' . $this->session->token);
+        $client = ($this->httpClientFactory)($url);
+        $response = $client->sendRequest($request);
         // If authentication failed, the token may be expired; re-request and try again:
         if ($response->getStatusCode() === 401) {
             $this->session->token = $this->getToken();
-            $headers = ['Authorization: Bearer ' . $this->session->token];
-            $this->client->setHeaders($headers);
-            $response = $this->client->send();
+            $request = $request->withHeader('Authorization', 'Bearer ' . $this->session->token);
+            $response = $client->sendRequest($request);
         }
         return $response;
     }

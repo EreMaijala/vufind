@@ -30,6 +30,7 @@
 
 namespace VuFind\Search\Factory;
 
+use Closure;
 use Laminas\Session\Container;
 use League\OAuth2\Client\OptionProvider\HttpBasicAuthOptionProvider;
 use League\OAuth2\Client\Provider\GenericProvider;
@@ -137,7 +138,7 @@ class WorldCat2BackendFactory extends AbstractBackendFactory
         $optionProvider = new HttpBasicAuthOptionProvider();
         $provider = new GenericProvider($authOptions, compact('optionProvider'));
         $provider->setHttpClient(
-            $this->getService(GuzzleService::class)->createClient()
+            $this->getService(GuzzleService::class)->createGuzzleClient($authOptions['urlAuthorize'])
         );
         return $provider;
     }
@@ -151,7 +152,7 @@ class WorldCat2BackendFactory extends AbstractBackendFactory
     {
         $connectorOptions = $this?->wcConfig?->Connector?->toArray() ?? [];
         $connector = new Connector(
-            $this->createHttpClient(),
+            Closure::fromCallable([$this, 'createHttpClient']),
             $this->createAuthProvider($connectorOptions),
             new Container('WorldCat2', $this->getService(\Laminas\Session\SessionManager::class)),
             $connectorOptions

@@ -288,7 +288,7 @@ class Backend extends AbstractBackend implements
         };
 
         // Retrieve records a page at a time:
-        $results = false;
+        $results = null;
         while (count($ids) > 0) {
             $currentPage = array_splice($ids, 0, $this->pageSize, []);
             $currentPage = array_map($formatIds, $currentPage);

@@ -29,6 +29,8 @@
 
 namespace VuFindSearch\Backend\SRU;
 
+use Closure;
+use GuzzleHttp\Psr7\Request;
 use VuFind\XSLT\Processor as XSLTProcessor;
 use VuFindSearch\Backend\Exception\BackendException;
 use VuFindSearch\Backend\Exception\HttpErrorException;
@@ -57,20 +59,6 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     protected $raw = false;
 
     /**
-     * The HTTP_Request object used for REST transactions
-     *
-     * @var \Laminas\Http\Client
-     */
-    protected $client;
-
-    /**
-     * The host to connect to
-     *
-     * @var string
-     */
-    protected $host;
-
-    /**
      * The version to specify in the URL
      *
      * @var string
@@ -82,14 +70,11 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
      *
      * Sets up the SOAP Client
      *
-     * @param string               $host   The URL of the SRU Server
-     * @param \Laminas\Http\Client $client An HTTP client object
+     * @param string  $host              The URL of the SRU Server
+     * @param Closure $httpClientFactory HTTP client factory
      */
-    public function __construct($host, \Laminas\Http\Client $client)
+    public function __construct(protected string $host, protected Closure $httpClientFactory)
     {
-        // Initialize properties needed for HTTP connection:
-        $this->host = $host;
-        $this->client = $client;
     }
 
     /**
@@ -180,28 +165,13 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
     }
 
     /**
-     * Check for HTTP errors in a response.
-     *
-     * @param \Laminas\Http\Response $result The response to check.
-     *
-     * @throws BackendException
-     * @return void
-     */
-    public function checkForHttpError($result)
-    {
-        if (!$result->isSuccess()) {
-            throw HttpErrorException::createFromResponse($result);
-        }
-    }
-
-    /**
-     * Submit REST Request
+     * Submit Request
      *
      * @param string $method  HTTP Method to use: GET or POST
      * @param array  $params  An array of parameters for the request
      * @param bool   $process Should we convert the MARCXML?
      *
-     * @return string|SimpleXMLElement The response from the XServer
+     * @return string|SimpleXMLElement The response from the SRU server
      */
     protected function call($method = 'GET', $params = null, $process = true)
     {
@@ -226,13 +196,16 @@ class Connector implements \Laminas\Log\LoggerAwareInterface
         $this->debug('Connect: ' . $url);
 
         // Send Request
-        $this->client->resetParameters();
-        $this->client->setUri($url);
-        $result = $this->client->setMethod($method)->send();
-        $this->checkForHttpError($result);
+        $request = new Request($method, $url);
+        $client = ($this->httpClientFactory)($url);
+        $response = $client->sendRequest($request);
+        if ($response->getStatusCode() !== 200) {
+            throw HttpErrorException::createFromResponse($response);
+        }
+        $responseBody = (string)$response->getBody();
 
         // Return processed or unprocessed response, as appropriate:
-        return $process ? $this->process($result->getBody()) : $result->getBody();
+        return $process ? $this->process($responseBody) : $responseBody;
     }
 
     /**

@@ -29,7 +29,11 @@
 
 namespace VuFind\Http;
 
+use GuzzleHttp\ClientInterface as GuzzleHttpClientInterface;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Utils;
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Guzzle service.
@@ -101,7 +105,131 @@ class GuzzleService implements HttpServiceInterface
      */
     public function createClient(?string $url = null, ?float $timeout = null, array $options = []): ClientInterface
     {
+        return (ClientInterface::class)($this->createGuzzleClient($url, $timeout, $options));
+    }
+
+    /**
+     * Return a new Guzzle client.
+     *
+     * @param ?string $url     Target URL (required for proper proxy setup for non-local addresses)
+     * @param ?float  $timeout Request timeout in seconds (overrides configuration)
+     * @param array   $options Additional options (similar to Http section in config.ini)
+     *
+     * @return GuzzleHttpClientInterface
+     */
+    public function createGuzzleClient(
+        ?string $url = null,
+        ?float $timeout = null,
+        array $options = []
+    ): GuzzleHttpClientInterface {
         return new \GuzzleHttp\Client($this->getGuzzleConfig($url, $timeout, $options));
+    }
+
+    /**
+     * Make a GET request
+     *
+     * @param string $url           URL
+     * @param array  $headers       Optional headers
+     * @param array  $clientOptions Optional HTTP client options
+     *
+     * @return ResponseInterface
+     * @throws \Psr\Http\Client\ClientExceptionInterface
+     * @throws \Psr\Http\Client\NetworkExceptionInterface
+     * @throws \Psr\Http\Client\RequestExceptionInterface
+     */
+    public function get(string $url, array $headers = [], array $clientOptions = []): ResponseInterface
+    {
+        $request = new Request('GET', $url, $headers);
+        return ($this->createClient($url, options: $clientOptions))->sendRequest($request);
+    }
+
+    /**
+     * Make a POST request
+     *
+     * @param string $url           URL
+     * @param string $body          Request body
+     * @param array  $headers       Optional headers
+     * @param string $contentType   Optional content type (overrides any content-type set in $headers)
+     * @param array  $clientOptions Optional HTTP client options
+     *
+     * @return ResponseInterface
+     * @throws \Psr\Http\Client\ClientExceptionInterface
+     * @throws \Psr\Http\Client\NetworkExceptionInterface
+     * @throws \Psr\Http\Client\RequestExceptionInterface
+     */
+    public function post(
+        string $url,
+        string $body,
+        array $headers = [],
+        string $contentType = 'application/x-www-form-urlencoded;charset=UTF-8',
+        array $clientOptions = []
+    ): ResponseInterface {
+        if ($contentType) {
+            // Remove any existing content-type header:
+            foreach (array_keys($headers) as $key) {
+                if (strcasecmp($key, 'content-type') === 0) {
+                    unset($headers[$key]);
+                }
+            }
+            $headers['Content-Type'] = $contentType;
+        }
+        $request = new Request('POST', $url, $headers);
+        if ($body) {
+            $request = $request->withBody(Utils::streamFor($body));
+        }
+        return ($this->createClient($url, options: $clientOptions))->sendRequest($request);
+    }
+
+    /**
+     * Check if the response status code indicates success
+     *
+     * @param ResponseInterface $response Response
+     *
+     * @return bool
+     */
+    public function isSuccess(ResponseInterface $response): bool
+    {
+        $code = $response->getStatusCode();
+        return $code >= 200 && $code < 300;
+
+    }
+
+    /**
+     * Check if the response status code indicates an error
+     *
+     * @param ResponseInterface $response Response
+     *
+     * @return bool
+     */
+    public function isError(ResponseInterface $response): bool
+    {
+        return !$this->isSuccess($response);
+    }
+
+    /**
+     * Check if the response status code indicates a client error
+     *
+     * @param ResponseInterface $response Response
+     *
+     * @return bool
+     */
+    public function isClientError(ResponseInterface $response): bool
+    {
+        $code = $response->getStatusCode();
+        return $code >= 400 && $code < 500;
+    }
+
+    /**
+     * Check if the response status code indicates a server error
+     *
+     * @param ResponseInterface $response Response
+     *
+     * @return bool
+     */
+    public function isServerError(ResponseInterface $response): bool
+    {
+        $code = $response->getStatusCode();
+        return $code >= 500 && $code < 600;
     }
 
     /**

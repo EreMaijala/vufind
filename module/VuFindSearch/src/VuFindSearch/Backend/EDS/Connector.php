@@ -97,7 +97,7 @@ class Connector extends Base implements LoggerAwareInterface
     ) {
         $this->debug("{$method}: {$baseUrl}?{$queryString}");
 
-        $url = $method == 'GET' && !empty($queryString) ? $baseUrl . "?$queryString" : $baseUrl;
+        $url = ($method == 'GET' && !empty($queryString)) ? $baseUrl . "?$queryString" : $baseUrl;
         $request = new Request($method, $url, $headers);
         // Add content-type after other headers to ensure that it overrides any in $headers:
         if ($messageFormat) {

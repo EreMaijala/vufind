@@ -32,7 +32,9 @@
 namespace VuFind\Connection;
 
 use Exception;
+use Laminas\Config\Config;
 use Laminas\Log\LoggerAwareInterface;
+use VuFind\Http\HttpServiceInterface;
 
 /**
  * LibGuides API connection class.
@@ -61,13 +63,6 @@ class LibGuides implements
     use \VuFind\Log\LoggerAwareTrait {
         logError as error;
     }
-
-    /**
-     * HTTP Client
-     *
-     * @var \Laminas\Http\HttpClient
-     */
-    protected $client;
 
     /**
      * Base URL of the LibGuides API
@@ -100,16 +95,15 @@ class LibGuides implements
     /**
      * Constructor
      *
-     * @param Config               $config LibGuides API configuration object
-     * @param \Laminas\Http\Client $client HTTP client
+     * @param Config               $config      LibGuides API configuration object
+     * @param HttpServiceInterface $httpService HTTP Service
      *
      * @link https://ask.springshare.com/libguides/faq/873#api-auth
      */
     public function __construct(
-        $config,
-        $client
+        Config $config,
+        protected HttpServiceInterface $httpService
     ) {
-        $this->client = $client;
         $this->baseUrl = $config->General->api_base_url;
         $this->clientId = $config->General->client_id;
         $this->clientSecret = $config->General->client_secret;
@@ -123,10 +117,6 @@ class LibGuides implements
      */
     public function getAccounts()
     {
-        if (!$this->authenticateAndSetHeaders()) {
-            return null;
-        }
-
         $result = $this->doGet(
             $this->baseUrl . '/accounts?expand=profile,subjects'
         );
@@ -145,13 +135,7 @@ class LibGuides implements
      */
     public function getAZ()
     {
-        if (!$this->authenticateAndSetHeaders()) {
-            return null;
-        }
-
-        $result = $this->doGet(
-            $this->baseUrl . '/az?expand=az_props'
-        );
+        $result = $this->doGet($this->baseUrl . '/az?expand=az_props');
 
         if (isset($result->errorCode)) {
             return null;
@@ -160,11 +144,11 @@ class LibGuides implements
     }
 
     /**
-     * Authenticate to the LibGuides API and set authentication headers.
+     * Authenticate to the LibGuides API and get authentication headers.
      *
-     * @return bool Indicates if authentication succeeded.
+     * @return ?array Headers, or null on failure
      */
-    protected function authenticateAndSetHeaders()
+    protected function authenticateAndGetHeaders(): ?array
     {
         $tokenData = $this->authenticateWithClientCredentials(
             $this->baseUrl . '/oauth/token',
@@ -180,14 +164,10 @@ class LibGuides implements
             isset($tokenData->token_type)
             && isset($tokenData->access_token)
         ) {
-            $headers[] = "Authorization: {$tokenData->token_type} "
-                . $tokenData->access_token;
+            $headers['Authorization'] = "{$tokenData->token_type} " . $tokenData->access_token;
         }
-        $headers[] = 'User-Agent: ' . $this->userAgent;
-
-        $this->client->setHeaders($headers);
-
-        return true;
+        $headers['User-Agent'] = $this->userAgent;
+        return $headers;
     }
 
     /**
@@ -199,10 +179,12 @@ class LibGuides implements
      */
     protected function doGet($url)
     {
-        $this->client->setMethod('GET');
-        $this->client->setUri($url);
+        if (!($headers = $this->authenticateAndGetHeaders())) {
+            return null;
+        }
+
         try {
-            $response = $this->client->send();
+            $response = $this->httpService->get($url, $headers);
         } catch (Exception $ex) {
             $this->error(
                 'Exception during request: ' .

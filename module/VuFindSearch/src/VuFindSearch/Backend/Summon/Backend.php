@@ -173,7 +173,7 @@ class Backend extends AbstractBackend implements RetrieveBatchInterface
         $pageSize = 50;
 
         // Retrieve records a page at a time:
-        $results = false;
+        $results = null;
         while (count($ids) > 0) {
             $currentPage = array_splice($ids, 0, $pageSize, []);
             $query = new SummonQuery(

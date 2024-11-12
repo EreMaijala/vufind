@@ -102,7 +102,7 @@ abstract class HttpErrorException extends BackendException
     /**
      * Return server response.
      *
-     * @return Response
+     * @return ResponseInterface
      */
     public function getResponse()
     {

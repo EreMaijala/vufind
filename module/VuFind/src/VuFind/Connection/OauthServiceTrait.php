@@ -36,7 +36,9 @@ use function func_get_args;
 /**
  * Helper trait for OAuth 2.0 connections.
  *
- * Classes which use this trait should also use LoggerAwareTrait.
+ * Classes which use this trait should also:
+ * - use LoggerAwareTrait
+ * - have GuzzleService as $this->httpService
  *
  * Closely adapted from VuFind\DigitalContent\OverdriveConnector.
  *
@@ -47,6 +49,8 @@ use function func_get_args;
  * @author   Maccabee Levine <msl321@lehigh.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org
+ *
+ * @property \VuFind\Http\GuzzleService $httpService
  */
 trait OauthServiceTrait
 {
@@ -86,18 +90,12 @@ trait OauthServiceTrait
                 $clientId . ':' . $clientSecret
             );
             $headers = [
-                'Content-Type: application/x-www-form-urlencoded;charset=UTF-8',
-                "Authorization: Basic $authHeader",
+                "Authorization' => 'Basic $authHeader",
             ];
 
-            $this->client->setHeaders($headers);
-            $this->client->setMethod('POST');
-            $this->client->setRawBody('grant_type=client_credentials');
-            $response = $this->client
-                ->setUri($oauthUrl)
-                ->send();
+            $response = $this->httpService->post($oauthUrl, 'grant_type=client_credentials', $headers);
 
-            if ($response->isServerError()) {
+            if ($this->httpService->isServerError($response)) {
                 $this->oauthServiceTraitError(
                     'API HTTP Error: ' .
                     $response->getStatusCode()

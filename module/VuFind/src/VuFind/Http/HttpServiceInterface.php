@@ -30,6 +30,7 @@
 namespace VuFind\Http;
 
 use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * HTTP service interface.
@@ -57,7 +58,83 @@ interface HttpServiceInterface
      * @param ?float  $timeout Request timeout in seconds (overrides configuration)
      * @param array   $options Additional options (similar to Http section in config.ini)
      *
-     * @return ClientInterface
+     * @return \Psr\Http\Client\ClientInterface
      */
-    public function createClient(?string $url = null, ?float $timeout = null, array $options = []): ClientInterface;
+    public function createClient(
+        ?string $url = null,
+        ?float $timeout = null,
+        array $options = []
+    ): ClientInterface;
+
+    /**
+     * Make a GET request
+     *
+     * @param string $url           URL
+     * @param array  $headers       Optional headers
+     * @param array  $clientOptions Optional HTTP client options
+     *
+     * @return ResponseInterface
+     * @throws \Psr\Http\Client\ClientExceptionInterface
+     * @throws \Psr\Http\Client\NetworkExceptionInterface
+     * @throws \Psr\Http\Client\RequestExceptionInterface
+     */
+    public function get(string $url, array $headers = [], array $clientOptions = []): ResponseInterface;
+
+    /**
+     * Make a POST request
+     *
+     * @param string $url           URL
+     * @param string $body          Request body
+     * @param array  $headers       Optional headers
+     * @param string $contentType   Optional content type (overrides any content-type set in $headers)
+     * @param array  $clientOptions Optional HTTP client options
+     *
+     * @return ResponseInterface
+     * @throws \Psr\Http\Client\ClientExceptionInterface
+     * @throws \Psr\Http\Client\NetworkExceptionInterface
+     * @throws \Psr\Http\Client\RequestExceptionInterface
+     */
+    public function post(
+        string $url,
+        string $body,
+        array $headers = [],
+        string $contentType = 'application/x-www-form-urlencoded;charset=UTF-8',
+        array $clientOptions = []
+    ): ResponseInterface;
+
+    /**
+     * Check if the response status code indicates success
+     *
+     * @param ResponseInterface $response Response
+     *
+     * @return bool
+     */
+    public function isSuccess(ResponseInterface $response): bool;
+
+    /**
+     * Check if the response status code indicates an error
+     *
+     * @param ResponseInterface $response Response
+     *
+     * @return bool
+     */
+    public function isError(ResponseInterface $response): bool;
+
+    /**
+     * Check if the response status code indicates a client error
+     *
+     * @param ResponseInterface $response Response
+     *
+     * @return bool
+     */
+    public function isClientError(ResponseInterface $response): bool;
+
+    /**
+     * Check if the response status code indicates a server error
+     *
+     * @param ResponseInterface $response Response
+     *
+     * @return bool
+     */
+    public function isServerError(ResponseInterface $response): bool;
 }
