@@ -61,17 +61,12 @@ class AbstractSolrSearch extends AbstractSearch
         $facets = $this->getService(\VuFind\Search\FacetCache\PluginManager::class)
             ->get($this->searchClassId)
             ->getList($list);
-        $view->hierarchicalFacets
-            = $this->getHierarchicalFacets($view->options->getFacetsIni());
-        $view->hierarchicalFacetsSortOptions
-            = $this->getAdvancedHierarchicalFacetsSortOptions(
-                $view->options->getFacetsIni()
-            );
+        $view->hierarchicalFacets = $view->options->getHierarchicalFacets();
+        $view->hierarchicalFacetsSortOptions = $view->options->getAdvancedSearchHierarchicalFacetSortSettings();
         $view->facetList = $this->processAdvancedFacets(
             $facets,
             $view->saved ?? false,
-            $view->hierarchicalFacets,
-            $view->hierarchicalFacetsSortOptions
+            $view->hierarchicalFacets
         );
     }
 
@@ -148,20 +143,16 @@ class AbstractSolrSearch extends AbstractSearch
     /**
      * Process the facets to be used as limits on the Advanced Search screen.
      *
-     * @param array  $facetList                     The advanced facet values
-     * @param object $searchObject                  Saved search object
-     * (false if none)
-     * @param array  $hierarchicalFacets            Hierarchical facet list (if any)
-     * @param array  $hierarchicalFacetsSortOptions Hierarchical facet sort options
-     * (if any)
+     * @param array  $facetList          The advanced facet values
+     * @param object $searchObject       Saved search object (false if none)
+     * @param array  $hierarchicalFacets Hierarchical facet list (if any)
      *
      * @return array Sorted facets, with selected values flagged.
      */
     protected function processAdvancedFacets(
         $facetList,
         $searchObject = false,
-        $hierarchicalFacets = [],
-        $hierarchicalFacetsSortOptions = []
+        $hierarchicalFacets = []
     ) {
         $facetHelper = null;
         $options = null;
@@ -208,43 +199,5 @@ class AbstractSolrSearch extends AbstractSearch
             }
         }
         return $facetList;
-    }
-
-    /**
-     * Get an array of hierarchical facets
-     *
-     * @param string $config Name of facet configuration file to load.
-     *
-     * @return array Facets
-     */
-    protected function getHierarchicalFacets($config)
-    {
-        $facetConfig = $this->getConfig($config);
-        return isset($facetConfig->SpecialFacets->hierarchical)
-            ? $facetConfig->SpecialFacets->hierarchical->toArray()
-            : [];
-    }
-
-    /**
-     * Get an array of hierarchical facet sort options for Advanced search
-     *
-     * @param string $config Name of facet configuration file to load.
-     *
-     * @return array
-     */
-    protected function getAdvancedHierarchicalFacetsSortOptions($config)
-    {
-        $facetConfig = $this->getConfig($config);
-        $baseConfig
-            = isset($facetConfig->SpecialFacets->hierarchicalFacetSortOptions)
-            ? $facetConfig->SpecialFacets->hierarchicalFacetSortOptions->toArray()
-            : [];
-        $advancedConfig
-            = isset($facetConfig->Advanced_Settings->hierarchicalFacetSortOptions)
-            ? $facetConfig->Advanced_Settings->hierarchicalFacetSortOptions
-                ->toArray()
-            : [];
-
-        return array_merge($baseConfig, $advancedConfig);
     }
 }

@@ -89,12 +89,13 @@ class Results extends \VuFind\Search\Base\Results
     /**
      * Returns the stored list of facets for the last search
      *
-     * @param array $filter Array of field => on-screen description listing
+     * @param array  $filter  Array of field => on-screen description listing
      * all of the desired facet fields; set to null to get all configured values.
+     * @param string $context Any special context ('Advanced' for advanced search form, 'HomePage' for home page)
      *
      * @return array        Facets data arrays
      */
-    public function getFacetList($filter = null)
+    public function getFacetList($filter = null, string $context = '')
     {
         return $this->buildFacetList($this->responseFacets, $filter);
     }

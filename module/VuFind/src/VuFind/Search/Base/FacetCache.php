@@ -91,9 +91,11 @@ abstract class FacetCache
     /**
      * Get the cache key for the provided method.
      *
+     * @param string $context Facet context
+     *
      * @return string
      */
-    protected function getCacheKey()
+    protected function getCacheKey(string $context)
     {
         $params = $this->results->getParams();
         $facetConfig = $params->getFacetConfig();
@@ -103,17 +105,18 @@ abstract class FacetCache
             // Factor operator settings into cache key:
             array_map([$params, 'getFacetOperator'], array_keys($facetConfig)),
         ];
-        return $this->language . md5($this->varDump($settings));
+        return $this->language . "_{$context}_" . md5($this->varDump($settings));
     }
 
     /**
      * Perform the actual facet lookup.
      *
      * @param string $initMethod Name of params method to use to request facets
+     * @param string $context    Facet context ('Advanced' for advanced search form)
      *
      * @return array
      */
-    protected function getFacetResults($initMethod)
+    protected function getFacetResults($initMethod, string $context = 'Advanced')
     {
         // Check if we have facet results cached, and build them if we don't.
         $cache = $this->cacheManager->getCache('object', $this->getCacheNamespace());
@@ -122,7 +125,7 @@ abstract class FacetCache
         // Note that we need to initialize the parameters BEFORE generating the
         // cache key to ensure that the key is based on the proper settings.
         $params->$initMethod();
-        $cacheKey = $this->getCacheKey();
+        $cacheKey = $this->getCacheKey($context);
         if (!($list = $cache->getItem($cacheKey))) {
             // Avoid a backend request if there are no facets configured by the given
             // init method.
@@ -130,7 +133,7 @@ abstract class FacetCache
                 // We only care about facet lists, so don't get any results (this
                 // improves performance):
                 $params->setLimit(0);
-                $list = $this->results->getFacetList();
+                $list = $this->results->getFacetList(context: $context);
             } else {
                 $list = [];
             }
@@ -143,7 +146,7 @@ abstract class FacetCache
     /**
      * Return facet information. This data may come from the cache.
      *
-     * @param string $context Context of list to retrieve ('Advanced' or 'HomePage')
+     * @param string $context Context of list to retrieve ('Advanced', 'HomePage' or 'NewItems')
      *
      * @return array
      */
@@ -152,8 +155,7 @@ abstract class FacetCache
         if (!in_array($context, ['Advanced', 'HomePage', 'NewItems'])) {
             throw new \Exception('Invalid context: ' . $context);
         }
-        // For now, all contexts are handled the same way.
-        return $this->getFacetResults('init' . $context . 'Facets');
+        return $this->getFacetResults('init' . $context . 'Facets', $context);
     }
 
     /**

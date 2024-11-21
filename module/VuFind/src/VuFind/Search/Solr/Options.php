@@ -196,6 +196,10 @@ class Options extends \VuFind\Search\Base\Options
         }
         $this->hierarchicalFacetSortSettings
             = $facetSettings?->SpecialFacets?->hierarchicalFacetSortOptions?->toArray() ?? [];
+        $this->advancedSearchHierarchicalFacetSortSettings
+            = $facetSettings?->Advanced_Settings?->hierarchicalFacetSortOptions?->toArray() ?? [];
+        $this->homePageHierarchicalFacetSortSettings
+            = $facetSettings?->HomePage_Settings?->hierarchicalFacetSortOptions?->toArray() ?? [];
 
         // Load Spelling preferences
         $config = $configLoader->get($this->mainIni);

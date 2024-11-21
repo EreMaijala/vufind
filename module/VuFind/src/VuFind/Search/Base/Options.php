@@ -239,6 +239,20 @@ abstract class Options implements TranslatorAwareInterface
     protected $hierarchicalFacetSortSettings = [];
 
     /**
+     * Hierarchical facet sort settings for advanced search form
+     *
+     * @var array
+     */
+    protected $advancedSearchHierarchicalFacetSortSettings = [];
+
+    /**
+     * Hierarchical facet sort settings for home page
+     *
+     * @var array
+     */
+    protected $homePageHierarchicalFacetSortSettings = [];
+
+    /**
      * Spelling setting
      *
      * @var bool
@@ -848,6 +862,32 @@ abstract class Options implements TranslatorAwareInterface
     public function getHierarchicalFacetSortSettings()
     {
         return $this->hierarchicalFacetSortSettings;
+    }
+
+    /**
+     * Get hierarchical facet sort settings for advanced search form.
+     *
+     * @return array
+     */
+    public function getAdvancedSearchHierarchicalFacetSortSettings()
+    {
+        return array_merge(
+            $this->hierarchicalFacetSortSettings,
+            $this->advancedSearchHierarchicalFacetSortSettings
+        );
+    }
+
+    /**
+     * Get hierarchical facet sort settings for home page.
+     *
+     * @return array
+     */
+    public function getHomePageHierarchicalFacetSortSettings()
+    {
+        return array_merge(
+            $this->hierarchicalFacetSortSettings,
+            $this->homePageHierarchicalFacetSortSettings
+        );
     }
 
     /**

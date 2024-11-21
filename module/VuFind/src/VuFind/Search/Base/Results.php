@@ -39,7 +39,6 @@ use function count;
 use function func_get_args;
 use function get_class;
 use function in_array;
-use function is_callable;
 use function is_object;
 
 /**
@@ -324,12 +323,13 @@ abstract class Results
     /**
      * Returns the stored list of facets for the last search
      *
-     * @param array $filter Array of field => on-screen description listing
+     * @param array  $filter  Array of field => on-screen description listing
      * all of the desired facet fields; set to null to get all configured values.
+     * @param string $context Any special context ('Advanced' for advanced search form, 'HomePage' for home page)
      *
      * @return array        Facets data arrays
      */
-    abstract public function getFacetList($filter = null);
+    abstract public function getFacetList($filter = null, string $context = '');
 
     /**
      * Abstract support method for performAndProcessSearch -- perform a search based
@@ -857,13 +857,14 @@ abstract class Results
      * A helper method that converts the list of facets for the last search from
      * RecordCollection's facet list.
      *
-     * @param array $facetList Facet list
-     * @param array $filter    Array of field => on-screen description listing
+     * @param array  $facetList Facet list
+     * @param array  $filter    Array of field => on-screen description listing
      * all of the desired facet fields; set to null to get all configured values.
+     * @param string $context   Context ('Advanced' for advanced search form)
      *
      * @return array Facets data arrays
      */
-    protected function buildFacetList(array $facetList, array $filter = null): array
+    protected function buildFacetList(array $facetList, array $filter = null, string $context = ''): array
     {
         // If there is no filter, we'll use all facets as the filter:
         if (null === $filter) {
@@ -873,17 +874,17 @@ abstract class Results
         // Start building the facet list:
         $result = [];
 
-        // Loop through every field returned by the result set
-        $translatedFacets = $this->getOptions()->getTranslatedFacets();
-        $hierarchicalFacets
-            = is_callable([$this->getOptions(), 'getHierarchicalFacets'])
-            ? $this->getOptions()->getHierarchicalFacets()
-            : [];
-        $hierarchicalFacetSortSettings
-            = is_callable([$this->getOptions(), 'getHierarchicalFacetSortSettings'])
-            ? $this->getOptions()->getHierarchicalFacetSortSettings()
-            : [];
+        $options = $this->getOptions();
+        $translatedFacets = $options->getTranslatedFacets();
+        $hierarchicalFacets = $options->getHierarchicalFacets();
+        $hierarchicalFacetSortSettings = match ($context) {
+            'Advanced' => $options->getAdvancedSearchHierarchicalFacetSortSettings(),
+            'HomePage' => $options->getHomePageHierarchicalFacetSortSettings(),
+            default => $options->getHierarchicalFacetSortSettings(),
+        };
 
+        // Loop through every field returned by the result set
+        $params = $this->getParams();
         foreach (array_keys($filter) as $field) {
             $data = $facetList[$field] ?? [];
             // Skip empty arrays:
@@ -898,12 +899,11 @@ abstract class Results
             // Should we translate values for the current facet?
             $translate = in_array($field, $translatedFacets);
             $hierarchical = in_array($field, $hierarchicalFacets);
-            $operator = $this->getParams()->getFacetOperator($field);
+            $operator = $params->getFacetOperator($field);
             $resultList = [];
             // Loop through values:
             foreach ($data as $value => $count) {
-                $displayText = $this->getParams()
-                    ->getFacetValueRawDisplayText($field, $value);
+                $displayText = $params->getFacetValueRawDisplayText($field, $value);
                 if ($hierarchical) {
                     if (!$this->hierarchicalFacetHelper) {
                         throw new \Exception(
@@ -911,14 +911,12 @@ abstract class Results
                             . ': hierarchical facet helper unavailable'
                         );
                     }
-                    $displayText = $this->hierarchicalFacetHelper
-                        ->formatDisplayText($displayText);
+                    $displayText = $this->hierarchicalFacetHelper->formatDisplayText($displayText);
                 }
                 $displayText = $translate
-                    ? $this->getParams()->translateFacetValue($field, $displayText)
+                    ? $params->translateFacetValue($field, $displayText)
                     : $displayText;
-                $isApplied = $this->getParams()->hasFilter("$field:" . $value)
-                    || $this->getParams()->hasFilter("~$field:" . $value);
+                $isApplied = $params->hasFilter("$field:" . $value) || $params->hasFilter("~$field:" . $value);
 
                 // Store the collected values:
                 $resultList[] = compact(
@@ -931,12 +929,9 @@ abstract class Results
             }
 
             if ($hierarchical) {
-                $sort = $hierarchicalFacetSortSettings[$field]
-                    ?? $hierarchicalFacetSortSettings['*'] ?? 'count';
+                $sort = $hierarchicalFacetSortSettings[$field] ?? $hierarchicalFacetSortSettings['*'] ?? 'count';
                 $this->hierarchicalFacetHelper->sortFacetList($resultList, $sort);
-
-                $resultList
-                    = $this->hierarchicalFacetHelper->buildFacetArray($field, $resultList);
+                $resultList = $this->hierarchicalFacetHelper->buildFacetArray($field, $resultList);
             }
 
             $result[$field]['list'] = $resultList;
