@@ -928,10 +928,11 @@ class InstallCommand extends Command
             }
             $output->writeln(
                 "Once the configuration is linked, restart Apache. You should now be able\n"
-                . "to access VuFind at http://localhost{$this->basePath}\n"
+                . "to access VuFind at http://localhost{$this->basePath}"
             );
         }
-        $output->writeln("\nFor proper use of command line tools, you should also ensure that your\n");
+        $output->writeln('');
+        $output->writeln("For proper use of command line tools, you should ensure that your\n");
         $finalMsg = empty($this->addOptionmodule)
             ? "VUFIND_HOME and VUFIND_LOCAL_DIR environment variables are set to\n"
             . "{$this->baseDir} and {$this->overrideDir} respectively."
@@ -939,6 +940,7 @@ class InstallCommand extends Command
             . "variables are set to {$this->baseDir}, {$this->module} and "
             . "{$this->overrideDir} respectively.";
         $output->writeln($finalMsg);
+        $output->writeln('');
     }
 
     /**
