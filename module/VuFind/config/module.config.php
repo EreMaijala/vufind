@@ -4,6 +4,7 @@ namespace VuFind\Module\Config;
 
 $config = [
     'router' => [
+        'router_class' => 'VuFind\Route\FastTreeRouteStack',
         'routes' => [
             'default' => [
                 'type'    => 'Laminas\Router\Http\Segment',
