@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2016-2023.
+ * Copyright (C) The National Library of Finland 2016-2025.
  * Copyright (C) Moravian Library 2019.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -159,6 +159,20 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         'HE' => 'Hold Expired',
         'RENT' => 'Rental',
     ];
+
+    /**
+     * Non-payable fine types
+     *
+     * @var array
+     */
+    protected $nonPayableTypes = [];
+
+    /**
+     * Non-payable fine statuses
+     *
+     * @var array
+     */
+    protected $nonPayableStatuses = [];
 
     /**
      * Mappings from renewal block reasons
@@ -350,6 +364,10 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
 
         $this->includeSuspendedHoldsInQueueLength
             = $this->config['Holdings']['includeSuspendedHoldsInQueueLength'] ?? false;
+
+        $paymentConfig = $this->config['OnlinePayment'] ?? [];
+        $this->nonPayableTypes = (array)($paymentConfig['nonPayableTypes'] ?? []);
+        $this->nonPayableStatuses = (array)($paymentConfig['nonPayableStatuses'] ?? []);
 
         // Init session cache for session-specific data
         $namespace = md5($this->config['Catalog']['host']);
@@ -1676,18 +1694,23 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
                     $bibId = $item['biblio_id'];
                 }
             }
-            $type = trim($entry['debit_type']);
-            $type = $this->translate($this->feeTypeMappings[$type] ?? $type);
+            $debitType = trim($entry['debit_type']);
+            $debitStatus = trim($entry['status'] ?? '');
+            $type = $this->feeTypeMappings[$debitType] ?? $debitType;
             $description = trim($entry['description']);
-            if ($description !== $type) {
-                $type .= " - $description";
-            }
+            $payableOnline = $entry['amount_outstanding'] > 0
+                && !in_array($debitType, $this->nonPayableTypes)
+                && !in_array($debitStatus, $this->nonPayableStatuses);
             $fine = [
-                'amount' => $entry['amount'] * 100,
-                'balance' => $entry['amount_outstanding'] * 100,
+                'fine_id' => $entry['account_line_id'],
+                'amount' => (int)round($entry['amount'] * 100),
+                'balance' => (int)round($entry['amount_outstanding'] * 100),
                 'fine' => $type,
+                'description' => $description,
                 'createdate' => $this->convertDate($entry['date'] ?? null),
                 'checkout' => '',
+                'payable_online' => $payableOnline,
+                'organization' => $entry['library_id'] ?? '',
             ];
             if (null !== $bibId) {
                 $fine['id'] = $bibId;
@@ -1695,6 +1718,116 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
             $fines[] = $fine;
         }
         return $fines;
+    }
+
+    /**
+     * Return details on fees payable online.
+     *
+     * @param array  $patron          Patron
+     * @param array  $fines           Patron's fines
+     * @param ?array $selectedFineIds Selected fines
+     *
+     * @throws ILSException
+     * @return array Associative array of payment details
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function getOnlinePaymentDetails(array $patron, array $fines, ?array $selectedFineIds): array
+    {
+        $amount = 0;
+        $payableFines = [];
+        $config = $this->config['OnlinePayment'] ?? [];
+        foreach ($fines as $fine) {
+            // Nothing can be paid if there are blocking fine types:
+            $code = $fine['chargeType']['code'] ?? 0;
+            if (in_array($code, $config['blockingNonPayableTypes'] ?? [])) {
+                return [
+                    'payable' => false,
+                    'amount' => 0,
+                    'fines' => [],
+                    'reason' => 'Payment::fines_contain_nonpayable_fees',
+                ];
+            }
+            if (
+                null !== $selectedFineIds
+                && !in_array($fine['fine_id'], $selectedFineIds)
+            ) {
+                continue;
+            }
+            if ($fine['payable_online']) {
+                $amount += $fine['balance'];
+                $payableFines[] = $fine;
+            }
+        }
+
+        return [
+            'payable' => true,
+            'amount' => $amount,
+            'fines' => $payableFines,
+        ];
+    }
+
+    /**
+     * Register a payment.
+     *
+     * This is called after a successful online payment.
+     *
+     * @param array   $patron                  Patron
+     * @param int     $amount                  Amount to be registered as paid
+     * @param string  $localPaymentIdentifier  Local payment identifier
+     * @param ?string $remotePaymentIdentifier Remote payment identifier
+     * @param int     $paymentId               Internal payment id
+     * @param ?array  $fineIds                 Fine IDs to mark paid or null for bulk payment
+     *
+     * @throws ILSException
+     * @return array Associative array with keys success (bool, always) and reason (string, on error)
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function registerPayment(
+        array $patron,
+        int $amount,
+        string $localPaymentIdentifier,
+        ?string $remotePaymentIdentifier,
+        int $paymentId,
+        ?array $fineIds = null
+    ): array {
+        $note = "Online payment $localPaymentIdentifier";
+        if ($remotePaymentIdentifier) {
+            $note .= " / $remotePaymentIdentifier";
+        }
+        $request = [
+            'credit_type' => 'PAYMENT',
+            'amount' => $amount / 100,
+            'note' => $note,
+        ];
+        if (null !== $fineIds) {
+            $request['account_lines_ids'] = $fineIds;
+        }
+
+        $result = $this->makeRequest(
+            [
+                'path' => ['v1', 'patrons', $patron['id'], 'account', 'credits'],
+                'json' => $request,
+                'method' => 'POST',
+                'errors' => true,
+            ]
+        );
+        if ($result['code'] >= 300) {
+            $error = "Failed to mark payment of $amount paid for patron"
+                . " {$patron['id']}: {$result['code']}: " . var_export($result, true);
+            $this->logError($error);
+            return [
+                'success' => false,
+                'reason' => 'Payment::error_payment_request_failed',
+            ];
+        }
+        // Clear patron's block cache
+        $cacheId = 'blocks|' . $patron['id'];
+        $this->removeCachedData($cacheId);
+        return [
+            'success' => true,
+        ];
     }
 
     /**
