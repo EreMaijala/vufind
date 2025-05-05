@@ -1,0 +1,265 @@
+<?php
+
+/**
+ * Row definition for payment fee
+ *
+ * PHP version 8
+ *
+ * Copyright (C) The National Library of Finland 2015-2025.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * @category VuFind
+ * @package  Db_Row
+ * @author   Samuli Sillanpää <samuli.sillanpaa@helsinki.fi>
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
+ * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
+ * @link     http://vufind.org   Main Site
+ */
+
+namespace VuFind\Db\Row;
+
+use VuFind\Db\Entity\PaymentEntityInterface;
+use VuFind\Db\Entity\PaymentFeeEntityInterface;
+
+/**
+ * Row definition for payment fee
+ *
+ * @category VuFind
+ * @package  Db_Row
+ * @author   Samuli Sillanpää <samuli.sillanpaa@helsinki.fi>
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
+ * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
+ * @link     http://vufind.org   Main Site
+ *
+ * @property string $payment_id
+ * @property string $title
+ * @property string $type
+ * @property string $description
+ * @property int $amount
+ * @property string $currency
+ * @property string $fine_id
+ * @property string $organization
+ */
+class PaymentFee extends \VuFind\Db\Row\RowGateway implements
+    PaymentFeeEntityInterface,
+    \VuFind\Db\Service\DbServiceAwareInterface
+{
+    use \VuFind\Db\Service\DbServiceAwareTrait;
+
+    /**
+     * Constructor
+     *
+     * @param \Laminas\Db\Adapter\Adapter $adapter Database adapter
+     */
+    public function __construct($adapter)
+    {
+        parent::__construct('id', 'payment_fee', $adapter);
+    }
+
+    /**
+     * Id getter
+     *
+     * @return ?int
+     */
+    public function getId(): ?int
+    {
+        return $this->id ?? null;
+    }
+
+    /**
+     * Payment setter
+     *
+     * @param PaymentEntityInterface $payment Payment.
+     *
+     * @return static
+     */
+    public function setPayment(PaymentEntityInterface $payment): static
+    {
+        $this->payment_id = $payment->getId();
+        return $this;
+    }
+
+    /**
+     * Payment getter
+     *
+     * @return PaymentEntityInterface
+     */
+    public function getPayment(): PaymentEntityInterface
+    {
+        return $this->getDbService(\VuFind\Db\Service\PaymentServiceInterface::class)
+            ->getPaymentById($this->payment_id);
+    }
+
+    /**
+     * Title setter
+     *
+     * @param string $title Title
+     *
+     * @return static
+     */
+    public function setTitle(string $title): static
+    {
+        $this->title = mb_substr($title, 0, 255, 'UTF-8');
+        return $this;
+    }
+
+    /**
+     * Title getter
+     *
+     * @return string
+     */
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    /**
+     * Type setter
+     *
+     * @param string $type Type
+     *
+     * @return static
+     */
+    public function setType(string $type): static
+    {
+        $this->type = mb_substr($type, 0, 255, 'UTF-8');
+        return $this;
+    }
+
+    /**
+     * Type getter
+     *
+     * @return string
+     */
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    /**
+     * Description setter
+     *
+     * @param string $description Description
+     *
+     * @return static
+     */
+    public function setDescription(string $description): static
+    {
+        $this->description = mb_substr($description, 0, 255, 'UTF-8');
+        return $this;
+    }
+
+    /**
+     * Description getter
+     *
+     * @return string
+     */
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
+    /**
+     * Amount setter
+     *
+     * @param int $amount Amount
+     *
+     * @return static
+     */
+    public function setAmount(int $amount): static
+    {
+        $this->amount = (float)$amount;
+        return $this;
+    }
+
+    /**
+     * Amount getter
+     *
+     * @return int
+     */
+    public function getAmount(): int
+    {
+        return (int)$this->amount;
+    }
+
+    /**
+     * Currency setter
+     *
+     * @param string $currency Currency
+     *
+     * @return static
+     */
+    public function setCurrency(string $currency): static
+    {
+        $this->currency = $currency;
+        return $this;
+    }
+
+    /**
+     * Currency getter
+     *
+     * @return string
+     */
+    public function getCurrency(): string
+    {
+        return $this->currency;
+    }
+
+    /**
+     * Fine Id setter
+     *
+     * @param string $fineId Fine ID (ILS)
+     *
+     * @return static
+     */
+    public function setFineId(string $fineId): static
+    {
+        $this->fine_id = $fineId;
+        return $this;
+    }
+
+    /**
+     * Fine Id getter
+     *
+     * @return string
+     */
+    public function getFineId(): string
+    {
+        return $this->fine_id ?? '';
+    }
+
+    /**
+     * Organization setter
+     *
+     * @param string $organization Organization
+     *
+     * @return static
+     */
+    public function setOrganization(string $organization): static
+    {
+        $this->organization = mb_substr($organization, 0, 255, 'UTF-8');
+        return $this;
+    }
+
+    /**
+     * Organization getter
+     *
+     * @return string
+     */
+    public function getOrganization(): string
+    {
+        return $this->organization ?? '';
+    }
+}
