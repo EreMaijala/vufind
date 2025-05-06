@@ -32,12 +32,12 @@
 
 namespace VuFind\OnlinePayment\Handler;
 
-use VuFind\Db\Entity\PaymentEntityInterface;
-use VuFind\Db\Service\PaymentFeeServiceInterface;
-use VuFind\Db\Service\PaymentEventLogServiceInterface;
-use VuFind\Db\Service\PaymentServiceInterface;
 use Laminas\Log\LoggerAwareInterface;
+use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Entity\UserEntityInterface;
+use VuFind\Db\Service\PaymentEventLogServiceInterface;
+use VuFind\Db\Service\PaymentFeeServiceInterface;
+use VuFind\Db\Service\PaymentServiceInterface;
 use VuFind\I18n\Locale\LocaleSettings;
 use VuFind\I18n\Translator\TranslatorAwareInterface;
 
@@ -85,11 +85,11 @@ abstract class AbstractBase implements
     /**
      * Constructor
      *
-     * @param \VuFindHttp\HttpService         $http               HTTP service
-     * @param LocaleSettings                  $localeSettings     Locale settings
-     * @param PaymentServiceInterface         $paymentService Payment database service
-     * @param PaymentFeeServiceInterface      $feeService         Payment fee database service
-     * @param PaymentEventLogServiceInterface $eventLogService    Payment event log database service
+     * @param \VuFindHttp\HttpService         $http            HTTP service
+     * @param LocaleSettings                  $localeSettings  Locale settings
+     * @param PaymentServiceInterface         $paymentService  Payment database service
+     * @param PaymentFeeServiceInterface      $feeService      Payment fee database service
+     * @param PaymentEventLogServiceInterface $eventLogService Payment event log database service
      */
     public function __construct(
         protected \VuFindHttp\HttpService $http,
@@ -124,7 +124,7 @@ abstract class AbstractBase implements
     }
 
     /**
-     * Generate the internal payment transaction identifer.
+     * Generate the internal payment transaction identifier.
      *
      * @param string $patronId Patron's Catalog Username (barcode)
      *
@@ -154,7 +154,7 @@ abstract class AbstractBase implements
      * Store payment to database.
      *
      * @param string              $paymentIdentifier Payment identifier
-     * @param string              $driver            Patron MultiBackend ILS source
+     * @param string              $source            Patron MultiBackend ILS source
      * @param UserEntityInterface $user              User
      * @param string              $patronId          Patron's catalog username (e.g. barcode)
      * @param int                 $amount            Amount (excluding service fee)
@@ -166,7 +166,7 @@ abstract class AbstractBase implements
      */
     protected function createPaymentEntity(
         $paymentIdentifier,
-        $driver,
+        $source,
         $user,
         $patronId,
         $amount,
@@ -176,7 +176,7 @@ abstract class AbstractBase implements
     ): PaymentEntityInterface {
         $t = $this->paymentService->createEntity()
             ->setPaymentIdentifier($paymentIdentifier)
-            ->setSourceId($driver)
+            ->setSource($source)
             ->setUser($user)
             ->setCatUsername($patronId)
             ->setAmount($amount)

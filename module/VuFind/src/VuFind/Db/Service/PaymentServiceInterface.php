@@ -29,9 +29,8 @@
 
 namespace VuFind\Db\Service;
 
-use VuFind\Db\Entity\PaymentFeeEntityInterface;
 use VuFind\Db\Entity\PaymentEntityInterface;
-use VuFind\Db\Service\DbServiceInterface;
+use VuFind\Db\Entity\PaymentFeeEntityInterface;
 
 /**
  * Database service interface for payment transactions.

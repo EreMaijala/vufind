@@ -30,10 +30,9 @@
 namespace VuFind\Db\Service;
 
 use VuFind\Db\Entity\PaymentEntityInterface;
-use VuFind\Db\Type\PaymentStatus;
-use VuFind\Db\Service\AbstractDbService;
 use VuFind\Db\Table\DbTableAwareInterface;
 use VuFind\Db\Table\DbTableAwareTrait;
+use VuFind\Db\Type\PaymentStatus;
 use VuFind\Exception\RecordMissing as RecordMissingException;
 
 /**
@@ -58,7 +57,7 @@ class PaymentService extends AbstractDbService implements
      */
     public function createEntity(): PaymentEntityInterface
     {
-        $payment = $this->getDbTable('Transaction')->createRow();
+        $payment = $this->getDbTable('Payment')->createRow();
         $payment->created = date('Y-m-d H:i:s');
         $payment->complete = 0;
         $payment->status = 'started';
@@ -164,7 +163,7 @@ class PaymentService extends AbstractDbService implements
             $select->where('complete in (' . implode(',', $statuses) . ')');
         };
 
-        return $this->getDbTable('Payment')->select($callback)->count() ? true : false;
+        return $this->getDbTable('Payment')->select($callback)->current() ? true : false;
     }
 
     /**
@@ -182,7 +181,7 @@ class PaymentService extends AbstractDbService implements
     /**
      * Check if a payment is started for the patron, but not progressed further.
      *
-     * @param string $catUsername            Patron's catalog username
+     * @param string $catUsername        Patron's catalog username
      * @param int    $paymentMaxDuration Max duration for a payment in minutes
      *
      * @return ?PaymentEntityInterface
@@ -195,9 +194,9 @@ class PaymentService extends AbstractDbService implements
             $select->where->equalTo('cat_username', $catUsername);
             $select->where->equalTo('complete', PaymentStatus::InProgress->value);
             $select->where->lessThan(
-                    'created',
-                    date('Y-m-d H:i:s', time() + $paymentMaxDuration * 60)
-                );
+                'created',
+                date('Y-m-d H:i:s', time() + $paymentMaxDuration * 60)
+            );
         };
 
         return $this->getDbTable('Payment')->select($callback)->current();
@@ -255,10 +254,6 @@ class PaymentService extends AbstractDbService implements
             $select->order('user_id');
         };
 
-        $items = [];
-        foreach ($this->getDbTable('Payment')->select($callback) as $t) {
-            $items[] = $t;
-        }
-        return $items;
+        return iterator_to_array($this->getDbTable('Payment')->select($callback));
     }
 }

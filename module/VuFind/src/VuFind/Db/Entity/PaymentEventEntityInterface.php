@@ -30,7 +30,6 @@
 namespace VuFind\Db\Entity;
 
 use DateTime;
-use VuFind\Db\Entity\EntityInterface;
 
 /**
  * Interface for representing a payment transaction event.

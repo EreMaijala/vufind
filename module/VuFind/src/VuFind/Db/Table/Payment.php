@@ -32,7 +32,6 @@ namespace VuFind\Db\Table;
 
 use Laminas\Db\Adapter\Adapter;
 use VuFind\Db\Row\RowGateway;
-use VuFind\Db\Table\PluginManager;
 
 /**
  * Table Definition for payment transaction

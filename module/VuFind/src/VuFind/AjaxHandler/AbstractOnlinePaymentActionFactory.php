@@ -29,13 +29,13 @@
 
 namespace VuFind\AjaxHandler;
 
-use VuFind\Db\Service\PaymentEventLogServiceInterface;
-use VuFind\Db\Service\PaymentServiceInterface;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use VuFind\Auth\ILSAuthenticator;
+use VuFind\Db\Service\PaymentEventLogServiceInterface;
+use VuFind\Db\Service\PaymentServiceInterface;
 use VuFind\Db\Service\UserCardServiceInterface;
 use VuFind\Db\Service\UserServiceInterface;
 

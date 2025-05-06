@@ -29,16 +29,16 @@
 
 namespace VuFind\OnlinePayment;
 
-use VuFind\Db\Entity\PaymentFeeEntityInterface;
-use VuFind\Db\Entity\PaymentEntityInterface;
-use VuFind\Db\Service\PaymentServiceInterface;
 use Laminas\Router\RouteInterface;
 use Laminas\View\Renderer\PhpRenderer;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Part\DataPart;
 use TCPDF;
 use VuFind\Date\Converter as DateConverter;
+use VuFind\Db\Entity\PaymentEntityInterface;
+use VuFind\Db\Entity\PaymentFeeEntityInterface;
 use VuFind\Db\Entity\UserEntityInterface;
+use VuFind\Db\Service\PaymentServiceInterface;
 use VuFind\I18n\Translator\TranslatorAwareInterface;
 use VuFind\I18n\Translator\TranslatorAwareTrait;
 use VuFind\Mailer\Mailer;
@@ -81,14 +81,14 @@ class Receipt implements TranslatorAwareInterface
     /**
      * Constructor.
      *
-     * @param array                            $config             Main configuration
-     * @param array                            $dataSourceConfig   Data source configuration
-     * @param DateConverter                    $dateConverter      Date converter
-     * @param CurrencyFormatter                $currencyFormatter  Currency formatter
-     * @param RouteInterface                   $router             Router
-     * @param Mailer                           $mailer             Mailer
-     * @param PhpRenderer                      $renderer           View renderer
-     * @param PaymentServiceInterface $paymentService Payment database service
+     * @param array                   $config            Main configuration
+     * @param array                   $dataSourceConfig  Data source configuration
+     * @param DateConverter           $dateConverter     Date converter
+     * @param CurrencyFormatter       $currencyFormatter Currency formatter
+     * @param RouteInterface          $router            Router
+     * @param Mailer                  $mailer            Mailer
+     * @param PhpRenderer             $renderer          View renderer
+     * @param PaymentServiceInterface $paymentService    Payment database service
      */
     public function __construct(
         protected array $config,
@@ -234,9 +234,9 @@ class Receipt implements TranslatorAwareInterface
     /**
      * Send receipt by email
      *
-     * @param UserEntityInterface             $user          User
-     * @param array                           $patronProfile Patron information
-     * @param PaymentEntityInterface $payment   Payment
+     * @param UserEntityInterface    $user          User
+     * @param array                  $patronProfile Patron information
+     * @param PaymentEntityInterface $payment       Payment
      *
      * @return bool
      *
@@ -421,7 +421,7 @@ class Receipt implements TranslatorAwareInterface
     /**
      * Add VAT summary
      *
-     * @param TCPDF       $pdf         PDF
+     * @param TCPDF                  $pdf     PDF
      * @param PaymentEntityInterface $payment Payment
      *
      * @return void

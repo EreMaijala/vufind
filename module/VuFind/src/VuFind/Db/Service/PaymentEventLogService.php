@@ -32,10 +32,9 @@ namespace VuFind\Db\Service;
 use DateTime;
 use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Entity\PaymentEventEntityInterface;
-use VuFind\Db\Table\PaymentEventLog;
-use VuFind\Db\Service\AbstractDbService;
 use VuFind\Db\Table\DbTableAwareInterface;
 use VuFind\Db\Table\DbTableAwareTrait;
+use VuFind\Db\Table\PaymentEventLog;
 
 /**
  * Database service for payment transaction event log.
@@ -66,8 +65,8 @@ class PaymentEventLogService extends AbstractDbService implements
      * Add an event for a payment
      *
      * @param PaymentEntityInterface $payment Payment
-     * @param string                 $status      Status message
-     * @param array                  $data        Additional data
+     * @param string                 $status  Status message
+     * @param array                  $data    Additional data
      *
      * @return void
      */

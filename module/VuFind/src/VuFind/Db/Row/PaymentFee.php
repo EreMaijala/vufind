@@ -29,8 +29,8 @@
 
 namespace VuFind\Db\Row;
 
-use VuFind\Db\Entity\PaymentFeeEntityInterface;
 use VuFind\Db\Entity\PaymentEntityInterface;
+use VuFind\Db\Entity\PaymentFeeEntityInterface;
 use VuFind\Db\Entity\UserEntityInterface;
 
 /**

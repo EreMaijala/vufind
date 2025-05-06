@@ -29,9 +29,6 @@
 
 namespace VuFind\Db\Entity;
 
-use VuFind\Db\Entity\EntityInterface;
-use VuFind\Db\Entity\UserEntityInterface;
-
 /**
  * Interface for representing a payment fee.
  *
@@ -57,7 +54,7 @@ interface PaymentFeeEntityInterface extends EntityInterface
      *
      * @return static
      */
-    public function setPayment(PaymentEntityInterface $transaction): static;
+    public function setPayment(PaymentEntityInterface $payment): static;
 
     /**
      * Payment getter

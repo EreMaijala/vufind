@@ -30,11 +30,6 @@
 
 namespace VuFindConsole\Command\Util;
 
-use VuFind\Db\Entity\PaymentEntityInterface;
-use VuFind\Db\Service\PaymentEventLogServiceInterface;
-use VuFind\Db\Service\PaymentServiceInterface;
-use VuFind\OnlinePayment\OnlinePaymentEventLogTrait;
-use VuFind\OnlinePayment\OnlinePaymentHandlerTrait;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -42,11 +37,16 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use VuFind\Auth\ILSAuthenticator;
+use VuFind\Db\Entity\PaymentEntityInterface;
+use VuFind\Db\Service\PaymentEventLogServiceInterface;
+use VuFind\Db\Service\PaymentServiceInterface;
 use VuFind\Db\Service\UserCardServiceInterface;
 use VuFind\Db\Service\UserServiceInterface;
+use VuFind\OnlinePayment\OnlinePaymentEventLogTrait;
+use VuFind\OnlinePayment\OnlinePaymentHandlerTrait;
 
+use function count;
 use function intval;
-use function sprintf;
 
 /**
  * Console service for processing unregistered online payments.
@@ -68,32 +68,53 @@ class OnlinePaymentMonitor extends Command
     use ConsoleLoggerTrait;
 
     /**
-     * Number of hours before considering unregistered transactions to be expired.
+     * Number of hours before considering unregistered payments to be expired.
      *
      * @var int
      */
     protected $expireHours = 3;
 
     /**
-     * Sender email address for notification of expired transactions.
+     * Sender email address for notification of expired payments.
      *
      * @var string
      */
     protected $fromEmail = '';
 
     /**
+     * Payments successfully registered
+     *
+     * @var int
+     */
+    protected $registeredCount = 0;
+
+    /**
+     * Payments that failed to register
+     *
+     * @var int
+     */
+    protected $failedCount = 0;
+
+    /**
+     * Expired payments
+     *
+     * @var int
+     */
+    protected $expiredCount = 0;
+
+    /**
      * Constructor
      *
-     * @param \VuFind\ILS\Connection                   $ils                Catalog connection
-     * @param ILSAuthenticator                         $ilsAuthenticator   ILS Authenticator
-     * @param PaymentServiceInterface         $paymentService Payment database service
-     * @param UserServiceInterface                     $userService        User database service
-     * @param UserCardServiceInterface                 $userCardService    User card database service (for
-     * OnlinePaymentHandlerTrait)
-     * @param \VuFind\Config\Config                    $datasourceConfig   Data source config
-     * @param \Laminas\View\Renderer\PhpRenderer       $viewRenderer       View renderer
-     * @param \VuFind\Mailer\Mailer                    $mailer             Mailer
-     * @param PaymentEventLogServiceInterface $eventLogService    Payment event log database service
+     * @param \VuFind\ILS\Connection             $ils              Catalog connection
+     * @param ILSAuthenticator                   $ilsAuthenticator ILS Authenticator
+     * @param PaymentServiceInterface            $paymentService   Payment database service
+     * @param UserServiceInterface               $userService      User database service
+     * @param UserCardServiceInterface           $userCardService  User card database service (for
+     *                                                             OnlinePaymentHandlerTrait)
+     * @param \VuFind\Config\Config              $datasourceConfig Data source config
+     * @param \Laminas\View\Renderer\PhpRenderer $viewRenderer     View renderer
+     * @param \VuFind\Mailer\Mailer              $mailer           Mailer
+     * @param PaymentEventLogServiceInterface    $eventLogService  Payment event log database service
      */
     public function __construct(
         protected \VuFind\ILS\Connection $ils,
@@ -119,30 +140,28 @@ class OnlinePaymentMonitor extends Command
     {
         $this
             ->setDescription(
-                'Validate unregistered online payment transactions and send error'
+                'Validate unregistered online payment payments and send error'
                     . ' notifications'
             )
             ->addArgument(
                 'expire_hours',
                 InputArgument::REQUIRED,
-                'Number of hours before considering unregistered transaction to be'
-                    . ' expired.'
+                'Number of hours before considering unregistered payment to be expired.'
             )
             ->addArgument(
                 'from_email',
                 InputArgument::REQUIRED,
-                'Sender email address for notification of expired transactions'
+                'Sender email address for notification of expired payments'
             )
             ->addArgument(
                 'report_interval_hours',
                 InputArgument::REQUIRED,
-                'Interval when to re-send report of unresolved transactions'
+                'Interval when to re-send report of unresolved payments'
             )
             ->addArgument(
                 'minimum_paid_age',
                 InputArgument::OPTIONAL,
-                "Minimum age of transactions in 'paid' status until they are"
-                    . 'considered failed (seconds, default 120)',
+                "Minimum age of payments in 'paid' status until they are considered failed (seconds, default 120)",
                 120
             )
             ->addOption(
@@ -175,198 +194,144 @@ class OnlinePaymentMonitor extends Command
             return 1;
         }
 
-        $this->msg('OnlinePayment monitor started');
-        $expiredCnt = $failedCnt = $registeredCnt = $remindCnt = 0;
-        $report = [];
-        $failed = $this->paymentService->getFailedTransactions($minimumPaidAge);
-        foreach ($failed as $t) {
-            $this->processTransaction(
-                $t,
-                $report,
-                $registeredCnt,
-                $expiredCnt,
-                $failedCnt
-            );
+        $this->msg('Online payment monitor started');
+        $failedPayments = $this->paymentService->getFailedPayments($minimumPaidAge);
+        foreach ($failedPayments as $payment) {
+            $this->processPayment($payment);
         }
 
-        // Report paid and unregistered transactions whose registration
-        // can not be re-tried:
-        $unresolved = $this->paymentService->getUnresolvedTransactionsToReport($reportIntervalHours);
-        foreach ($unresolved as $t) {
-            $this->processUnresolvedTransaction($t, $report, $remindCnt);
+        // Report paid and unregistered payments whose registration can not be re-tried:
+        $unresolvedPayments = $this->paymentService->getUnresolvedPaymentsToReport($reportIntervalHours);
+
+        if ($this->registeredCount) {
+            $this->msg("Total registered: $this->registeredCount");
+        }
+        if ($this->expiredCount) {
+            $this->msg("Total expired: $this->expiredCount");
+        }
+        if ($this->failedCount) {
+            $this->msg("Total failed: $this->failedCount");
         }
 
-        if ($registeredCnt) {
-            $this->msg("Total registered: $registeredCnt");
-        }
-        if ($expiredCnt) {
-            $this->msg("Total expired: $expiredCnt");
-        }
-        if ($failedCnt) {
-            $this->msg("Total failed: $failedCnt");
-        }
-        if ($remindCnt) {
-            $this->msg("Total to be reminded: $remindCnt");
+        if (!$disableEmail && $unresolvedPayments) {
+            $this->msg('Total to be reminded: ' . count($unresolvedPayments));
+            $this->sendReports($unresolvedPayments);
         }
 
-        if (!$disableEmail) {
-            $this->sendReports($report);
-        }
-
-        $this->msg('OnlinePayment monitor completed');
+        $this->msg('Online payment monitor completed');
 
         return 0;
     }
 
     /**
-     * Try to register a failed transaction.
+     * Try to register a payment that wasn't previously registered successfully.
      *
-     * @param PaymentEntityInterface $t             Transaction
-     * @param array                           $report        Transactions to be reported.
-     * @param int                             $registeredCnt Number of registered transactions.
-     * @param int                             $expiredCnt    Number of expired transactions.
-     * @param int                             $failedCnt     Number of failed transactions.
+     * @param PaymentEntityInterface $payment Payment
      *
-     * @return bool success
+     * @return void
      */
-    protected function processTransaction(
-        PaymentEntityInterface $t,
-        array &$report,
-        int &$registeredCnt,
-        int &$expiredCnt,
-        int &$failedCnt
-    ) {
+    protected function processPayment(PaymentEntityInterface $payment): void
+    {
         $this->msg(
-            "Registering transaction id {$t->getId()} / {$t->getPaymentIdentifier()}"
-            . " (status: {$t->getStatus()->value} / {$t->getStatusMessage()}"
-            . ", paid: {$t->getPaidDate()->format('Y-m-d H:i:s')})"
+            "Registering payment id {$payment->getId()} / {$payment->getPaymentIdentifier()}"
+            . " (status: {$payment->getStatus()->value} / {$payment->getStatusMessage()}"
+            . ", paid: {$payment->getPaidDate()->format('Y-m-d H:i:s')})"
         );
 
-        // Check if the transaction has not been registered for too long
+        // Check if the payment has remained unregistered for too long
         $now = new \DateTime();
-        $diff = $now->diff($t->getPaidDate());
+        $diff = $now->diff($payment->getPaidDate());
         $diffHours = ($diff->days * 24) + $diff->h;
         if ($diffHours > $this->expireHours) {
-            // Transaction has expired
-            if (!isset($report[$t->getSourceId()])) {
-                $report[$t->getSourceId()] = 0;
-            }
-            $report[$t->getSourceId()]++;
-            $expiredCnt++;
-
-            $t->setReportedAndExpired();
-            $this->paymentService->persistEntity($t);
-            $this->addPaymentEvent($t, 'Marked as reported and expired');
-
-            $this->msg('Transaction ' . $t->getPaymentIdentifier() . ' expired.');
-            return true;
+            // Payment has expired
+            $payment->setExpired();
+            $this->paymentService->persistEntity($payment);
+            $this->addPaymentEvent($payment, 'Marked as expired');
+            $this->msg('Payment ' . $payment->getPaymentIdentifier() . ' marked as expired.');
+            return;
         }
 
         try {
-            $user = $t->getUser();
-            if (!($patron = $this->getPatronForPayment($t))) {
+            $user = $payment->getUser();
+            if (!($patron = $this->getPatronForPayment($payment))) {
                 if ($user) {
                     $this->warn(
                         "Catalog login failed for user {$user->getUsername()} (id {$user->getId()}),"
-                        . " card {$t->getCatUsername()}"
+                        . " card {$payment->getCatUsername()}"
                     );
-                    $t->setRegistrationFailed('patron login error');
-                    $this->paymentService->persistEntity($t);
-                    $this->addPaymentEvent($t, 'Patron login failed');
+                    $payment->setRegistrationFailed('patron login error');
+                    $this->paymentService->persistEntity($payment);
+                    $this->addPaymentEvent($payment, 'Patron login failed');
                 } else {
-                    $this->warn("Library card not found for user {$t->getUserId()}, card {$t->getCatUsername()}");
-                    $t->setRegistrationFailed('card not found');
-                    $this->paymentService->persistEntity($t);
+                    $this->warn(
+                        "Library card not found for user {$payment->getUserId()}, card {$payment->getCatUsername()}"
+                    );
+                    $payment->setRegistrationFailed('card not found');
+                    $this->paymentService->persistEntity($payment);
                     $this->addPaymentEvent(
-                        $t,
-                        "Library card not found for user id {$t->getUserId()}",
+                        $payment,
+                        "Library card not found for user id {$payment->getUserId()}",
                         [
-                            'user_id' => $t->getUserId(),
-                            'card' => $t->getCatUsername(),
+                            'user_id' => $payment->getUserId(),
+                            'card' => $payment->getCatUsername(),
                         ]
                     );
                 }
-                $failedCnt++;
-                return false;
+                ++$this->failedCount;
+                return;
             }
 
-            if (!$this->markFeesAsPaidForPatron($patron, $t)) {
-                $failedCnt++;
-                return false;
+            if (!$this->markFeesAsPaidForPatron($patron, $payment)) {
+                ++$this->failedCount;
+                return;
             }
-            $registeredCnt++;
-            return true;
+            ++$this->registeredCount;
+            return;
         } catch (\Exception $e) {
             $this->warn(
-                "Exception while processing transaction {$t->getId()} for user id {$t->getUserId()}"
-                . ", card {$t->getCatUsername()}: "
+                "Exception while processing transaction {$payment->getId()} for user id {$payment->getUserId()}"
+                . ", card {$payment->getCatUsername()}: "
                 . (string)$e
             );
             $this->addPaymentEvent(
-                $t,
+                $payment,
                 'Exception while processing transaction',
                 [
                     'exception' => (string)$e,
                 ]
             );
-            $failedCnt++;
-            return false;
+            ++$this->failedCount;
+            return;
         }
     }
 
     /**
-     * Process an unresolved transaction.
+     * Send email reports of unresolved payments that need to be resolved manually.
      *
-     * @param PaymentEntityInterface $t         Transaction
-     * @param array                           $report    Transactions to be reported.
-     * @param int                             $remindCnt Number of transactions to be reported as unresolved.
+     * @param array $payments Payments to be reported.
      *
      * @return void
      */
-    protected function processUnresolvedTransaction(PaymentEntityInterface $t, &$report, &$remindCnt)
+    protected function sendReports($payments)
     {
-        $this->msg("Transaction {$t->getId()} with identifier {$t->getPaymentIdentifier()} still unresolved.");
-
-        $t->setReportedAndExpired();
-        $this->paymentService->persistEntity($t);
-        if (!isset($report[$t->getSourceId()])) {
-            $report[$t->getSourceId()] = 0;
-        }
-        $report[$t->getSourceId()]++;
-        $remindCnt++;
-    }
-
-    /**
-     * Send email reports of unresolved transactions
-     * (that need to be resolved manually via AdminInterface).
-     *
-     * @param array $report Transactions to be reported.
-     *
-     * @return void
-     */
-    protected function sendReports($report)
-    {
-        $subject = 'Finna: ilmoitus tietokannan %s epäonnistuneista verkkomaksuista';
-
-        foreach ($report as $driver => $cnt) {
-            if ($cnt) {
+        foreach ($payments as $source => $sourcePayments) {
+            $errorCount = count($sourcePayments);
+            if ($errorCount) {
                 $settings = $this->ils->getConfig(
                     'onlinePayment',
-                    ['id' => "$driver.123"]
+                    ['id' => "$source.123"]
                 );
                 if (!$settings || empty($settings['errorEmail'])) {
-                    if (!empty($this->datasourceConfig[$driver]['feedbackEmail'])) {
-                        $settings['errorEmail']
-                            = $this->datasourceConfig[$driver]['feedbackEmail'];
+                    if (!empty($this->datasourceConfig[$source]['feedbackEmail'])) {
+                        $settings['errorEmail'] = $this->datasourceConfig[$source]['feedbackEmail'];
                         $this->warn(
-                            '  No error email for expired transactions defined for '
-                            . "driver $driver, using feedback email ($cnt expired "
-                            . 'transactions)'
+                            "  No error email for expired payments defined for source $source, using feedback email"
+                            . " ($errorCount expired payments)"
                         );
                     } else {
                         $this->err(
-                            '  No error email for expired transactions defined for '
-                            . "driver $driver ($cnt expired transactions)",
+                            "  No error email for expired transactions defined for driver $source"
+                            . " ($errorCount expired transactions)",
                             '='
                         );
                         continue;
@@ -374,16 +339,10 @@ class OnlinePaymentMonitor extends Command
                 }
 
                 $email = $settings['errorEmail'];
-                $this->msg(
-                    "[$driver] Inform $cnt expired transactions "
-                    . "for driver $driver to $email"
-                );
+                $this->msg("[$source] Inform $errorCount expired transactions for driver $source to $email");
 
-                $params = [
-                   'driver' => $driver,
-                   'cnt' => $cnt,
-                ];
-                $messageSubject = sprintf($subject, $driver);
+                $adminUrl = ($this->viewRenderer->plugin('url'))('admin-payments');
+                $params = compact('source', 'errorCount', 'adminUrl');
                 $message = $this->viewRenderer->render('Email/online-payment-alert.phtml', $params);
 
                 try {
@@ -391,13 +350,16 @@ class OnlinePaymentMonitor extends Command
                     $this->mailer->send(
                         $email,
                         $this->fromEmail,
-                        $messageSubject,
+                        '',
                         $message
                     );
+                    foreach ($sourcePayments as $payment) {
+                        $payment->setReported();
+                        $this->paymentService->persistEntity($payment);
+                    }
                 } catch (\Exception $e) {
                     $this->err(
-                        "    Failed to send error email to staff: $email "
-                            . "(driver: $driver)",
+                        "    Failed to send error email to staff: $email (source: $source)",
                         'Failed to send error email to staff'
                     );
                     $this->logException($e);

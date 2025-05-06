@@ -29,14 +29,14 @@
 
 namespace VuFind\OnlinePayment\Handler;
 
-use VuFind\Db\Service\FeeServiceInterface;
-use VuFind\Db\Service\PaymentEventLogServiceInterface;
-use VuFind\Db\Service\PaymentServiceInterface;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
+use VuFind\Db\Service\FeeServiceInterface;
+use VuFind\Db\Service\PaymentEventLogServiceInterface;
+use VuFind\Db\Service\PaymentServiceInterface;
 
 /**
  * Default factory for payment handlers.

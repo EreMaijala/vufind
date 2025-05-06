@@ -30,7 +30,6 @@
 namespace VuFind\Db\Service;
 
 use VuFind\Db\Entity\PaymentFeeEntityInterface;
-use VuFind\Db\Service\AbstractDbService;
 use VuFind\Db\Table\DbTableAwareInterface;
 use VuFind\Db\Table\DbTableAwareTrait;
 

@@ -33,10 +33,10 @@
 namespace VuFind\OnlinePayment\Handler;
 
 use VuFind\Db\Entity\PaymentEntityInterface;
+use VuFind\Db\Entity\UserEntityInterface;
 use VuFind\OnlinePayment\Handler\Connector\Cpu\Client;
 use VuFind\OnlinePayment\Handler\Connector\Cpu\Payment;
 use VuFind\OnlinePayment\Handler\Connector\Cpu\Product;
-use VuFind\Db\Entity\UserEntityInterface;
 
 use function count;
 use function in_array;
@@ -67,16 +67,16 @@ class CPU extends AbstractBase
     /**
      * Start transaction.
      *
-     * @param string              $returnBaseUrl  Return URL
-     * @param string              $notifyBaseUrl  Notify URL
-     * @param UserEntityInterface $user           User
-     * @param array               $patron         Patron information
-     * @param string              $driver         Patron MultiBackend ILS source
-     * @param int                 $amount         Amount (excluding transaction fee)
-     * @param int                 $serviceFee Transaction fee
-     * @param array               $fines          Fines data
-     * @param string              $currency       Currency
-     * @param string              $paymentParam   Payment status URL parameter
+     * @param string              $returnBaseUrl Return URL
+     * @param string              $notifyBaseUrl Notify URL
+     * @param UserEntityInterface $user          User
+     * @param array               $patron        Patron information
+     * @param string              $driver        Patron MultiBackend ILS source
+     * @param int                 $amount        Amount (excluding transaction fee)
+     * @param int                 $serviceFee    Transaction fee
+     * @param array               $fines         Fines data
+     * @param string              $currency      Currency
+     * @param string              $paymentParam  Payment status URL parameter
      *
      * @return string Error message on error, otherwise redirects to payment handler.
      */
@@ -344,7 +344,7 @@ class CPU extends AbstractBase
      * Process the response from payment service.
      *
      * @param PaymentEntityInterface $transaction Transaction
-     * @param \Laminas\Http\Request           $request     Request
+     * @param \Laminas\Http\Request  $request     Request
      *
      * @return array One of the result codes defined in AbstractBase and bool
      * indicating whether the transaction was just now marked as paid

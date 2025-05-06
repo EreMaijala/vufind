@@ -31,8 +31,8 @@ namespace VuFind\Db\Row;
 
 use DateTime;
 use VuFind\Db\Entity\PaymentEntityInterface;
-use VuFind\Db\Type\PaymentStatus;
 use VuFind\Db\Entity\UserEntityInterface;
+use VuFind\Db\Type\PaymentStatus;
 
 use function in_array;
 
@@ -48,7 +48,8 @@ use function in_array;
  * @property int $id
  * @property string $payment_identifier
  * @property int $user_id
- * @property string $driver
+ * @property string $source
+ * @property string $cat_username
  * @property int $amount
  * @property string $currency
  * @property int $service_fee
@@ -58,7 +59,6 @@ use function in_array;
  * @property string $registered
  * @property int $status
  * @property string $status_message
- * @property string $cat_username
  * @property string $reported
  */
 class Payment extends \VuFind\Db\Row\RowGateway implements
@@ -148,15 +148,15 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
     }
 
     /**
-     * Source Id (driver) setter
+     * Source setter
      *
-     * @param string $sourceId Source Id
+     * @param string $source Source
      *
      * @return static
      */
-    public function setSourceId(string $sourceId): static
+    public function setSource(string $source): static
     {
-        $this->driver = $sourceId;
+        $this->driver = $source;
         return $this;
     }
 
@@ -342,7 +342,7 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
      */
     public function setStatus(PaymentStatus $status): static
     {
-        $this->complete = $status->value;
+        $this->status = $status->value;
         return $this;
     }
 
@@ -353,19 +353,21 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
      */
     public function getStatus(): PaymentStatus
     {
-        return PaymentStatus::from($this->complete);
+        return PaymentStatus::from($this->status);
     }
 
     /**
      * Status message setter
      *
-     * @param string $description Status message
+     * Note that some other methods override the status message, so ensure that this is called last if required!
+     *
+     * @param string $msg Status message
      *
      * @return static
      */
-    public function setStatusMessage(string $description): static
+    public function setStatusMessage(string $msg): static
     {
-        $this->status = mb_substr($description, 0, 255, 'UTF-8');
+        $this->status_message = mb_substr($msg, 0, 255, 'UTF-8');
         return $this;
     }
 
@@ -376,7 +378,7 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
      */
     public function getStatusMessage(): string
     {
-        return $this->status;
+        return $this->status_message;
     }
 
     /**
@@ -409,7 +411,7 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
      */
     public function isInProgress(): bool
     {
-        return $this->complete === PaymentStatus::InProgress->value;
+        return $this->status === PaymentStatus::InProgress->value;
     }
 
     /**
@@ -419,7 +421,7 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
      */
     public function isRegistered(): bool
     {
-        return $this->complete === PaymentStatus::Complete->value;
+        return $this->status === PaymentStatus::Complete->value;
     }
 
     /**
@@ -429,8 +431,8 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
      */
     public function setCanceled(): static
     {
-        $this->complete = PaymentStatus::Canceled->value;
-        $this->status = 'cancel';
+        $this->status = PaymentStatus::Canceled->value;
+        $this->status_message = '';
         return $this;
     }
 
@@ -442,7 +444,7 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
     public function needsRegistration(): bool
     {
         return in_array(
-            $this->complete,
+            $this->status,
             [
                 PaymentStatus::Paid->value,
                 PaymentStatus::RegistrationFailed->value,
@@ -458,8 +460,8 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
     public function setPaid(): static
     {
         $this->paid = date('Y-m-d H:i:s', time());
-        $this->complete = PaymentStatus::Paid->value;
-        $this->status = 'paid';
+        $this->status = PaymentStatus::Paid->value;
+        $this->status_message = '';
         return $this;
     }
 
@@ -471,8 +473,8 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
     public function setRegistered(): static
     {
         $this->registered = date('Y-m-d H:i:s');
-        $this->complete = PaymentStatus::Complete->value;
-        $this->status = 'register_ok';
+        $this->status = PaymentStatus::Complete->value;
+        $this->status_message = '';
         return $this;
     }
 
@@ -485,8 +487,8 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
      */
     public function setRegistrationFailed(string $msg): static
     {
-        $this->complete = PaymentStatus::RegistrationFailed->value;
-        $this->status = mb_substr($msg, 0, 255, 'UTF-8');
+        $this->status = PaymentStatus::RegistrationFailed->value;
+        $this->status_message = mb_substr($msg, 0, 255, 'UTF-8');
         $this->registration_started = '2000-01-01 00:00:00';
         return $this;
     }
@@ -516,13 +518,24 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
     }
 
     /**
-     * Set payment reported date and status to "registration expired"
+     * Set payment status to "registration expired"
      *
      * @return static
      */
-    public function setReportedAndExpired(): static
+    public function setExpired(): static
     {
-        $this->complete = PaymentStatus::RegistrationExpired->value;
+        $this->status = PaymentStatus::RegistrationExpired->value;
+        $this->status_message = '';
+        return $this;
+    }
+
+    /**
+     * Set payment reported
+     *
+     * @return static
+     */
+    public function setReported(): static
+    {
         $this->reported = date('Y-m-d H:i:s');
         return $this;
     }
@@ -534,8 +547,8 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
      */
     public function setFinesUpdated(): static
     {
-        $this->complete = PaymentStatus::FinesUpdated->value;
-        $this->status = 'fines_updated';
+        $this->status = PaymentStatus::FinesUpdated->value;
+        $this->status_message = '';
         return $this;
     }
 }

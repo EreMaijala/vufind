@@ -48,18 +48,18 @@ use VuFind\Db\Entity\UserEntityInterface;
 interface HandlerInterface
 {
     /**
-     * Start transaction.
+     * Start payment.
      *
-     * @param string              $returnBaseUrl  Return URL
-     * @param string              $notifyBaseUrl  Notify URL
-     * @param UserEntityInterface $user           User
-     * @param array               $patron         Patron information
-     * @param string              $driver         Patron MultiBackend ILS source
-     * @param int                 $amount         Amount (excluding transaction fee)
-     * @param int                 $serviceFee Transaction fee
-     * @param array               $fines          Fines data
-     * @param string              $currency       Currency
-     * @param string              $paymentParam   Payment status URL parameter
+     * @param string              $returnBaseUrl Return URL
+     * @param string              $notifyBaseUrl Notify URL
+     * @param UserEntityInterface $user          User
+     * @param array               $patron        Patron information
+     * @param string              $source        Patron MultiBackend ILS source
+     * @param int                 $amount        Amount (excluding service fee)
+     * @param int                 $serviceFee    Service fee
+     * @param array               $fines         Fines data
+     * @param string              $currency      Currency
+     * @param string              $paymentParam  Payment status URL parameter
      *
      * @return string Error message on error, otherwise redirects to payment handler.
      */
@@ -68,7 +68,7 @@ interface HandlerInterface
         string $notifyBaseUrl,
         UserEntityInterface $user,
         array $patron,
-        string $driver,
+        string $source,
         int $amount,
         int $serviceFee,
         array $fines,
@@ -79,14 +79,14 @@ interface HandlerInterface
     /**
      * Process the response from payment service.
      *
-     * @param PaymentEntityInterface $transaction Transaction
-     * @param \Laminas\Http\Request           $request     Request
+     * @param PaymentEntityInterface $payment Payment
+     * @param \Laminas\Http\Request  $request Request
      *
      * @return array One of the result codes defined in AbstractBase and bool
-     * indicating whether the transaction was just now marked as paid
+     * indicating whether the payment was just now marked as paid
      */
     public function processPaymentResponse(
-        PaymentEntityInterface $transaction,
+        PaymentEntityInterface $payment,
         \Laminas\Http\Request $request
     ): array;
 }

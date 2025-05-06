@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Database service interface for TransactionEventLog.
+ * Database service interface for PaymentEventLog.
  *
  * PHP version 8
  *
@@ -31,10 +31,9 @@ namespace VuFind\Db\Service;
 
 use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Entity\PaymentEventEntityInterface;
-use VuFind\Db\Service\DbServiceInterface;
 
 /**
- * Database service interface for TransactionEventLog.
+ * Database service interface for PaymentEventLog.
  *
  * @category VuFind
  * @package  Database
@@ -55,8 +54,8 @@ interface PaymentEventLogServiceInterface extends DbServiceInterface
      * Add an event for a payment
      *
      * @param PaymentEntityInterface $payment Payment
-     * @param string                 $status      Status message
-     * @param array                  $data        Additional data
+     * @param string                 $status  Status message
+     * @param array                  $data    Additional data
      *
      * @return void
      */

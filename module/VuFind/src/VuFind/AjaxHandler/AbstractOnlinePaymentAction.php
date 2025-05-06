@@ -30,16 +30,16 @@
 
 namespace VuFind\AjaxHandler;
 
+use Laminas\Session\Container as SessionContainer;
+use VuFind\Auth\ILSAuthenticator;
 use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Service\PaymentEventLogServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
-use VuFind\OnlinePayment\OnlinePayment;
-use VuFind\OnlinePayment\Receipt;
-use Laminas\Session\Container as SessionContainer;
-use VuFind\Auth\ILSAuthenticator;
 use VuFind\Db\Service\UserCardServiceInterface;
 use VuFind\Db\Service\UserServiceInterface;
 use VuFind\ILS\Connection;
+use VuFind\OnlinePayment\OnlinePayment;
+use VuFind\OnlinePayment\Receipt;
 use VuFind\Session\Settings as SessionSettings;
 
 /**
@@ -62,18 +62,18 @@ abstract class AbstractOnlinePaymentAction extends \VuFind\AjaxHandler\AbstractB
     /**
      * Constructor
      *
-     * @param SessionSettings                          $sessionSettings      Session settings
-     * @param Connection                               $ils                  ILS connection
-     * @param ILSAuthenticator                         $ilsAuthenticator     ILS Authenticator
-     * @param PaymentServiceInterface                  $paymentService       Payment database service
-     * @param UserServiceInterface                     $userService          User database service
-     * @param UserCardServiceInterface                 $userCardService      User card database service (for
-     * OnlinePaymentHandlerTrait)
-     * @param OnlinePayment                            $onlinePayment        Online payment manager
-     * @param SessionContainer                         $onlinePaymentSession Online payment session
-     * @param array                                    $dataSourceConfig     Data source configuration
-     * @param Receipt                                  $receipt              Receipt
-     * @param PaymentEventLogServiceInterface          $eventLogService      Payment event log database service
+     * @param SessionSettings                 $sessionSettings      Session settings
+     * @param Connection                      $ils                  ILS connection
+     * @param ILSAuthenticator                $ilsAuthenticator     ILS Authenticator
+     * @param PaymentServiceInterface         $paymentService       Payment database service
+     * @param UserServiceInterface            $userService          User database service
+     * @param UserCardServiceInterface        $userCardService      User card database service (for
+     *                                                              OnlinePaymentHandlerTrait)
+     * @param OnlinePayment                   $onlinePayment        Online payment manager
+     * @param SessionContainer                $onlinePaymentSession Online payment session
+     * @param array                           $dataSourceConfig     Data source configuration
+     * @param Receipt                         $receipt              Receipt
+     * @param PaymentEventLogServiceInterface $eventLogService      Payment event log database service
      */
     public function __construct(
         SessionSettings $sessionSettings,

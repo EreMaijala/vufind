@@ -31,8 +31,6 @@ namespace VuFind\Db\Entity;
 
 use DateTime;
 use VuFind\Db\Type\PaymentStatus;
-use VuFind\Db\Entity\EntityInterface;
-use VuFind\Db\Entity\UserEntityInterface;
 
 /**
  * Interface for representing a payment transaction.
@@ -92,20 +90,20 @@ interface PaymentEntityInterface extends EntityInterface
     public function getUserId(): ?int;
 
     /**
-     * Source Id (driver) setter
+     * Source setter
      *
-     * @param string $sourceId Source Id
+     * @param string $source Source
      *
      * @return static
      */
-    public function setSourceId(string $sourceId): static;
+    public function setSource(string $source): static;
 
     /**
-     * Source Id (driver) getter
+     * Source getter
      *
      * @return string
      */
-    public function getSourceId(): string;
+    public function getSource(): string;
 
     /**
      * Amount setter
@@ -333,11 +331,18 @@ interface PaymentEntityInterface extends EntityInterface
     public function setRegistrationStarted(): static;
 
     /**
-     * Set payment reported date and status to "registration expired"
+     * Set payment status to "registration expired"
      *
      * @return static
      */
-    public function setReportedAndExpired(): static;
+    public function setExpired(): static;
+
+    /**
+     * Set payment reported date
+     *
+     * @return static
+     */
+    public function setReported(): static;
 
     /**
      * Set payment status to "fines updated"

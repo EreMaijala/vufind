@@ -29,9 +29,9 @@
 
 namespace VuFind\OnlinePayment;
 
+use VuFind\Controller\AbstractBase;
 use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Service\PaymentEventLogServiceInterface;
-use VuFind\Controller\AbstractBase;
 
 /**
  * Online payment event log support trait.
@@ -45,23 +45,23 @@ use VuFind\Controller\AbstractBase;
 trait OnlinePaymentEventLogTrait
 {
     /**
-     * Transaction event log service
+     * Payment event log service
      *
      * @var ?PaymentEventLogServiceInterface
      */
     protected $eventLogService = null;
 
     /**
-     * Add an event log entry for a transaction
+     * Add an event log entry for a payment
      *
-     * @param PaymentEntityInterface $transaction Transaction
-     * @param string                          $status      Status message
-     * @param array                           $data        Additional data
+     * @param PaymentEntityInterface $payment Payment
+     * @param string                 $status  Status message
+     * @param array                  $data    Additional data
      *
      * @return void
      */
     protected function addPaymentEvent(
-        PaymentEntityInterface $transaction,
+        PaymentEntityInterface $payment,
         string $status,
         array $data = []
     ): void {
@@ -73,6 +73,6 @@ trait OnlinePaymentEventLogTrait
             }
         }
         $data += ['source' => static::class];
-        $this->eventLogService->addEvent($transaction, $status, $data);
+        $this->eventLogService->addEvent($payment, $status, $data);
     }
 }

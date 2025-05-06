@@ -30,7 +30,6 @@
 namespace VuFind\Db\Service;
 
 use VuFind\Db\Entity\PaymentFeeEntityInterface;
-use VuFind\Db\Service\DbServiceInterface;
 
 /**
  * Database service interface for PaymentFee.
