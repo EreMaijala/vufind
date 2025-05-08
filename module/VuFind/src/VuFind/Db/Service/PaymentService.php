@@ -59,8 +59,8 @@ class PaymentService extends AbstractDbService implements
     {
         $payment = $this->getDbTable('Payment')->createRow();
         $payment->created = date('Y-m-d H:i:s');
-        $payment->complete = 0;
-        $payment->status = 'started';
+        $payment->status = PaymentStatus::InProgress->value;
+        $payment->status_message = '';
         return $payment;
     }
 
@@ -169,13 +169,13 @@ class PaymentService extends AbstractDbService implements
     /**
      * Get payment by identifier.
      *
-     * @param string $paymentIdentifier Payment identifier
+     * @param string $localIdentifier Payment identifier
      *
      * @return ?PaymentEntityInterface
      */
-    public function getPaymentByIdentifier(string $paymentIdentifier): ?PaymentEntityInterface
+    public function getPaymentByLocalIdentifier(string $localIdentifier): ?PaymentEntityInterface
     {
-        return $this->getDbTable('Payment')->select(['payment_id' => $paymentIdentifier])->current();
+        return $this->getDbTable('Payment')->select(['payment_id' => $localIdentifier])->current();
     }
 
     /**

@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2015-2023.
+ * Copyright (C) The National Library of Finland 2015-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -30,6 +30,7 @@
 
 namespace VuFind\OnlinePayment;
 
+use VuFind\OnlinePayment\Handler\HandlerInterface;
 use VuFind\OnlinePayment\Handler\PluginManager as HandlerPluginManager;
 
 /**
@@ -77,9 +78,11 @@ class OnlinePayment
      *
      * @param string $source Datasource
      *
-     * @return VuFind\OnlinePayment\OnlinePaymentHandlerInterface
+     * @return HandlerInterface
+     *
+     * @throws \Exception
      */
-    public function getHandler($source)
+    public function getHandler($source): HandlerInterface
     {
         if (!($handlerName = $this->getHandlerName($source))) {
             throw new \Exception("Online payment handler not defined for $source");
@@ -102,7 +105,7 @@ class OnlinePayment
      *
      * @return string
      */
-    public function getHandlerName($source)
+    public function getHandlerName($source): string
     {
         if ($config = $this->getConfig($source)) {
             return $config['handler'] ?? '';
@@ -111,26 +114,26 @@ class OnlinePayment
     }
 
     /**
-     * Check if online payment is enabled for a datasource.
+     * Check if online payment is enabled for an ILS.
      *
-     * @param string $source Datasource
+     * @param string $sourceIls Source ILS
      *
      * @return bool
      */
-    public function isEnabled($source)
+    public function isEnabled($sourceIls): bool
     {
-        return $this->getConfig($source) ? true : false;
+        return $this->getConfig($sourceIls) ? true : false;
     }
 
     /**
-     * Get online payment handler configuration for a datasource.
+     * Get online payment handler configuration for an ILS.
      *
-     * @param string $source Datasource
+     * @param string $sourceIls Source ILS
      *
      * @return array
      */
-    protected function getConfig($source)
+    protected function getConfig($sourceIls)
     {
-        return $this->config[$source]['onlinePayment'] ?? [];
+        return $this->config[$sourceIls]['onlinePayment'] ?? [];
     }
 }

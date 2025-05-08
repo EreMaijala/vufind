@@ -233,7 +233,7 @@ class OnlinePaymentMonitor extends Command
     protected function processPayment(PaymentEntityInterface $payment): void
     {
         $this->msg(
-            "Registering payment id {$payment->getId()} / {$payment->getPaymentIdentifier()}"
+            "Registering payment id {$payment->getId()} / {$payment->getLocalIdentifier()}"
             . " (status: {$payment->getStatus()->value} / {$payment->getStatusMessage()}"
             . ", paid: {$payment->getPaidDate()->format('Y-m-d H:i:s')})"
         );
@@ -247,7 +247,7 @@ class OnlinePaymentMonitor extends Command
             $payment->setExpired();
             $this->paymentService->persistEntity($payment);
             $this->addPaymentEvent($payment, 'Marked as expired');
-            $this->msg('Payment ' . $payment->getPaymentIdentifier() . ' marked as expired.');
+            $this->msg('Payment ' . $payment->getLocalIdentifier() . ' marked as expired.');
             return;
         }
 
@@ -370,13 +370,13 @@ class OnlinePaymentMonitor extends Command
     }
 
     /**
-     * Log a payment info message
+     * Log a payment debug message
      *
      * @param string $msg Message
      *
      * @return void
      */
-    protected function logPaymentInfo(string $msg): void
+    protected function debug(string $msg): void
     {
         $this->msg($msg);
     }

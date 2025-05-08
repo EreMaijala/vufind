@@ -53,18 +53,34 @@ interface PaymentEntityInterface extends EntityInterface
     /**
      * Payment Identifier setter
      *
-     * @param ?string $paymentIdentifier Payment Identifier.
+     * @param ?string $localIdentifier Payment Identifier.
      *
      * @return static
      */
-    public function setPaymentIdentifier(?string $paymentIdentifier): static;
+    public function setLocalIdentifier(?string $localIdentifier): static;
 
     /**
      * Payment Identifier getter
      *
      * @return ?string
      */
-    public function getPaymentIdentifier(): ?string;
+    public function getLocalIdentifier(): ?string;
+
+    /**
+     * Remote Identifier setter
+     *
+     * @param ?string $remoteIdentifier Payment Identifier.
+     *
+     * @return static
+     */
+    public function setRemoteIdentifier(?string $remoteIdentifier): static;
+
+    /**
+     * Remote Identifier getter
+     *
+     * @return ?string
+     */
+    public function getRemoteIdentifier(): ?string;
 
     /**
      * Set user.
@@ -90,20 +106,20 @@ interface PaymentEntityInterface extends EntityInterface
     public function getUserId(): ?int;
 
     /**
-     * Source setter
+     * Source ILS setter
      *
-     * @param string $source Source
+     * @param string $sourceIls Source ILS
      *
      * @return static
      */
-    public function setSource(string $source): static;
+    public function setSourceIls(string $sourceIls): static;
 
     /**
-     * Source getter
+     * Source ILS getter
      *
      * @return string
      */
-    public function getSource(): string;
+    public function getSourceIls(): string;
 
     /**
      * Amount setter

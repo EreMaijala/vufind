@@ -1030,6 +1030,29 @@ class MultiBackend extends AbstractMultiDriver
     }
 
     /**
+     * Patron Login
+     *
+     * This is responsible for authenticating a patron against the catalog.
+     *
+     * @param string $username The patron username
+     * @param string $password The patron password
+     *
+     * @return mixed           Associative array of patron info on successful login,
+     * null on unsuccessful login.
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function patronLogin($username, $password)
+    {
+        $source = $this->getSource($username);
+        $result = $this->callMethodIfSupported($source, __FUNCTION__, func_get_args());
+        if (is_array($result)) {
+            $result['__source'] = $source;
+        }
+        return $result;
+    }
+
+    /**
      * Helper method to determine whether or not a certain method can be
      * called on this driver. Required method for any smart drivers.
      *

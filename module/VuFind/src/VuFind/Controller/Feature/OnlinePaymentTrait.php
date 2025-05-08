@@ -150,8 +150,9 @@ trait OnlinePaymentTrait
     protected function handleOnlinePayment($patron, $fines, $view)
     {
         $view->onlinePaymentEnabled = false;
-        if (!($paymentHandler = $this->getOnlinePaymentHandler($patron['source']))) {
-            $this->handleDebugMsg("No online payment handler defined for {$patron['source']}");
+        $sourceIls = $patron['__source'] ?? 'default';
+        if (!($paymentHandler = $this->getOnlinePaymentHandler($sourceIls))) {
+            $this->handleDebugMsg("No online payment handler defined for $sourceIls");
             return;
         }
 
@@ -167,10 +168,9 @@ trait OnlinePaymentTrait
 
         // Check if payment handler is configured in datasources.ini
         $onlinePayment = $this->serviceLocator->get(\VuFind\OnlinePayment\OnlinePayment::class);
-        if (!$onlinePayment->isEnabled($patron['source'])) {
-            $this->handleDebugMsg(
-                "Online payment not enabled for {$patron['source']}"
-            );
+        $sourceIls = $patron['__source'] ?? 'default';
+        if (!$onlinePayment->isEnabled($sourceIls)) {
+            $this->handleDebugMsg("Online payment not enabled for $sourceIls");
             return;
         }
 
@@ -311,16 +311,13 @@ trait OnlinePaymentTrait
         }
 
         $request = $this->getRequest();
-        $paymentIdentifier = $request->getQuery()->get('vufind_payment_id');
+        $localIdentifier = $request->getQuery()->get('vufind_payment_id');
         if (
-            $paymentIdentifier
-            && ($payment = $paymentService->getPaymentByIdentifier($paymentIdentifier))
+            $localIdentifier
+            && ($payment = $paymentService->getPaymentByLocalIdentifier($localIdentifier))
         ) {
             $this->ensureLogger();
-            $this->logger->warn(
-                'Online payment response handler called. Request: '
-                . (string)$request
-            );
+            $this->logger->debug('Online payment response handler called. Request: ' . (string)$request);
             $this->addPaymentEvent($payment, 'Response handler called');
 
             if ($payment->isRegistered()) {
@@ -328,12 +325,13 @@ trait OnlinePaymentTrait
                 $this->flashMessenger()->addSuccessMessage('Payment::Payment Successful');
             } else {
                 // Process payment response:
-                [$result, $markedAsPaid] = $paymentHandler->processPaymentResponse(
-                    $payment,
-                    $this->getRequest()
-                );
-                $this->logger->warn("Online payment response for $paymentIdentifier result: $result");
+                $result = $paymentHandler->processPaymentResponse($payment, $this->getRequest());
+                $this->logger->debug("Online payment response for $localIdentifier result: $result");
                 if ($paymentHandler::PAYMENT_SUCCESS === $result) {
+                    if ($markedAsPaid = $payment->isInProgress()) {
+                        $payment->setPaid();
+                        $this->paymentService->persistEntity($payment);
+                    }
                     $this->flashMessenger()->addSuccessMessage('Payment::Payment Successful');
                     // Send receipt by email if enabled and the payment was just now
                     // marked as paid (the notification handler could have done it
@@ -351,12 +349,12 @@ trait OnlinePaymentTrait
                         );
                     }
                     // Reload payment and check if registration is still pending:
-                    $payment = $paymentService->getPaymentByIdentifier($paymentIdentifier);
+                    $payment = $paymentService->getPaymentByLocalIdentifier($localIdentifier);
                     if ($payment?->needsRegistration()) {
                         // Display page and mark fees as paid via AJAX:
                         $view->registerPayment = true;
                         $view->registerPaymentParams = [
-                            'paymentIdentifier' => $payment->getPaymentIdentifier(),
+                            'localIdentifier' => $payment->getLocalIdentifier(),
                         ];
                         $this->addPaymentEvent($payment, 'Registration requested');
                     }

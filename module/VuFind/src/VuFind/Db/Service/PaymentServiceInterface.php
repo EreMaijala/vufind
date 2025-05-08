@@ -99,11 +99,11 @@ interface PaymentServiceInterface extends DbServiceInterface
     /**
      * Get payment by identifier.
      *
-     * @param string $paymentIdentifier Payment identifier
+     * @param string $localIdentifier Payment identifier
      *
      * @return ?PaymentEntityInterface
      */
-    public function getPaymentByIdentifier(string $paymentIdentifier): ?PaymentEntityInterface;
+    public function getPaymentByLocalIdentifier(string $localIdentifier): ?PaymentEntityInterface;
 
     /**
      * Check if a payment is started for the patron, but not progressed further.

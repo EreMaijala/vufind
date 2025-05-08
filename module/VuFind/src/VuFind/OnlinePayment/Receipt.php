@@ -176,7 +176,7 @@ class Receipt implements TranslatorAwareInterface
             $this->addInfo($pdf, 'Payment::Recipient', $sourceName . ($businessId ? " ($businessId)" : ''));
         }
         $this->addInfo($pdf, 'Payment::Date', $paidDate);
-        $this->addInfo($pdf, 'Payment::Identifier', $payment->getPaymentIdentifier());
+        $this->addInfo($pdf, 'Payment::Identifier', $payment->getLocalIdentifier());
         if ($contactInfo) {
             $this->addInfo($pdf, 'Payment::Contact Information', $contactInfo);
         }

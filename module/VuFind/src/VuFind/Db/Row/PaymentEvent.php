@@ -43,7 +43,7 @@ use VuFind\Db\Entity\PaymentEventEntityInterface;
  * @link     http://vufind.org   Main Site
  *
  * @property int $id
- * @property int $payment_identifier
+ * @property int $payment_id
  * @property string $date
  * @property string $server_ip
  * @property string $server_name
@@ -94,26 +94,26 @@ class PaymentEvent extends \VuFind\Db\Row\RowGateway implements
     }
 
     /**
-     * Payment Identifier setter
+     * Payment Id setter
      *
-     * @param ?string $paymentIdentifier Payment Identifier.
+     * @param int $id Payment Id.
      *
      * @return static
      */
-    public function setPaymentIdentifier(?string $paymentIdentifier): static
+    public function setPaymentId(int $id): static
     {
-        $this->payment_identifier = $paymentIdentifier;
+        $this->payment_id = $id;
         return $this;
     }
 
     /**
-     * Payment Identifier getter
+     * Payment Id getter
      *
-     * @return ?string
+     * @return ?int
      */
-    public function getPaymentIdentifier(): ?string
+    public function getPaymentId(): ?int
     {
-        return $this->payment_identifier;
+        return $this->payment_id;
     }
 
     /**

@@ -57,7 +57,7 @@ class RegisterOnlinePayment extends AbstractOnlinePaymentAction
         if (!$paymentId) {
             return $this->formatResponse('', self::STATUS_HTTP_BAD_REQUEST);
         }
-        $payment = $this->paymentService->getPaymentByIdentifier($paymentId);
+        $payment = $this->paymentService->getPaymentByLocalIdentifier($paymentId);
         if (!$payment) {
             return $this->formatResponse('', self::STATUS_HTTP_BAD_REQUEST);
         }

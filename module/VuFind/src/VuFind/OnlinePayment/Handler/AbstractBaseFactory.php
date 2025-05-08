@@ -34,7 +34,7 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
-use VuFind\Db\Service\FeeServiceInterface;
+use VuFind\Db\Service\PaymentFeeServiceInterface;
 use VuFind\Db\Service\PaymentEventLogServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
 
@@ -73,7 +73,7 @@ class AbstractBaseFactory implements FactoryInterface
             $container->get(\VuFindHttp\HttpService::class),
             $container->get(\VuFind\I18n\Locale\LocaleSettings::class),
             $dbServiceManager->get(PaymentServiceInterface::class),
-            $dbServiceManager->get(FeeServiceInterface::class),
+            $dbServiceManager->get(PaymentFeeServiceInterface::class),
             $dbServiceManager->get(PaymentEventLogServiceInterface::class)
         );
     }

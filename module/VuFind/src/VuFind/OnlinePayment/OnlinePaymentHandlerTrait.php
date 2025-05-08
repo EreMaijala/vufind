@@ -9,12 +9,12 @@
  *   $this->userCardService
  *   $this->logError
  *   $this->logException
- *   $this->logPaymentInfo
+ *   $this->debug
  *   OnlinePaymentEventLogTrait
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2024.
+ * Copyright (C) The National Library of Finland 2024-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -63,8 +63,8 @@ trait OnlinePaymentHandlerTrait
     {
         // Check that registration is not already in progress (i.e. registration started within 120 seconds)
         if ($payment->isRegistrationInProgress()) {
-            $this->logPaymentInfo(
-                '    Payment ' . $payment->getPaymentIdentifier() . ' already being registered since '
+            $this->debug(
+                '    Payment ' . $payment->getLocalIdentifier() . ' already being registered since '
                 . ($payment->getRegistrationStartDate()?->format('Y-m-d H:i:s') ?? '[date missing]')
             );
             $this->addPaymentEvent($payment, 'Payment already being registered');
@@ -106,7 +106,7 @@ trait OnlinePaymentHandlerTrait
                 // Payable sum updated. Skip registration and inform user
                 // that payment processing has been delayed.
                 $this->logError(
-                    'Payment ' . $payment->getPaymentIdentifier() . ': payable sum updated.'
+                    'Payment ' . $payment->getLocalIdentifier() . ': payable sum updated.'
                     . ' Paid amount: ' . $payment->getAmount() . ', payable: '
                     . var_export($finesAmount, true)
                 );
@@ -118,16 +118,16 @@ trait OnlinePaymentHandlerTrait
         }
 
         try {
-            $this->logPaymentInfo('Payment ' . $payment->getPaymentIdentifier() . ': start marking fees as paid.');
+            $this->debug('Payment ' . $payment->getLocalIdentifier() . ': start marking fees as paid.');
             $res = $this->ils->markFeesAsPaid(
                 $patron,
                 $payment->getAmount(),
-                $payment->getPaymentIdentifier(),
+                $payment->getLocalIdentifier(),
                 $payment->getId(),
                 ($paymentConfig['selectFines'] ?? false) ? $fineIds : null
             );
-            $this->logPaymentInfo(
-                'Payment ' . $payment->getPaymentIdentifier() . ': done marking fees as paid, result: '
+            $this->debug(
+                'Payment ' . $payment->getLocalIdentifier() . ': done marking fees as paid, result: '
                 . var_export($res, true)
             );
             if (true !== $res) {
@@ -151,7 +151,7 @@ trait OnlinePaymentHandlerTrait
             }
             $payment->setRegistered();
             $this->paymentService->persistEntity($payment);
-            $this->logPaymentInfo("Registration of payment {$payment->getPaymentIdentifier()} successful");
+            $this->debug("Registration of payment {$payment->getLocalIdentifier()} successful");
             $this->addPaymentEvent($payment, 'Successfully registered with the ILS');
         } catch (\Exception $e) {
             $this->logError('Payment registration error (patron ' . $patron['id'] . '): ' . $e->getMessage());

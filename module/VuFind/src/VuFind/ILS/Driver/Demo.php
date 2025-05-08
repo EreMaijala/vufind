@@ -10,7 +10,7 @@
  * PHP version 8
  *
  * Copyright (C) Villanova University 2007, 2022.
- * Copyright (C) The National Library of Finland 2014.
+ * Copyright (C) The National Library of Finland 2014-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -1084,6 +1084,9 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
         // 90% of 1-18 (give or take some odd maths)
         $fines = rand() % 20 - 2;
 
+        $paymentConfig = $this->config['OnlinePayment'] ?? [];
+        $nonPayable = $paymentConfig['nonPayable'] ?? [];
+
         $fineList = [];
         for ($i = 0; $i < $fines; $i++) {
             // How many days overdue is the item?
@@ -1102,6 +1105,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
             }
 
             $fineList[] = [
+                'fine_id'  => $i,
                 'amount'   => $fine * 100,
                 'checkout' => $this->dateConverter
                     ->convertToDisplayDate('U', $checkout),
@@ -1116,6 +1120,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
                     'U',
                     strtotime("now - $day_overdue days")
                 ),
+                'payable_online' => !in_array($type, $nonPayable),
             ];
             // Some fines will have no id or title:
             if (rand() % 3 != 1) {
@@ -1152,6 +1157,117 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
                 : $this->getRandomFines();
         }
         return $session->fines;
+    }
+
+    /**
+     * Return details on fees payable online.
+     *
+     * @param array  $patron          Patron
+     * @param array  $fines           Patron's fines
+     * @param ?array $selectedFineIds Selected fines
+     *
+     * @throws ILSException
+     * @return array Associative array of payment details
+     */
+    public function getOnlinePaymentDetails(array $patron, array $fines, ?array $selectedFineIds): array
+    {
+        if (!$fines) {
+            return [
+                'payable' => false,
+                'amount' => 0,
+                'reason' => 'Payment::minimum_payment',
+            ];
+        }
+        $amount = 0;
+        $payableFines = [];
+        foreach ($fines as $fine) {
+            if (
+                null !== $selectedFineIds
+                && !in_array($fine['fine_id'], $selectedFineIds)
+            ) {
+                continue;
+            }
+            // Nothing can be paid if there are manual fees:
+            if ('Manual Fee' === $fine['fine']) {
+                return [
+                    'payable' => false,
+                    'amount' => 0,
+                    'reason' => 'Payment::fines_contain_nonpayable_fees',
+                ];
+                break;
+            } elseif ($fine['payableOnline']) {
+                $amount += $fine['balance'];
+                $payableFines[] = $fine;
+            }
+        }
+        // Check minimum payment:
+        $config = $this->getConfig('OnlinePayment');
+        $serviceFee = $config['serviceFee'] ?? 0;
+        if ($amount + $serviceFee < ($config['minimumFee'] ?? 0)) {
+            return [
+                'payable' => false,
+                'amount' => 0,
+                'reason' => 'Payment::minimum_payment',
+            ];
+        }
+        $res = [
+            'payable' => $amount > 0,
+            'amount' => $amount,
+            'fines' => $payableFines,
+        ];
+        return $res;
+    }
+
+    /**
+     * Register a payment.
+     *
+     * This is called after a successful online payment.
+     *
+     * @param array  $patron                  Patron
+     * @param int    $amount                  Amount to be registered as paid
+     * @param string $localPaymentIdentifier  Local payment identifier
+     * @param string $remotePaymentIdentifier Remote payment identifier
+     * @param int    $paymentId               Internal payment id
+     * @param ?array $fineIds                 Fine IDs to mark paid or null for bulk payment
+     *
+     * @throws ILSException
+     * @return true|string True on success, error description on error
+     */
+    public function registerPayment(
+        $patron,
+        $amount,
+        $localPaymentIdentifier,
+        $remotePaymentIdentifier,
+        $paymentId,
+        $fineIds = null
+    ) {
+        if ($this->isFailing(__METHOD__, 10)) {
+            throw new ILSException('Payment::registration_failed');
+        }
+
+        $session = $this->getSession($patron['id'] ?? null);
+        $paid = 0;
+        if (isset($session->fines)) {
+            foreach ($session->fines as $key => $fine) {
+                if (
+                    $fine['payableOnline']
+                    && (!$fineIds || in_array($fine['fine_id'], $fineIds))
+                ) {
+                    unset($session->fines[$key]);
+                    $paid += $fine['balance'];
+                }
+            }
+        }
+        if ($paid < $amount) {
+            $session->fines[] = [
+                'amount'   => $paid - $amount,
+                'createdate' => $this->dateConverter->convertToDisplayDate('U', time()),
+                'fine'     => 'Balance',
+                'balance'  => $paid - $amount,
+            ];
+        }
+
+        return true;
     }
 
     /**

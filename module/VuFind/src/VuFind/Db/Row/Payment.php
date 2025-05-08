@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2015-2024.
+ * Copyright (C) The National Library of Finland 2015-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -46,9 +46,10 @@ use function in_array;
  * @link     http://vufind.org   Main Site
  *
  * @property int $id
- * @property string $payment_identifier
+ * @property string $local_identifier
+ * @property string $remote_identifier
  * @property int $user_id
- * @property string $source
+ * @property string $source_ils
  * @property string $cat_username
  * @property int $amount
  * @property string $currency
@@ -94,13 +95,13 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
     /**
      * Payment Identifier setter
      *
-     * @param ?string $paymentIdentifier Payment Identifier.
+     * @param ?string $localIdentifier Payment Identifier.
      *
      * @return static
      */
-    public function setPaymentIdentifier(?string $paymentIdentifier): static
+    public function setLocalIdentifier(?string $localIdentifier): static
     {
-        $this->payment_identifier = $paymentIdentifier;
+        $this->local_identifier = $localIdentifier;
         return $this;
     }
 
@@ -109,9 +110,32 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
      *
      * @return ?string
      */
-    public function getPaymentIdentifier(): ?string
+    public function getLocalIdentifier(): ?string
     {
-        return $this->payment_identifier;
+        return $this->local_identifier;
+    }
+
+    /**
+     * Remote Identifier setter
+     *
+     * @param ?string $remoteIdentifier Payment Identifier.
+     *
+     * @return static
+     */
+    public function setRemoteIdentifier(?string $remoteIdentifier): static
+    {
+        $this->remote_identifier = $remoteIdentifier;
+        return $this;
+    }
+
+    /**
+     * Remote Identifier getter
+     *
+     * @return ?string
+     */
+    public function getRemoteIdentifier(): ?string
+    {
+        return $this->remote_identifier;
     }
 
     /**
@@ -148,26 +172,26 @@ class Payment extends \VuFind\Db\Row\RowGateway implements
     }
 
     /**
-     * Source setter
+     * Source ILS setter
      *
-     * @param string $source Source
+     * @param string $sourceIls Source ILS
      *
      * @return static
      */
-    public function setSource(string $source): static
+    public function setSourceIls(string $sourceIls): static
     {
-        $this->driver = $source;
+        $this->source_ils = $sourceIls;
         return $this;
     }
 
     /**
-     * Source Id (driver) getter
+     * Source ILS getter
      *
      * @return string
      */
-    public function getSourceId(): string
+    public function getSourceIls(): string
     {
-        return $this->driver;
+        return $this->source_ils;
     }
 
     /**

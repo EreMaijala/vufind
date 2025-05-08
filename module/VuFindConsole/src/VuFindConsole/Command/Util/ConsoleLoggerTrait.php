@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2016-2020.
+ * Copyright (C) The National Library of Finland 2016-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -72,7 +72,7 @@ trait ConsoleLoggerTrait
     }
 
     /**
-     * Log an exception triggered by ZF2 for administrative purposes.
+     * Log an exception
      *
      * @param \Exception $error Exception to log
      *

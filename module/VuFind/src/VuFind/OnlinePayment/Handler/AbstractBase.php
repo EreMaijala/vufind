@@ -70,7 +70,7 @@ abstract class AbstractBase implements
      *
      * @var int
      */
-    public const PAYMENT_SUCCESS = 0; // Successful payment, mark fees paid
+    public const PAYMENT_SUCCESS = 0; // Payment successful
     public const PAYMENT_CANCEL = 1;  // Payment canceled
     public const PAYMENT_FAILURE = 2; // Payment failed
     public const PAYMENT_PENDING = 3; // Payment in progress
@@ -78,9 +78,37 @@ abstract class AbstractBase implements
     /**
      * Configuration.
      *
-     * @var ?\VuFind\Config\Config
+     * @var array
      */
-    protected $config = null;
+    protected array $config = [];
+
+    /**
+     * Basic mappings from fine types to product codes
+     *
+     * @var array
+     */
+    protected array $productCodeMappings = [];
+
+    /**
+     * Mappings from fine types to tax rates
+     *
+     * @var array
+     */
+    protected array $taxRateMappings = [];
+
+    /**
+     * Fine organization-specific mappings from fine types to product codes
+     *
+     * @var array
+     */
+    protected array $organizationProductCodePrefixMappings = [];
+
+    /**
+     * Mappings from fine organizations to merchant identifiers for shop-in-shop support
+     *
+     * @var array
+     */
+    protected array $organizationMerchantIdMappings = [];
 
     /**
      * Constructor
@@ -104,13 +132,18 @@ abstract class AbstractBase implements
     /**
      * Initialize the handler
      *
-     * @param \VuFind\Config\Config $config Online payment configuration
+     * @param array $config Online payment configuration
      *
      * @return void
      */
-    public function init(\VuFind\Config\Config $config): void
+    public function init(array $config): void
     {
         $this->config = $config;
+
+        $this->productCodeMappings = $this->getProductCodeMappings();
+        $this->taxRateMappings = $this->getTaxRateMappings();
+        $this->organizationProductCodePrefixMappings = $this->getOrganizationProductCodePrefixMappings();
+        $this->organizationMerchantIdMappings = $this->getOrganizationMerchantIdMappings();
     }
 
     /**
@@ -118,9 +151,9 @@ abstract class AbstractBase implements
      *
      * @return string name
      */
-    public function getName()
+    public function getName(): string
     {
-        return $this->config->onlinePayment->handler;
+        return $this->config['handler'];
     }
 
     /**
@@ -130,7 +163,7 @@ abstract class AbstractBase implements
      *
      * @return string
      */
-    protected function generatePaymentIdentifier($patronId)
+    protected function generateLocalIdentifier($patronId): string
     {
         return md5($patronId . '_' . microtime(true));
     }
@@ -153,54 +186,57 @@ abstract class AbstractBase implements
     /**
      * Store payment to database.
      *
-     * @param string              $paymentIdentifier Payment identifier
-     * @param string              $source            Patron MultiBackend ILS source
-     * @param UserEntityInterface $user              User
-     * @param string              $patronId          Patron's catalog username (e.g. barcode)
-     * @param int                 $amount            Amount (excluding service fee)
-     * @param int                 $serviceFee        Service fee
-     * @param string              $currency          Currency
-     * @param array               $fines             Fines data
+     * @param string              $localIdentifier  Local payment identifier
+     * @param ?string             $remoteIdentifier Handler's payment identifier
+     * @param string              $sourceIls        Patron MultiBackend source ILS
+     * @param UserEntityInterface $user             User
+     * @param string              $patronId         Patron's catalog username (e.g. barcode)
+     * @param int                 $amount           Amount (excluding service fee)
+     * @param int                 $serviceFee       Service fee
+     * @param string              $currency         Currency
+     * @param array               $fines            Fines data
      *
      * @return PaymentEntityInterface
      */
     protected function createPaymentEntity(
-        $paymentIdentifier,
-        $source,
-        $user,
-        $patronId,
-        $amount,
-        $serviceFee,
-        $currency,
-        $fines
+        string $localIdentifier,
+        ?string $remoteIdentifier,
+        string $sourceIls,
+        UserEntityInterface $user,
+        string $patronId,
+        int $amount,
+        int $serviceFee,
+        string $currency,
+        array $fines
     ): PaymentEntityInterface {
-        $t = $this->paymentService->createEntity()
-            ->setPaymentIdentifier($paymentIdentifier)
-            ->setSource($source)
+        $payment = $this->paymentService->createEntity()
+            ->setLocalIdentifier($localIdentifier)
+            ->setRemoteIdentifier($remoteIdentifier)
+            ->setSourceIls($sourceIls)
             ->setUser($user)
             ->setCatUsername($patronId)
             ->setAmount($amount)
             ->setServiceFee($serviceFee)
             ->setCurrency($currency);
-        $this->paymentService->persistEntity($t);
+        $this->paymentService->persistEntity($payment);
 
         foreach ($fines as $fine) {
             // Sanitize fine strings
             $fee = $this->feeService->createEntity()
                 ->setUser($user)
-                ->setPayment($t)
+                ->setPayment($payment)
                 ->setAmount($fine['balance'])
                 ->setType(iconv('UTF-8', 'UTF-8//IGNORE', $fine['fine'] ?? ''))
                 ->setDescription(iconv('UTF-8', 'UTF-8//IGNORE', $fine['description'] ?? ''))
                 ->setFineId($fine['fine_id'])
-                ->setOrganization($fine['organization'] ?? '')
+                ->setOrganization(iconv('UTF-8', 'UTF-8//IGNORE', $fine['organization'] ?? ''))
                 ->setTitle(iconv('UTF-8', 'UTF-8//IGNORE', $fine['title'] ?? ''));
             $this->feeService->persistEntity($fee);
         }
 
-        $this->addPaymentEvent($t, 'Payment created');
+        $this->addPaymentEvent($payment, 'Payment created');
 
-        return $t;
+        return $payment;
     }
 
     /**
@@ -223,19 +259,29 @@ abstract class AbstractBase implements
      *
      * @return array
      */
-    protected function getProductCodeMappings()
+    protected function getProductCodeMappings(): array
     {
-        return $this->parseMappings($this->config->productCodeMappings ?? '');
+        return $this->parseMappings($this->config['productCodeMappings'] ?? '');
     }
 
     /**
-     * Get organization to product code mappings from configuration
+     * Get tax rate mappings from configuration
      *
      * @return array
      */
-    protected function getOrganizationProductCodeMappings()
+    protected function getTaxRateMappings(): array
     {
-        return $this->parseMappings($this->config->organizationProductCodeMappings ?? '');
+        return $this->parseMappings($this->config['taxRateMappings'] ?? '');
+    }
+
+    /**
+     * Get organization to product code prefix mappings from configuration
+     *
+     * @return array
+     */
+    protected function getOrganizationProductCodePrefixMappings(): array
+    {
+        return $this->parseMappings($this->config['organizationProductCodePrefixMappings'] ?? '');
     }
 
     /**
@@ -243,9 +289,9 @@ abstract class AbstractBase implements
      *
      * @return array
      */
-    protected function getOrganizationMerchantIdMappings()
+    protected function getOrganizationMerchantIdMappings(): array
     {
-        return $this->parseMappings($this->config->organizationMerchantIdMappings ?? '');
+        return $this->parseMappings($this->config['organizationMerchantIdMappings'] ?? '');
     }
 
     /**
@@ -283,7 +329,7 @@ abstract class AbstractBase implements
      *
      * @return void
      */
-    protected function logPaymentError($msg, $data = [])
+    protected function logPaymentError($msg, $data = []): void
     {
         $msg = "Online payment: $msg";
         if ($data) {
@@ -333,7 +379,7 @@ abstract class AbstractBase implements
      *
      * @return string
      */
-    protected function dumpData($data, $level = 0)
+    protected function dumpData(array $data, int $level = 0): string
     {
         // Don't go too deep:
         if ($level > 3) {
@@ -365,13 +411,147 @@ abstract class AbstractBase implements
     }
 
     /**
+     * Get user's locale string (e.g. 'en' or 'en-GB')
+     *
+     * @return string
+     */
+    protected function getCurrentLocale(): string
+    {
+        $parts = explode('-', $this->localeSettings->getUserLocale(), 2);
+        return isset($parts[1]) ? ($parts[0] . '-' . mb_strtoupper($parts[1], 'UTF-8')) : $parts[0];
+    }
+
+    /**
      * Get two character language code from user's current locale
      *
      * @return string
      */
-    protected function getCurrentLanguageCode()
+    protected function getCurrentLanguageCode(): string
     {
-        [$lang] = explode('-', $this->localeSettings->getUserLocale(), 2);
+        [$lang] = explode('-', $this->getCurrentLocale(), 2);
         return $lang;
+    }
+
+    /**
+     * Get the currency code
+     *
+     * @return string
+     */
+    protected function getCurrencyCode(): string
+    {
+        return $this->config['currency'] ?? 'USD';
+    }
+
+    /**
+     * Get the default product code
+     *
+     * @return ?string
+     */
+    protected function getDefaultProductCode(): ?string
+    {
+        return $this->config['productCode'] ?? null;
+    }
+
+    /**
+     * Get the service fee product code
+     *
+     * @return ?string
+     */
+    protected function getServiceFeeProductCode(): ?string
+    {
+        return $this->config['serviceFeeProductCode'] ?? null;
+    }
+
+    /**
+     * Get the service fee tax rate
+     *
+     * @return ?string
+     */
+    protected function getServiceFeeTaxRate(): ?string
+    {
+        return $this->config['serviceFeeTaxRate'] ?? null;
+    }
+
+    /**
+     * Get a product code for a fine
+     *
+     * @param array $fine Fine
+     *
+     * @return ?string
+     */
+    protected function getFineProductCode(array $fine): ?string
+    {
+        // If we don't have any mappings, assume no products:
+        if (
+            !$this->productCodeMappings
+            && !$this->organizationProductCodePrefixMappings
+            && !$this->organizationMerchantIdMappings
+            && !isset($fine['product_code'])
+        ) {
+            return null;
+        }
+
+        $fineType = $fine['fine'] ?? '';
+
+        // Determine product code:
+        $code = $fine['product_code'] ?? null;
+        if (null === $code) {
+            $code = $this->productCodeMappings[$fineType] ?? null;
+        }
+        if (null === $code) {
+            $code = $this->getDefaultProductCode();
+        }
+        if (null === $code) {
+            $code = $fineType;
+        }
+
+        // Add any organization prefix:
+        $fineOrg = $fine['organization'] ?? '';
+        if (null !== ($orgProductCode = $this->organizationProductCodePrefixMappings[$fineOrg] ?? null)) {
+            $code = $orgProductCode . ($code ?? '');
+        }
+
+        return $code;
+    }
+
+    /**
+     * Get tax rate for a fine
+     *
+     * @param array $fine Fine
+     *
+     * @return mixed Tax rate percent or code depending on payment handler, or null if not defined
+     */
+    protected function getFineTaxRate(array $fine)
+    {
+        $fineType = $fine['fine'] ?? '';
+        return $fine['tax_rate'] ?? $this->taxRateMappings[$fineType] ?? null;
+    }
+
+    /**
+     * Get fine description
+     *
+     * @param array $fine      Fine
+     * @param int   $maxLength Maximum length of the description
+     */
+    protected function getFineDescription(array $fine, int $maxLength): string
+    {
+        if ('' !== ($fineDesc = $fine['description'] ?? '')) {
+            return mb_substr($fineDesc, 0, $maxLength, 'UTF-8');
+        }
+
+        $fineType = $fine['fine'] ?? '';
+        if ('' !== $fineType) {
+            $fineDesc = mb_substr($this->translator->translate($fineType), 0, $maxLength, 'UTF-8');
+        }
+        if ('' !== ($title = $fine['title'] ?? '')) {
+            $title = mb_substr(
+                $title,
+                0,
+                $maxLength - 4 - mb_strlen($fineDesc, 'UTF-8'),
+                'UTF-8'
+            );
+            $fineDesc .= " ($title)";
+        }
+        return $fineDesc;
     }
 }

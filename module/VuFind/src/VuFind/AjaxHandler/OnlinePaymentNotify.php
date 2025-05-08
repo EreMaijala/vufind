@@ -31,6 +31,7 @@
 namespace VuFind\AjaxHandler;
 
 use Laminas\Mvc\Controller\Plugin\Params;
+use VuFind\OnlinePayment\Handler\AbstractBase as BaseHandler;
 
 /**
  * "Online Payment Notify" AJAX handler.
@@ -80,54 +81,56 @@ class OnlinePaymentNotify extends AbstractOnlinePaymentAction
             }
             return $this->formatResponse('', self::STATUS_HTTP_BAD_REQUEST);
         }
-        $paymentIdentifier = $reqParams['vufind_payment_id'];
-        if (!($t = $this->paymentService->getPaymentByIdentifier($paymentIdentifier))) {
+        $localIdentifier = $reqParams['vufind_payment_id'];
+        if (!($payment = $this->paymentService->getPaymentByLocalIdentifier($localIdentifier))) {
             $this->logError(
-                "Error processing payment: payment $paymentIdentifier not found"
+                "Error processing payment: payment $localIdentifier not found"
             );
             return $this->formatResponse('', self::STATUS_HTTP_BAD_REQUEST);
         }
 
-        $this->addPaymentEvent($t, 'Notify handler called');
+        $this->addPaymentEvent($payment, 'Notify handler called');
 
-        if ($t->isRegistered()) {
-            $this->addPaymentEvent($t, 'Payment already registered');
+        if ($payment->isRegistered()) {
+            $this->addPaymentEvent($payment, 'Payment already registered');
             // Already registered, treat as success:
             return $this->formatResponse('');
         }
 
-        $handler = $this->getOnlinePaymentHandler($t->getSourceId());
+        $handler = $this->getOnlinePaymentHandler($payment->getSourceIls());
         if (!$handler) {
             $this->logError(
-                'Error processing payment: could not initialize payment handler ' . $t->driver
-                . " for $paymentIdentifier"
+                'Error processing payment: could not initialize payment handler ' . $payment->getSourceIls()
+                . " for $localIdentifier"
             );
             return $this->formatResponse('', self::STATUS_HTTP_ERROR);
         }
 
-        [$paymentResult, $markedAsPaid] = $handler->processPaymentResponse($t, $request);
+        $paymentResult = $handler->processPaymentResponse($payment, $request);
+        $this->logger->warn("Online payment notify handler for $localIdentifier result: $paymentResult");
 
-        $this->logger->warn("Online payment notify handler for $paymentIdentifier result: $paymentResult");
-
-        if ($handler::PAYMENT_FAILURE == $paymentResult) {
+        $markedAsPaid = false;
+        if (BaseHandler::PAYMENT_SUCCESS === $paymentResult) {
+            if ($payment->isInProgress()) {
+                $payment->setPaid();
+                $this->paymentService->persistEntity($payment);
+                $markedAsPaid = true;
+            }
+        } elseif (BaseHandler::PAYMENT_FAILURE == $paymentResult) {
             return $this->formatResponse('', self::STATUS_HTTP_ERROR);
         }
 
         if (
-            $handler::PAYMENT_SUCCESS === $paymentResult
-            && $markedAsPaid
-            && ($patron = $this->getPatronForPayment($t))
-            && ($this->dataSourceConfig[$patron['source']]['onlinePayment']['receipt'] ?? false)
+            $markedAsPaid
+            && ($patron = $this->getPatronForPayment($payment))
+            && ($this->dataSourceConfig[$patron['__source'] ?? 'default']['onlinePayment']['receipt'] ?? false)
         ) {
             try {
-                $res = $this->receipt->sendEmail($t->getUser(), $patron, $t);
-                $this->addPaymentEvent(
-                    $t,
-                    $res ? 'Receipt sent' : 'Receipt not sent (no email address)'
-                );
+                $res = $this->receipt->sendEmail($payment->getUser(), $patron, $payment);
+                $this->addPaymentEvent($payment, $res ? 'Receipt sent' : 'Receipt not sent (no email address)');
             } catch (\Exception $e) {
-                $this->logger->err("Failed to send email receipt for $paymentIdentifier: " . (string)$e);
-                $this->addPaymentEvent($t, 'Sending of receipt failed', ['error' => (string)$e]);
+                $this->logger->err("Failed to send email receipt for $localIdentifier: " . (string)$e);
+                $this->addPaymentEvent($payment, 'Sending of receipt failed', ['error' => (string)$e]);
             }
         }
 

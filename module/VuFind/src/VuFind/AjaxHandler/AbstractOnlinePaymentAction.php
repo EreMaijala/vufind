@@ -38,6 +38,7 @@ use VuFind\Db\Service\PaymentServiceInterface;
 use VuFind\Db\Service\UserCardServiceInterface;
 use VuFind\Db\Service\UserServiceInterface;
 use VuFind\ILS\Connection;
+use VuFind\OnlinePayment\Handler\HandlerInterface;
 use VuFind\OnlinePayment\OnlinePayment;
 use VuFind\OnlinePayment\Receipt;
 use VuFind\Session\Settings as SessionSettings;
@@ -124,22 +125,20 @@ abstract class AbstractOnlinePaymentAction extends \VuFind\AjaxHandler\AbstractB
     /**
      * Return online payment handler.
      *
-     * @param string $driver Patron MultiBackend ILS source
+     * @param string $sourceIls Patron MultiBackend source ILS
      *
-     * @return mixed \VuFind\OnlinePayment\BaseHandler or false on failure.
+     * @return ?HandlerInterface Handler, or null on failure
      */
-    protected function getOnlinePaymentHandler($driver)
+    protected function getOnlinePaymentHandler($sourceIls): ?HandlerInterface
     {
-        if (!$this->onlinePayment->isEnabled($driver)) {
-            return false;
+        if (!$this->onlinePayment->isEnabled($sourceIls)) {
+            return null;
         }
         try {
-            return $this->onlinePayment->getHandler($driver);
+            return $this->onlinePayment->getHandler($sourceIls);
         } catch (\Exception $e) {
-            $this->logError(
-                "Error retrieving online payment handler for driver $driver" . ' (' . $e->getMessage() . ')'
-            );
-            return false;
+            $this->logError("Error retrieving online payment handler for source $sourceIls: " . $e->getMessage());
+            return null;
         }
     }
 
@@ -156,17 +155,5 @@ abstract class AbstractOnlinePaymentAction extends \VuFind\AjaxHandler\AbstractB
             $this->logger
                 ->logException($exception, new \Laminas\Stdlib\Parameters());
         }
-    }
-
-    /**
-     * Log a payment info message
-     *
-     * @param string $msg Message
-     *
-     * @return void
-     */
-    protected function logPaymentInfo(string $msg): void
-    {
-        $this->logWarning($msg);
     }
 }

@@ -33,6 +33,7 @@ namespace VuFind\OnlinePayment\Handler;
 
 use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Entity\UserEntityInterface;
+use VuFind\Exception\PaymentException;
 
 /**
  * Online payment handler interface.
@@ -48,45 +49,60 @@ use VuFind\Db\Entity\UserEntityInterface;
 interface HandlerInterface
 {
     /**
+     * Initialize the handler
+     *
+     * @param array $config Online payment configuration
+     *
+     * @return void
+     */
+    public function init(array $config): void;
+
+    /**
      * Start payment.
+     *
+     * Starts payment with the payment service and redirects the user to the service.
      *
      * @param string              $returnBaseUrl Return URL
      * @param string              $notifyBaseUrl Notify URL
      * @param UserEntityInterface $user          User
      * @param array               $patron        Patron information
-     * @param string              $source        Patron MultiBackend ILS source
+     * @param string              $sourceIls     Patron MultiBackend source ILS
      * @param int                 $amount        Amount (excluding service fee)
      * @param int                 $serviceFee    Service fee
      * @param array               $fines         Fines data
      * @param string              $currency      Currency
      * @param string              $paymentParam  Payment status URL parameter
      *
-     * @return string Error message on error, otherwise redirects to payment handler.
+     * @return void
+     *
+     * @throws PaymentException
      */
     public function startPayment(
         string $returnBaseUrl,
         string $notifyBaseUrl,
         UserEntityInterface $user,
         array $patron,
-        string $source,
+        string $sourceIls,
         int $amount,
         int $serviceFee,
         array $fines,
         string $currency,
         string $paymentParam
-    );
+    ): void;
 
     /**
      * Process the response from payment service.
      *
+     * Validates the response from the payment service and marks the payment as paid as appropriate.
+     * Registration with ILS happens elsewhere.
+     *
      * @param PaymentEntityInterface $payment Payment
      * @param \Laminas\Http\Request  $request Request
      *
-     * @return array One of the result codes defined in AbstractBase and bool
-     * indicating whether the payment was just now marked as paid
+     * @return int One of the result codes defined in AbstractBase
      */
     public function processPaymentResponse(
         PaymentEntityInterface $payment,
         \Laminas\Http\Request $request
-    ): array;
+    ): int;
 }
