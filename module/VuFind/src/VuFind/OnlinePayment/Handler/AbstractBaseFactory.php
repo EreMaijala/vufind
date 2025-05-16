@@ -34,8 +34,8 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
-use VuFind\Db\Service\PaymentFeeServiceInterface;
 use VuFind\Db\Service\PaymentEventLogServiceInterface;
+use VuFind\Db\Service\PaymentFeeServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
 
 /**

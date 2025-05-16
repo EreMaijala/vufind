@@ -33,10 +33,11 @@ namespace VuFind\OnlinePayment\Handler;
 use Laminas\Log\LoggerAwareInterface;
 use Stripe\Checkout\Session;
 use Stripe\Exception\ApiErrorException;
+use Stripe\Stripe as StripeStripe;
 use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Entity\UserEntityInterface;
-use VuFind\I18n\Translator\TranslatorAwareInterface;
 use VuFind\Exception\PaymentException;
+use VuFind\I18n\Translator\TranslatorAwareInterface;
 
 /**
  * Payment handler for Stripe
@@ -89,6 +90,15 @@ class Stripe extends AbstractBase implements
         string $currency,
         string $paymentParam
     ): void {
+        if (!($clientId = $this->config['merchantId'] ?? null)) {
+            throw new PaymentException('Configuration missing: merchantId');
+        }
+        if (!($secret = $this->config['secret'] ?? null)) {
+            throw new PaymentException('Configuration missing: secret');
+        }
+        StripeStripe::setAccountId($clientId);
+        StripeStripe::setApiKey($secret);
+
         $patronId = $patron['cat_username'];
         $localIdentifier = $this->generateLocalIdentifier($patronId);
 
@@ -200,8 +210,7 @@ class Stripe extends AbstractBase implements
     public function processPaymentResponse(
         PaymentEntityInterface $payment,
         \Laminas\Http\Request $request
-    ): int
-    {
+    ): int {
         try {
             $stripeSession = Session::retrieve($payment->getRemoteIdentifier());
         } catch (ApiErrorException $e) {

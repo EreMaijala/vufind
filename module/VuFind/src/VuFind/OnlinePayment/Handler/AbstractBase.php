@@ -76,7 +76,7 @@ abstract class AbstractBase implements
     public const PAYMENT_PENDING = 3; // Payment in progress
 
     /**
-     * Configuration.
+     * Payment Configuration.
      *
      * @var array
      */
@@ -508,7 +508,7 @@ abstract class AbstractBase implements
         // Add any organization prefix:
         $fineOrg = $fine['organization'] ?? '';
         if (null !== ($orgProductCode = $this->organizationProductCodePrefixMappings[$fineOrg] ?? null)) {
-            $code = $orgProductCode . ($code ?? '');
+            $code = $orgProductCode . $code;
         }
 
         return $code;
@@ -532,6 +532,8 @@ abstract class AbstractBase implements
      *
      * @param array $fine      Fine
      * @param int   $maxLength Maximum length of the description
+     *
+     * @return string
      */
     protected function getFineDescription(array $fine, int $maxLength): string
     {
