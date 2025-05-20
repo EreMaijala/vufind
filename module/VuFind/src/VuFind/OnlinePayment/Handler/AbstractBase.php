@@ -163,7 +163,7 @@ abstract class AbstractBase implements
      *
      * @return string
      */
-    protected function generateLocalIdentifier($patronId): string
+    protected function generateLocalIdentifier(string $patronId): string
     {
         return md5($patronId . '_' . microtime(true));
     }
@@ -329,7 +329,7 @@ abstract class AbstractBase implements
      *
      * @return void
      */
-    protected function logPaymentError($msg, $data = []): void
+    protected function logPaymentError(string $msg, array $data = []): void
     {
         $msg = "Online payment: $msg";
         if ($data) {

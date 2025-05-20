@@ -30,20 +30,20 @@
 
 namespace VuFindConsole\Command\Util;
 
+use Laminas\View\Renderer\PhpRenderer;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use VuFind\Auth\ILSAuthenticator;
 use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Service\PaymentEventLogServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
-use VuFind\Db\Service\UserCardServiceInterface;
-use VuFind\Db\Service\UserServiceInterface;
+use VuFind\ILS\Connection;
+use VuFind\Mailer\Mailer;
 use VuFind\OnlinePayment\OnlinePaymentEventLogTrait;
-use VuFind\OnlinePayment\OnlinePaymentHandlerTrait;
+use VuFind\OnlinePayment\OnlinePaymentManager;
 
 use function count;
 use function intval;
@@ -64,7 +64,6 @@ use function intval;
 class OnlinePaymentMonitor extends Command
 {
     use OnlinePaymentEventLogTrait;
-    use OnlinePaymentHandlerTrait;
     use ConsoleLoggerTrait;
 
     /**
@@ -105,27 +104,20 @@ class OnlinePaymentMonitor extends Command
     /**
      * Constructor
      *
-     * @param \VuFind\ILS\Connection             $ils              Catalog connection
-     * @param ILSAuthenticator                   $ilsAuthenticator ILS Authenticator
-     * @param PaymentServiceInterface            $paymentService   Payment database service
-     * @param UserServiceInterface               $userService      User database service
-     * @param UserCardServiceInterface           $userCardService  User card database service (for
-     *                                                             OnlinePaymentHandlerTrait)
-     * @param \VuFind\Config\Config              $datasourceConfig Data source config
-     * @param \Laminas\View\Renderer\PhpRenderer $viewRenderer     View renderer
-     * @param \VuFind\Mailer\Mailer              $mailer           Mailer
-     * @param PaymentEventLogServiceInterface    $eventLogService  Payment event log database service
+     * @param Connection                      $ils                  Catalog connection
+     * @param PaymentServiceInterface         $paymentService       Payment database service
+     * @param PhpRenderer                     $viewRenderer         View renderer
+     * @param Mailer                          $mailer               Mailer
+     * @param OnlinePaymentManager            $onlinePaymentManager Online payment manager
+     * @param PaymentEventLogServiceInterface $eventLogService      Payment event log database service
      */
     public function __construct(
-        protected \VuFind\ILS\Connection $ils,
-        protected ILSAuthenticator $ilsAuthenticator,
+        protected Connection $ils,
         protected PaymentServiceInterface $paymentService,
-        protected UserServiceInterface $userService,
-        protected UserCardServiceInterface $userCardService,
-        protected \VuFind\Config\Config $datasourceConfig,
-        protected \Laminas\View\Renderer\PhpRenderer $viewRenderer,
-        protected \VuFind\Mailer\Mailer $mailer,
-        PaymentEventLogServiceInterface $eventLogService
+        protected PhpRenderer $viewRenderer,
+        protected Mailer $mailer,
+        protected OnlinePaymentManager $onlinePaymentManager,
+        PaymentEventLogServiceInterface $eventLogService,
     ) {
         $this->eventLogService = $eventLogService;
         parent::__construct();
@@ -253,7 +245,7 @@ class OnlinePaymentMonitor extends Command
 
         try {
             $user = $payment->getUser();
-            if (!($patron = $this->getPatronForPayment($payment))) {
+            if (!($patron = $this->onlinePaymentManager->getPatronForPayment($payment))) {
                 if ($user) {
                     $this->warn(
                         "Catalog login failed for user {$user->getUsername()} (id {$user->getId()}),"
@@ -281,7 +273,7 @@ class OnlinePaymentMonitor extends Command
                 return;
             }
 
-            if (!$this->registerPaymentForPatron($payment, $patron)) {
+            if (!$this->onlinePaymentManager->registerPaymentForPatron($payment, $patron)) {
                 ++$this->failedCount;
                 return;
             }
@@ -363,10 +355,7 @@ class OnlinePaymentMonitor extends Command
      */
     protected function getErrorEmail(string $source): string
     {
-        $paymentConfig = $this->ils->getConfig(
-            'OnlinePayment',
-            ['id' => "$source.123"]
-        );
+        $paymentConfig = $this->ils->getConfig('OnlinePayment', ['__source' => $source]);
         return $paymentConfig['errorEmail'] ?? '';
     }
 

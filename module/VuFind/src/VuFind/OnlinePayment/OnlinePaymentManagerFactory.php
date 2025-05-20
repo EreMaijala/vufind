@@ -44,7 +44,7 @@ use Psr\Container\ContainerInterface;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development Wiki
  */
-class OnlinePaymentFactory implements FactoryInterface
+class OnlinePaymentManagerFactory implements FactoryInterface
 {
     /**
      * Create an object
@@ -70,7 +70,11 @@ class OnlinePaymentFactory implements FactoryInterface
         }
         return new $requestedName(
             $container->get(\VuFind\OnlinePayment\Handler\PluginManager::class),
-            $container->get(\VuFind\ILS\Connection::class)
+            $container->get(\VuFind\ILS\Connection::class),
+            $container->get(\VuFind\Db\Service\PaymentServiceInterface::class),
+            $container->get(\VuFind\Auth\ILSAuthenticator::class),
+            $container->get(\VuFind\OnlinePayment\Receipt::class),
+            $container->get(\Laminas\Session\SessionManager::class)
         );
     }
 }

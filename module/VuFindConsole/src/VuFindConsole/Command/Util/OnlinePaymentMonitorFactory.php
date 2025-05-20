@@ -86,6 +86,7 @@ class OnlinePaymentMonitorFactory implements FactoryInterface
             $container->get('ViewRenderer'),
             $container->get(\VuFind\Mailer\Mailer::class),
             $dbServiceManager->get(\VuFind\Db\Service\PaymentEventLogServiceInterface::class),
+            $container->get(\VuFind\OnlinePayment\OnlinePaymentManager::class),
             ...($options ?? [])
         );
     }

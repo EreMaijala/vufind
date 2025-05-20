@@ -1,11 +1,11 @@
 <?php
 
 /**
- * "Register Online Payment" AJAX handler.
+ * AJAX handler for registering an online payment with the ILS.
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2015-2023.
+ * Copyright (C) The National Library of Finland 2015-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -33,7 +33,7 @@ namespace VuFind\AjaxHandler;
 use Laminas\Mvc\Controller\Plugin\Params;
 
 /**
- * "Register Online Payment" AJAX handler.
+ * AJAX handler for registering an online payment with the ILS.
  *
  * @category VuFind
  * @package  AJAX
@@ -74,8 +74,7 @@ class RegisterOnlinePayment extends AbstractOnlinePaymentAction
             return $this->formatResponse('', self::STATUS_HTTP_ERROR);
         }
 
-        return $this->registerPaymentWithILS($payment)
-            ? $this->formatResponse('')
-            : $this->formatResponse('', self::STATUS_HTTP_ERROR);
+        $result = $this->onlinePaymentManager->registerPaymentWithILS($payment);
+        return $this->formatResponse('', $result ? null : self::STATUS_HTTP_ERROR);
     }
 }

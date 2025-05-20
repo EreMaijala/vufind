@@ -31,9 +31,12 @@
 
 namespace VuFind\Controller\Feature;
 
-use VuFind\OnlinePayment\Handler\HandlerInterface;
+use Laminas\View\Model\ViewModel;
+use VuFind\Exception\PaymentException;
 use VuFind\OnlinePayment\Handler\AbstractBase as BaseHandler;
+use VuFind\OnlinePayment\Handler\HandlerInterface;
 use VuFind\OnlinePayment\OnlinePaymentEventLogTrait;
+use VuFind\OnlinePayment\OnlinePaymentManager;
 
 use function count;
 
@@ -60,82 +63,82 @@ trait OnlinePaymentTrait
      * @param array $patron Patron.
      * @param int   $amount Total amount to pay without fees
      *
-     * @return boolean updated
+     * @return bool
      */
-    protected function checkIfFinesUpdated($patron, $amount)
+    protected function checkIfFinesUpdated(array $patron, int $amount): bool
     {
-        $session = $this->getOnlinePaymentSession();
+        $session = $this->serviceLocator->get(OnlinePaymentManager::class)->getOnlinePaymentSession();
         if (!$session) {
             $this->handleError('PaymentSessionError: Session empty for patron: ' . json_encode($patron));
             return true;
         }
-
-        $finesUpdated = false;
         if ($session->catUsername !== $patron['cat_username']) {
             $this->handleError(
                 'PaymentSessionError: Patron cat_username does not match session: '
                 . $patron['cat_username'] . ' != ' . $session->catUsername
             );
-            $finesUpdated = true;
+            return true;
         }
         if ($session->amount !== $amount) {
             $this->handleError('PaymentSessionError: Payment amount updated: ' . $session->amount . ' != ' . $amount);
-            $finesUpdated = true;
+            return true;
         }
-        return $finesUpdated;
+        return false;
     }
 
     /**
      * Return online payment handler.
      *
-     * @param string $source Patron ILS source
+     * @param string $sourceIls Patron ILS source
      *
      * @return ?HandlerInterface Handler, or null on failure.
      */
-    protected function getOnlinePaymentHandler($source): ?HandlerInterface
+    protected function getOnlinePaymentHandler(string $sourceIls): ?HandlerInterface
     {
-        $onlinePayment = $this->serviceLocator->get(\VuFind\OnlinePayment\OnlinePayment::class);
-        if (!$onlinePayment->isEnabled($source)) {
+        $onlinePaymentManager = $this->serviceLocator->get(\VuFind\OnlinePayment\OnlinePaymentManager::class);
+        if (!$onlinePaymentManager->isEnabled($sourceIls)) {
             return null;
         }
 
         try {
-            return $onlinePayment->getHandler($source);
+            return $onlinePaymentManager->getHandler($sourceIls);
         } catch (\Exception $e) {
-            $this->handleError("Error retrieving online payment handler for source $source: " . (string)$e);
+            $this->handleError("Error retrieving online payment handler for source $sourceIls: " . (string)$e);
             return null;
         }
-    }
-
-    /**
-     * Get session for storing payment data.
-     *
-     * @return SessionContainer
-     */
-    protected function getOnlinePaymentSession()
-    {
-        return $this->serviceLocator->get('VuFind\OnlinePayment\Session');
     }
 
     /**
      * Support method for handling online payments.
      *
      * @param array     $patron Patron
-     * @param array     $fines  Listing of fines
+     * @param array     $fines  List of fines
      * @param ViewModel $view   View
      *
      * @return void
      */
-    protected function handleOnlinePayment($patron, $fines, $view)
+    protected function handleOnlinePayment(array $patron, array $fines, ViewModel $view)
     {
         $view->onlinePaymentEnabled = false;
         $sourceIls = $patron['__source'] ?? 'default';
-        if (!($paymentHandler = $this->getOnlinePaymentHandler($sourceIls))) {
-            $this->handleDebugMsg("No online payment handler defined for $sourceIls");
+        // Check if payment handler is configured
+        $onlinePaymentManager = $this->serviceLocator->get(OnlinePaymentManager::class);
+        if (!$onlinePaymentManager->isEnabled($sourceIls)) {
+            $this->handleDebugMsg("Online payment not enabled for $sourceIls");
+            return;
+        }
+        $session = $onlinePaymentManager->getOnlinePaymentSession();
+
+        try {
+            if (!($paymentHandler = $this->getOnlinePaymentHandler($sourceIls))) {
+                $this->handleDebugMsg("No online payment handler defined for $sourceIls");
+                return;
+            }
+        } catch (\Exception $e) {
+            $this->handleError("Could not initialize payment handler for $sourceIls: " . (string)$e);
             return;
         }
 
-        $session = $this->getOnlinePaymentSession();
         $catalog = $this->getILS();
 
         // Check if online payment configuration exists for the ILS driver
@@ -145,16 +148,9 @@ trait OnlinePaymentTrait
             return;
         }
 
-        // Check if payment handler is configured in datasources.ini
-        $onlinePayment = $this->serviceLocator->get(\VuFind\OnlinePayment\OnlinePayment::class);
-        if (!$onlinePayment->isEnabled($sourceIls)) {
-            $this->handleDebugMsg("Online payment not enabled for $sourceIls");
-            return;
-        }
-
         // Check if online payment is enabled for the ILS driver
-        if (!$catalog->checkFunction('markFeesAsPaid', compact('patron'))) {
-            $this->handleDebugMsg("markFeesAsPaid not available for $sourceIls");
+        if (!$catalog->checkFunction('registerPayment', compact('patron'))) {
+            $this->handleDebugMsg("registerPayment not available for $sourceIls");
             return;
         }
 
@@ -190,7 +186,7 @@ trait OnlinePaymentTrait
         $payableFines = array_filter($fines, $callback);
 
         $view->onlinePayment = true;
-        $view->paymentHandler = $onlinePayment->getHandlerName($patron['source']);
+        $view->paymentHandler = $onlinePaymentManager->getHandlerName($patron['source']);
         $view->serviceFee = $paymentConfig['serviceFee'] ?? 0;
         $view->minimumFee = $paymentConfig['minimumFee'] ?? 0;
         $view->payableOnline = $payableOnline['amount'];
@@ -278,21 +274,22 @@ trait OnlinePaymentTrait
                 $view->serviceFee,
                 $payableOnline['fines'] ?? $payableFines,
                 $paymentConfig['currency'],
-                'vufind_payment_id'
+                'local_payment_id'
             );
             $this->flashMessenger()->addErrorMessage($result ? $result : 'Payment::payment_failed');
             header('Location: ' . $this->getServerUrl('myresearch-fines'));
             exit();
         }
 
+        // Now check for local payment identifier in the URL and process any payment handler response:
         $request = $this->getRequest();
-        $localIdentifier = $request->getQuery()->get('vufind_payment_id');
+        $localIdentifier = $request->getQuery()->get('local_payment_id');
         if (
             $localIdentifier
             && ($payment = $paymentService->getPaymentByLocalIdentifier($localIdentifier))
         ) {
             $this->ensureLogger();
-            $this->logger->debug('Online payment response handler called. Request: ' . (string)$request);
+            $this->handleDebugMsg('Online payment response handler called. Request: ' . (string)$request);
             $this->addPaymentEvent($payment, 'Response handler called');
 
             if ($payment->isRegistered()) {
@@ -300,45 +297,32 @@ trait OnlinePaymentTrait
                 $this->flashMessenger()->addSuccessMessage('Payment::Payment Successful');
             } else {
                 // Process payment response:
-                $result = $paymentHandler->processPaymentResponse($payment, $this->getRequest());
-                $this->logger->debug("Online payment response for $localIdentifier result: $result");
-                if (BaseHandler::PAYMENT_SUCCESS === $result) {
-                    if ($markedAsPaid = $payment->isInProgress()) {
-                        $payment->setPaid();
-                        $this->paymentService->persistEntity($payment);
+                try {
+                    $result = $onlinePaymentManager->processPaymentHandlerResponse($payment, $request, false);
+                    if (BaseHandler::PAYMENT_SUCCESS === $result['resultCode']) {
+                        $this->flashMessenger()->addSuccessMessage('Payment::Payment Successful');
+                        // Reload payment and check if registration is still pending:
+                        $payment = $paymentService->getPaymentByLocalIdentifier($localIdentifier);
+                        if ($payment?->needsRegistration()) {
+                            // Display page and register payment with ILS asynchronously:
+                            $view->registerPaymentLocalIdentifier = $payment->getLocalIdentifier();
+                            $this->addPaymentEvent($payment, 'Registration requested');
+                        }
+                    } elseif (BaseHandler::PAYMENT_CANCEL === $result) {
+                        $this->flashMessenger()->addSuccessMessage('Payment::Payment Canceled');
+                    } elseif (BaseHandler::PAYMENT_FAILURE === $result) {
+                        $this->flashMessenger()->addErrorMessage('Payment::payment_failed');
                     }
-                    $this->flashMessenger()->addSuccessMessage('Payment::Payment Successful');
-                    // Send receipt by email if enabled and the payment was just now
-                    // marked as paid (the notification handler could have done it
-                    // already):
-                    if ($markedAsPaid && $receiptEnabled) {
-                        $patronProfile = array_merge(
-                            $patron,
-                            $catalog->getMyProfile($patron)
-                        );
-                        $receipt = $this->serviceLocator->get(\VuFind\OnlinePayment\Receipt::class);
-                        $res = $receipt->sendEmail($user, $patronProfile, $payment);
-                        $this->addPaymentEvent(
-                            $payment,
-                            $res ? 'Receipt sent' : 'Receipt not sent (no email address)'
-                        );
-                    }
-                    // Reload payment and check if registration is still pending:
-                    $payment = $paymentService->getPaymentByLocalIdentifier($localIdentifier);
-                    if ($payment?->needsRegistration()) {
-                        // Display page and register payment with ILS asynchronously:
-                        $view->registerPaymentLocalIdentifier = $payment->getLocalIdentifier();
-                        $this->addPaymentEvent($payment, 'Registration requested');
-                    }
-                } elseif (BaseHandler::PAYMENT_CANCEL === $result) {
-                    $this->flashMessenger()->addSuccessMessage('Payment::Payment Canceled');
-                } elseif (BaseHandler::PAYMENT_FAILURE === $result) {
-                    $this->flashMessenger()->addErrorMessage('Payment::payment_failed');
+                } catch (PaymentException $e) {
+                    $this->handleError(
+                        'Error processing payment handler response for ' . $payment->getSourceIls()
+                        . ", payment $localIdentifier: " . (string)$e
+                    );
                 }
             }
         }
 
-        if (!$view->registerPayment) {
+        if (!$view->registerPaymentLocalIdentifier) {
             if ($paymentInProgress) {
                 $this->flashMessenger()->addErrorMessage('Payment::registration_failed');
             } else {
@@ -347,11 +331,9 @@ trait OnlinePaymentTrait
 
                 // Store current fines to session:
                 $this->storeFines($patron, $payableOnline['amount']);
-                $session = $this->getOnlinePaymentSession();
 
-                if (!empty($session->paymentOk)) {
+                if ($onlinePaymentManager->getAndClearPaymentSuccessFlag()) {
                     $this->flashMessenger()->addScuccessMessage('Payment::Payment Successful');
-                    unset($session->paymentOk);
                 }
 
                 $view->onlinePaymentEnabled = $allowPayment;
@@ -381,7 +363,7 @@ trait OnlinePaymentTrait
      */
     protected function storeFines(array $patron, int $amount): void
     {
-        $session = $this->getOnlinePaymentSession();
+        $session = $this->serviceLocator->get(OnlinePaymentManager::class)->getOnlinePaymentSession();
         $session->catUsername = $patron['cat_username'];
         $session->amount = $amount;
     }

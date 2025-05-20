@@ -30,17 +30,9 @@
 
 namespace VuFind\AjaxHandler;
 
-use Laminas\Session\Container as SessionContainer;
-use VuFind\Auth\ILSAuthenticator;
-use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Service\PaymentEventLogServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
-use VuFind\Db\Service\UserCardServiceInterface;
-use VuFind\Db\Service\UserServiceInterface;
-use VuFind\ILS\Connection;
-use VuFind\OnlinePayment\Handler\HandlerInterface;
-use VuFind\OnlinePayment\OnlinePayment;
-use VuFind\OnlinePayment\Receipt;
+use VuFind\OnlinePayment\OnlinePaymentManager;
 use VuFind\Session\Settings as SessionSettings;
 
 /**
@@ -58,99 +50,22 @@ abstract class AbstractOnlinePaymentAction extends \VuFind\AjaxHandler\AbstractB
 {
     use \VuFind\Log\LoggerAwareTrait;
     use \VuFind\OnlinePayment\OnlinePaymentEventLogTrait;
-    use \VuFind\OnlinePayment\OnlinePaymentHandlerTrait;
 
     /**
      * Constructor
      *
      * @param SessionSettings                 $sessionSettings      Session settings
-     * @param Connection                      $ils                  ILS connection
-     * @param ILSAuthenticator                $ilsAuthenticator     ILS Authenticator
      * @param PaymentServiceInterface         $paymentService       Payment database service
-     * @param UserServiceInterface            $userService          User database service
-     * @param UserCardServiceInterface        $userCardService      User card database service (for
-     *                                                              OnlinePaymentHandlerTrait)
-     * @param OnlinePayment                   $onlinePayment        Online payment manager
-     * @param SessionContainer                $onlinePaymentSession Online payment session
-     * @param array                           $dataSourceConfig     Data source configuration
-     * @param Receipt                         $receipt              Receipt
+     * @param OnlinePaymentManager            $onlinePaymentManager Online payment manager
      * @param PaymentEventLogServiceInterface $eventLogService      Payment event log database service
      */
     public function __construct(
         SessionSettings $sessionSettings,
-        protected Connection $ils,
-        protected ILSAuthenticator $ilsAuthenticator,
         protected PaymentServiceInterface $paymentService,
-        protected UserServiceInterface $userService,
-        protected UserCardServiceInterface $userCardService,
-        protected OnlinePayment $onlinePayment,
-        protected SessionContainer $onlinePaymentSession,
-        protected array $dataSourceConfig,
-        protected Receipt $receipt,
+        protected OnlinePaymentManager $onlinePaymentManager,
         PaymentEventLogServiceInterface $eventLogService
     ) {
         $this->sessionSettings = $sessionSettings;
         $this->eventLogService = $eventLogService;
-    }
-
-    /**
-     * Register the given payment with ILS
-     *
-     * @param PaymentEntityInterface $payment Payment
-     *
-     * @return bool
-     */
-    protected function registerPaymentWithILS(PaymentEntityInterface $payment): bool
-    {
-        if (!($patron = $this->getPatronForPayment($payment))) {
-            $this->logError(
-                'Error processing payment id ' . $payment->getId()
-                . ': patronLogin error (cat_username: ' . $payment->getCatUsername()
-                . ', user id: ' . $payment->getUserId() . ')'
-            );
-
-            $payment->setRegistrationFailed('patron login error');
-            $this->paymentService->persistEntity($payment);
-            $this->addPaymentEvent($payment, 'Patron login failed');
-            return false;
-        }
-
-        $result = $this->registerPaymentForPatron($payment, $patron);
-        if ($result) {
-            $this->onlinePaymentSession->paymentOk = true;
-        }
-        return $result;
-    }
-
-    /**
-     * Return online payment handler.
-     *
-     * @param string $sourceIls Patron MultiBackend source ILS
-     *
-     * @return ?HandlerInterface Handler, or null if disabled or on error
-     */
-    protected function getOnlinePaymentHandler($sourceIls): ?HandlerInterface
-    {
-        try {
-            return $this->onlinePayment->getHandler($sourceIls);
-        } catch (\Exception $e) {
-            $this->logError("Error retrieving online payment handler for source $sourceIls: " . (string)$e);
-            return null;
-        }
-    }
-
-    /**
-     * Log an exception
-     *
-     * @param \Exception $exception Exception to log
-     *
-     * @return void
-     */
-    public function logException(\Exception $exception): void
-    {
-        if ($this->logger instanceof \VuFind\Log\Logger) {
-            $this->logger
-                ->logException($exception, new \Laminas\Stdlib\Parameters());
-        }
     }
 }

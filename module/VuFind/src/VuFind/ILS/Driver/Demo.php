@@ -1168,6 +1168,8 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      *
      * @throws ILSException
      * @return array Associative array of payment details
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function getOnlinePaymentDetails(array $patron, array $fines, ?array $selectedFineIds): array
     {
@@ -1232,14 +1234,16 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      *
      * @throws ILSException
      * @return true|string True on success, error description on error
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function registerPayment(
-        $patron,
-        $amount,
-        $localPaymentIdentifier,
-        $remotePaymentIdentifier,
-        $paymentId,
-        $fineIds = null
+        array $patron,
+        int $amount,
+        string $localPaymentIdentifier,
+        string $remotePaymentIdentifier,
+        int $paymentId,
+        ?array $fineIds = null
     ) {
         if ($this->isFailing(__METHOD__, 10)) {
             throw new ILSException('Payment::registration_failed');

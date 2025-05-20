@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Online payment receipt
+ * Online payment receipt handler
  *
  * PHP version 8
  *
@@ -47,7 +47,7 @@ use VuFind\Service\CurrencyFormatter;
 use function count;
 
 /**
- * Online payment service
+ * Online payment receipt handler
  *
  * @category VuFind
  * @package  OnlinePayment
@@ -64,19 +64,19 @@ class Receipt implements TranslatorAwareInterface
      *
      * @var int
      */
-    protected $left = 10;
+    protected int $left = 10;
 
     /**
      * Max x position of PDF (millimeters)
      *
      * @var int
      */
-    protected $right = 200;
+    protected int $right = 200;
 
     /**
      * Max y position of PDF (millimeters)
      */
-    protected $bottom = 280;
+    protected int $bottom = 280;
 
     /**
      * Constructor.

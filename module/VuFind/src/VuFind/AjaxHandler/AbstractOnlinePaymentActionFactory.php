@@ -33,11 +33,8 @@ use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
-use VuFind\Auth\ILSAuthenticator;
 use VuFind\Db\Service\PaymentEventLogServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
-use VuFind\Db\Service\UserCardServiceInterface;
-use VuFind\Db\Service\UserServiceInterface;
 
 /**
  * Factory for AbstractOnlinePaymentAction AJAX handlers.
@@ -77,18 +74,10 @@ class AbstractOnlinePaymentActionFactory implements \Laminas\ServiceManager\Fact
         $dbServiceManager = $container->get(\VuFind\Db\Service\PluginManager::class);
         $result = new $requestedName(
             $container->get(\VuFind\Session\Settings::class),
-            $container->get(\VuFind\ILS\Connection::class),
-            $container->get(ILSAuthenticator::class),
             $dbServiceManager->get(PaymentServiceInterface::class),
-            $dbServiceManager->get(UserServiceInterface::class),
-            $dbServiceManager->get(UserCardServiceInterface::class),
-            $container->get(\VuFind\OnlinePayment\OnlinePayment::class),
-            $container->get('VuFind\OnlinePayment\Session'),
-            $container->get(\VuFind\Config\PluginManager::class)->get('datasources')->toArray(),
-            $container->get(\VuFind\OnlinePayment\Receipt::class),
+            $container->get(\VuFind\OnlinePayment\OnlinePaymentManager::class),
             $dbServiceManager->get(PaymentEventLogServiceInterface::class),
         );
-        $result->setLogger($container->get(\VuFind\Log\Logger::class));
         return $result;
     }
 }

@@ -1,11 +1,11 @@
 <?php
 
 /**
- * "Online Payment Notify" AJAX handler.
+ * External payment notification handler for online payment.
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2015-2024.
+ * Copyright (C) The National Library of Finland 2015-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -31,10 +31,14 @@
 namespace VuFind\AjaxHandler;
 
 use Laminas\Mvc\Controller\Plugin\Params;
+use VuFind\Controller\AjaxController;
+use VuFind\Http\PhpEnvironment\Request;
 use VuFind\OnlinePayment\Handler\AbstractBase as BaseHandler;
 
+use function assert;
+
 /**
- * "Online Payment Notify" AJAX handler.
+ * External payment notification handler for online payment.
  *
  * @category VuFind
  * @package  AJAX
@@ -48,40 +52,30 @@ class OnlinePaymentNotify extends AbstractOnlinePaymentAction
     /**
      * Handle a request.
      *
+     * Note: This handler does not register the payment with the ILS since that happens in the response handler or
+     * online payment monitor.
+     *
      * @param Params $params Parameter helper from controller
      *
      * @return array [response data, HTTP status code]
      */
     public function handleRequest(Params $params)
     {
-        $request = $params->getController()->getRequest();
+        $controller = $params->getController();
+        assert($controller instanceof AjaxController);
+        $request = $controller->getRequest();
+        assert($request instanceof Request);
 
-        $this->logger->warn(
-            'Online payment notify handler called. Request: '
-            . (string)$request
-        );
+        $this->logger->debug('Online payment notify handler called. Request: ' . (string)$request);
 
-        $reqParams = array_merge(
-            $request->getQuery()->toArray(),
-            $request->getPost()->toArray()
-        );
-
-        if (empty($reqParams['vufind_payment_id'])) {
+        if (null === ($localIdentifier = $request->getQuery('local_payment_id'))) {
             $this->logError(
-                'Error processing payment: vufind_payment_id not provided. Query: '
+                'Error processing payment: local_payment_id not provided. Query: '
                 . $request->getQuery()->toString()
                 . ', post parameters: ' . $request->getPost()->toString()
             );
-            // If this is an old (invalid) request, return success:
-            if (
-                !empty($reqParams['driver'])
-                && '1' == ($reqParams['payment'] ?? '')
-            ) {
-                return $this->formatResponse('');
-            }
             return $this->formatResponse('', self::STATUS_HTTP_BAD_REQUEST);
         }
-        $localIdentifier = $reqParams['vufind_payment_id'];
         if (!($payment = $this->paymentService->getPaymentByLocalIdentifier($localIdentifier))) {
             $this->logError(
                 "Error processing payment: payment $localIdentifier not found"
@@ -97,47 +91,20 @@ class OnlinePaymentNotify extends AbstractOnlinePaymentAction
             return $this->formatResponse('');
         }
 
-        $handler = $this->getOnlinePaymentHandler($payment->getSourceIls());
-        if (!$handler) {
+        try {
+            $result = $this->onlinePaymentManager->processPaymentHandlerResponse($payment, $request, true);
+        } catch (\Exception $e) {
             $this->logError(
-                'Error processing payment: could not initialize payment handler ' . $payment->getSourceIls()
-                . " for $localIdentifier"
+                'Error processing payment notification for ' . $payment->getSourceIls()
+                . ", payment $localIdentifier"
             );
+            $this->logException($e);
             return $this->formatResponse('', self::STATUS_HTTP_ERROR);
         }
 
-        $paymentResult = $handler->processPaymentResponse($payment, $request);
-        $this->logger->warn("Online payment notify handler for $localIdentifier result: $paymentResult");
-
-        $markedAsPaid = false;
-        if (BaseHandler::PAYMENT_SUCCESS === $paymentResult) {
-            if ($payment->isInProgress()) {
-                $payment->setPaid();
-                $this->paymentService->persistEntity($payment);
-                $markedAsPaid = true;
-            }
-        } elseif (BaseHandler::PAYMENT_FAILURE == $paymentResult) {
-            return $this->formatResponse('', self::STATUS_HTTP_ERROR);
-        }
-
-        if (
-            $markedAsPaid
-            && ($patron = $this->getPatronForPayment($payment))
-            && ($paymentConfig = $this->ils->getConfig('OnlinePayment', $patron))
-            && ($paymentConfig['receipt'] ?? false)
-        ) {
-            try {
-                $res = $this->receipt->sendEmail($payment->getUser(), $patron, $payment, $paymentConfig);
-                $this->addPaymentEvent($payment, $res ? 'Receipt sent' : 'Receipt not sent (no email address)');
-            } catch (\Exception $e) {
-                $this->logger->err("Failed to send email receipt for $localIdentifier: " . (string)$e);
-                $this->addPaymentEvent($payment, 'Sending of receipt failed', ['error' => (string)$e]);
-            }
-        }
-
-        // This handler does not mark fees as paid since that happens in the response
-        // handler or online payment monitor.
-
-        return $this->formatResponse('');
+        return $this->formatResponse(
+            '',
+            BaseHandler::PAYMENT_FAILURE === $result['resultCode'] ? static::STATUS_HTTP_ERROR : null
+        );
     }
 }
