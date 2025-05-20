@@ -176,7 +176,7 @@ class PaymentService extends AbstractDbService implements
      */
     public function getPaymentByLocalIdentifier(string $localIdentifier): ?PaymentEntityInterface
     {
-        return $this->getDbTable('Payment')->select(['payment_id' => $localIdentifier])->current();
+        return $this->getDbTable('Payment')->select(['local_identifier' => $localIdentifier])->current();
     }
 
     /**

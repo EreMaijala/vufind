@@ -90,13 +90,9 @@ class Stripe extends AbstractBase implements
         string $currency,
         string $paymentParam
     ): void {
-        if (!($clientId = $this->config['merchantId'] ?? null)) {
-            throw new PaymentException('Configuration missing: merchantId');
-        }
         if (!($secret = $this->config['secret'] ?? null)) {
             throw new PaymentException('Configuration missing: secret');
         }
-        StripeStripe::setAccountId($clientId);
         StripeStripe::setApiKey($secret);
 
         $patronId = $patron['cat_username'];
@@ -115,7 +111,8 @@ class Stripe extends AbstractBase implements
         $lineItems = [];
         foreach ($fines as $fine) {
             if (null === ($code = $this->getFineProductCode($fine))) {
-                continue;
+                $this->logPaymentError('Fine type could not be determined: ' . var_export($fine, true));
+                throw new PaymentException('Fine type could not be determined');
             }
             $code = mb_substr($code, 0, 100, 'UTF-8');
 
@@ -130,8 +127,8 @@ class Stripe extends AbstractBase implements
                         'description' => $description,
                     ],
                     'unit_amount' => round($fine['balance']),
-                    'quantity' => 1,
                 ],
+                'quantity' => 1,
             ];
             if (null !== $taxCode) {
                 $item['price_data']['product_data']['tax_code'] = $taxCode;
@@ -139,7 +136,7 @@ class Stripe extends AbstractBase implements
 
             $lineItems[] = $item;
         }
-        if ($lineItems && $serviceFee) {
+        if ($serviceFee) {
             $item = [
                 'price_data' => [
                     'currency' => $this->getCurrencyCode(),
@@ -148,8 +145,8 @@ class Stripe extends AbstractBase implements
                         'description' => $this->translator->translate('Service fee'),
                     ],
                     'unit_amount' => $serviceFee,
-                    'quantity' => 1,
                 ],
+                'quantity' => 1,
             ];
             if (null !== ($taxCode = $this->getServiceFeeTaxRate())) {
                 $item['price_data']['product_data']['tax_code'] = $taxCode;
@@ -211,6 +208,10 @@ class Stripe extends AbstractBase implements
         PaymentEntityInterface $payment,
         \Laminas\Http\Request $request
     ): int {
+        if (!($secret = $this->config['secret'] ?? null)) {
+            throw new PaymentException('Configuration missing: secret');
+        }
+        StripeStripe::setApiKey($secret);
         try {
             $stripeSession = Session::retrieve($payment->getRemoteIdentifier());
         } catch (ApiErrorException $e) {

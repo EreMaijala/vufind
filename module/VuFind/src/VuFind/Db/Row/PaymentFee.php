@@ -54,7 +54,7 @@ use VuFind\Db\Entity\UserEntityInterface;
  * @property string $fine_id
  * @property string $organization
  */
-class Fee extends \VuFind\Db\Row\RowGateway implements
+class PaymentFee extends \VuFind\Db\Row\RowGateway implements
     PaymentFeeEntityInterface,
     \VuFind\Db\Service\DbServiceAwareInterface
 {

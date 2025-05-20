@@ -631,6 +631,43 @@ body.rtl .dropdown-menu {
 }
 .list-edit-container { @include clearfix(); }
 
+.fines-info-area {
+  margin-bottom: 15px;
+  div.card-holder {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+  }
+  .amount {
+    font-weight: bold;
+  }
+  .online-payment-info {
+    display: flex;
+    align-items: baseline;
+  }
+  .online-payment-minimum-payment {
+    margin: 0 0 0 1em;
+  }
+  .last-transaction-information {
+    @extend .alert;
+
+    background: lighten($gray-lighter, 20%);
+    border: 1px solid $gray-lighter;
+    display: flex;
+    align-items: center;
+    div {
+      flex: 1 1;
+    }
+  }
+}
+.terms-of-service__text {
+    margin-bottom: 1rem;
+}
+.terms-of-service-logo {
+   width: 5rem;
+   margin-bottom: 1rem;
+}
+
 /* ------ PubDateVis ------ */
 #dateVisColorSettings {
   background-color: #fff;   // background of box

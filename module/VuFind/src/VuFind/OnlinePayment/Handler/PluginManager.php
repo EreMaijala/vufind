@@ -66,6 +66,6 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      */
     protected function getExpectedInterface()
     {
-        return AbstractBase::class;
+        return HandlerInterface::class;
     }
 }

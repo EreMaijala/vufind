@@ -117,7 +117,7 @@ trait OnlinePaymentTrait
      *
      * @return void
      */
-    protected function handleOnlinePayment(array $patron, array $fines, ViewModel $view)
+    protected function handleOnlinePayment(array $patron, array $fines, ViewModel $view): void
     {
         $view->onlinePaymentEnabled = false;
         $sourceIls = $patron['__source'] ?? 'default';
@@ -142,7 +142,7 @@ trait OnlinePaymentTrait
         $catalog = $this->getILS();
 
         // Check if online payment configuration exists for the ILS driver
-        $paymentConfig = $catalog->getConfig('OnlinePayment', $patron);
+        $paymentConfig = $onlinePaymentManager->getOnlinePaymentConfig($sourceIls);
         if (empty($paymentConfig)) {
             $this->handleDebugMsg("No online payment ILS configuration for $sourceIls");
             return;
@@ -177,16 +177,18 @@ trait OnlinePaymentTrait
         );
         if ($selectedIds && empty($payableOnline['fines'])) {
             $this->handleError("Fines to pay missing from ILS driver for $sourceIls");
-            return false;
+            return;
         }
 
-        $callback = function ($fine) {
-            return $fine['payableOnline'];
-        };
-        $payableFines = array_filter($fines, $callback);
+        $payableFines = array_filter(
+            $fines,
+            function ($fine) {
+                return $fine['payable_online'];
+            }
+        );
 
         $view->onlinePayment = true;
-        $view->paymentHandler = $onlinePaymentManager->getHandlerName($patron['source']);
+        $view->paymentHandler = $onlinePaymentManager->getHandlerName($sourceIls);
         $view->serviceFee = $paymentConfig['serviceFee'] ?? 0;
         $view->minimumFee = $paymentConfig['minimumFee'] ?? 0;
         $view->payableOnline = $payableOnline['amount'];
@@ -228,7 +230,7 @@ trait OnlinePaymentTrait
             $csrfValidator = $this->serviceLocator->get(\VuFind\Validator\CsrfInterface::class);
             $csrf = $this->getRequest()->getPost()->get('csrf');
             if (!$csrfValidator->isValid($csrf)) {
-                $this->flashMessenger()->addErrorMessage('Payment::payment_failed');
+                $this->flashMessenger()->addErrorMessage('Payment::error_payment_failed');
                 header('Location: ' . $this->getServerUrl('myresearch-fines'));
                 exit();
             }
@@ -238,7 +240,7 @@ trait OnlinePaymentTrait
 
             // Payment requested, do preliminary checks:
             if ($paymentService->isPaymentInProgressForPatron($patron['cat_username'])) {
-                $this->flashMessenger()->addErrorMessage('Payment::payment_failed');
+                $this->flashMessenger()->addErrorMessage('Payment::error_payment_failed');
                 header('Location: ' . $this->getServerUrl('myresearch-fines'));
                 exit();
             }
@@ -264,19 +266,24 @@ trait OnlinePaymentTrait
             );
 
             // Start payment
-            $result = $paymentHandler->startPayment(
-                $returnUrl,
-                $notifyUrl,
-                $user,
-                $patronProfile,
-                $driver,
-                $payableOnline['amount'],
-                $view->serviceFee,
-                $payableOnline['fines'] ?? $payableFines,
-                $paymentConfig['currency'],
-                'local_payment_id'
-            );
-            $this->flashMessenger()->addErrorMessage($result ? $result : 'Payment::payment_failed');
+            try {
+                $paymentHandler->startPayment(
+                    $returnUrl,
+                    $notifyUrl,
+                    $user,
+                    $patronProfile,
+                    $driver,
+                    $payableOnline['amount'],
+                    $view->serviceFee,
+                    $payableOnline['fines'] ?? $payableFines,
+                    $paymentConfig['currency'],
+                    'local_payment_id'
+                );
+            } catch (PaymentException $e) {
+                $this->flashMessenger()->addErrorMessage('Payment::error_payment_failed');
+            }
+            // We should only end up here on error, but redirect always just in case
+            // the payment handler somehow misbehaves:
             header('Location: ' . $this->getServerUrl('myresearch-fines'));
             exit();
         }
@@ -311,7 +318,7 @@ trait OnlinePaymentTrait
                     } elseif (BaseHandler::PAYMENT_CANCEL === $result) {
                         $this->flashMessenger()->addSuccessMessage('Payment::Payment Canceled');
                     } elseif (BaseHandler::PAYMENT_FAILURE === $result) {
-                        $this->flashMessenger()->addErrorMessage('Payment::payment_failed');
+                        $this->flashMessenger()->addErrorMessage('Payment::error_payment_failed');
                     }
                 } catch (PaymentException $e) {
                     $this->handleError(

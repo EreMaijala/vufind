@@ -1197,7 +1197,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
                     'reason' => 'Payment::fines_contain_nonpayable_fees',
                 ];
                 break;
-            } elseif ($fine['payableOnline']) {
+            } elseif ($fine['payable_online'] ?? false) {
                 $amount += $fine['balance'];
                 $payableFines[] = $fine;
             }
@@ -2932,6 +2932,9 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
                 'loginMethod'
                     => $this->config['Catalog']['loginMethod'] ?? 'password',
             ];
+        }
+        if ($function == 'OnlinePayment') {
+            return $this->config['OnlinePayment'] ?? [];
         }
 
         return [];

@@ -129,7 +129,8 @@ class OnlinePaymentManager implements LoggerAwareInterface
      */
     public function isEnabled(string $sourceIls): bool
     {
-        return $this->getOnlinePaymentConfig($sourceIls) ? true : false;
+        $config = $this->getOnlinePaymentConfig($sourceIls);
+        return (bool)($config['enabled'] ?? false);
     }
 
     /**
@@ -137,7 +138,7 @@ class OnlinePaymentManager implements LoggerAwareInterface
      *
      * @return SessionContainer
      */
-    protected function getOnlinePaymentSession(): SessionContainer
+    public function getOnlinePaymentSession(): SessionContainer
     {
         return new \Laminas\Session\Container('OnlinePayment', $this->sessionManager);
     }

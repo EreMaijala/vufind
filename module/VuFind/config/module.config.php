@@ -713,6 +713,7 @@ $config = [
             'ils_driver' => [ /* See VuFind\ILS\Driver\PluginManager for defaults */ ],
             'metadatavocabulary' => [ /* See VuFind\MetadataVocabulary\PluginManager for defaults */],
             'navigation' => [ /* See VuFind\Navigation\PluginManager for defaults */],
+            'onlinepayment_handler' => [ /* see VuFind\OnlinePayment\Handler\PluginManager for defaults */ ],
             'recommend' => [ /* See VuFind\Recommend\PluginManager for defaults */ ],
             'record_fallbackloader' => [ /* See VuFind\Record\FallbackLoader\PluginManager for defaults */ ],
             'recorddataformatter_specs' => [ /* see VuFind\RecordDataFormatter\Specs\PluginManager for defaults */ ],

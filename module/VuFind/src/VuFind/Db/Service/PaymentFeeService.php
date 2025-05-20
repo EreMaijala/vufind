@@ -55,6 +55,6 @@ class PaymentFeeService extends AbstractDbService implements
      */
     public function createEntity(): PaymentFeeEntityInterface
     {
-        return $this->getDbTable('Fee')->createRow();
+        return $this->getDbTable('PaymentFee')->createRow();
     }
 }
