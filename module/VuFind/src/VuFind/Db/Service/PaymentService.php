@@ -30,6 +30,7 @@
 namespace VuFind\Db\Service;
 
 use VuFind\Db\Entity\PaymentEntityInterface;
+use VuFind\Db\Row\Payment as PaymentRow;
 use VuFind\Db\Table\DbTableAwareInterface;
 use VuFind\Db\Table\DbTableAwareTrait;
 use VuFind\Db\Type\PaymentStatus;
@@ -135,7 +136,7 @@ class PaymentService extends AbstractDbService implements
             $statuses
         ) {
             $select->where->equalTo('cat_username', $catUsername);
-            $select->where('complete in (' . implode(',', $statuses) . ')');
+            $select->where('status in (' . implode(',', $statuses) . ')');
             $select->order('paid desc');
         };
 
@@ -160,7 +161,7 @@ class PaymentService extends AbstractDbService implements
 
         $callback = function ($select) use ($catUsername, $statuses) {
             $select->where->equalTo('cat_username', $catUsername);
-            $select->where('complete in (' . implode(',', $statuses) . ')');
+            $select->where('status in (' . implode(',', $statuses) . ')');
         };
 
         return $this->getDbTable('Payment')->select($callback)->current() ? true : false;
@@ -192,7 +193,7 @@ class PaymentService extends AbstractDbService implements
     ): ?PaymentEntityInterface {
         $callback = function ($select) use ($catUsername, $paymentMaxDuration) {
             $select->where->equalTo('cat_username', $catUsername);
-            $select->where->equalTo('complete', PaymentStatus::InProgress->value);
+            $select->where->equalTo('status', PaymentStatus::InProgress->value);
             $select->where->lessThan(
                 'created',
                 date('Y-m-d H:i:s', time() + $paymentMaxDuration * 60)
@@ -213,12 +214,12 @@ class PaymentService extends AbstractDbService implements
     {
         $callback = function ($select) use ($minimumPaidAge) {
             $select->where->nest
-                ->equalTo('complete', PaymentStatus::RegistrationFailed->value)
-                ->greaterThan('paid', '2000-01-01 00:00:00')
+                ->equalTo('status', PaymentStatus::RegistrationFailed->value)
+                ->greaterThan('paid', PaymentRow::NO_DATE)
                 ->unnest
                 ->or->nest
-                ->equalTo('complete', PaymentStatus::Paid->value)
-                ->greaterThan('paid', '2000-01-01 00:00:00')
+                ->equalTo('status', PaymentStatus::Paid->value)
+                ->greaterThan('paid', PaymentRow::NO_DATE)
                 ->lessThan(
                     'paid',
                     date('Y-m-d H:i:s', time() - $minimumPaidAge)
@@ -243,13 +244,13 @@ class PaymentService extends AbstractDbService implements
             $interval
         ) {
             $select->where->in(
-                'complete',
+                'status',
                 [
                     PaymentStatus::FinesUpdated->value,
                     PaymentStatus::RegistrationExpired->value,
                 ]
             );
-            $select->where->greaterThan('paid', '2000-01-01 00:00:00');
+            $select->where->greaterThan('paid', PaymentRow::NO_DATE);
             $select->where->lessThan('reported', date('Y-m-d H:i:s', time() - $interval * 3600));
             $select->order('user_id');
         };

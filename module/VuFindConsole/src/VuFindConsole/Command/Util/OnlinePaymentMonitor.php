@@ -281,7 +281,7 @@ class OnlinePaymentMonitor extends Command
                 return;
             }
 
-            if (!$this->markFeesAsPaidForPatron($patron, $payment)) {
+            if (!$this->registerPaymentForPatron($payment, $patron)) {
                 ++$this->failedCount;
                 return;
             }
@@ -317,29 +317,14 @@ class OnlinePaymentMonitor extends Command
         foreach ($payments as $source => $sourcePayments) {
             $errorCount = count($sourcePayments);
             if ($errorCount) {
-                $settings = $this->ils->getConfig(
-                    'onlinePayment',
-                    ['id' => "$source.123"]
-                );
-                if (!$settings || empty($settings['errorEmail'])) {
-                    if (!empty($this->datasourceConfig[$source]['feedbackEmail'])) {
-                        $settings['errorEmail'] = $this->datasourceConfig[$source]['feedbackEmail'];
-                        $this->warn(
-                            "  No error email for expired payments defined for source $source, using feedback email"
-                            . " ($errorCount expired payments)"
-                        );
-                    } else {
-                        $this->err(
-                            "  No error email for expired transactions defined for driver $source"
-                            . " ($errorCount expired transactions)",
-                            '='
-                        );
-                        continue;
-                    }
+                if (!($recipient = $this->getErrorEmail($source))) {
+                    $this->err(
+                        "  No error email for expired payments defined for $source ($errorCount errors)",
+                        '='
+                    );
+                    continue;
                 }
-
-                $email = $settings['errorEmail'];
-                $this->msg("[$source] Inform $errorCount expired transactions for driver $source to $email");
+                $this->msg("[$source] Inform $errorCount expired payments to $recipient");
 
                 $adminUrl = ($this->viewRenderer->plugin('url'))('admin-payments');
                 $params = compact('source', 'errorCount', 'adminUrl');
@@ -348,7 +333,7 @@ class OnlinePaymentMonitor extends Command
                 try {
                     $this->mailer->setMaxRecipients(0);
                     $this->mailer->send(
-                        $email,
+                        $recipient,
                         $this->fromEmail,
                         '',
                         $message
@@ -359,7 +344,7 @@ class OnlinePaymentMonitor extends Command
                     }
                 } catch (\Exception $e) {
                     $this->err(
-                        "    Failed to send error email to staff: $email (source: $source)",
+                        "    Failed to send error email to staff at $recipient (source: $source)",
                         'Failed to send error email to staff'
                     );
                     $this->logException($e);
@@ -367,6 +352,22 @@ class OnlinePaymentMonitor extends Command
                 }
             }
         }
+    }
+
+    /**
+     * Get error email recipient address for a source ILS
+     *
+     * @param string $source Source ILS
+     *
+     * @return string
+     */
+    protected function getErrorEmail(string $source): string
+    {
+        $paymentConfig = $this->ils->getConfig(
+            'OnlinePayment',
+            ['id' => "$source.123"]
+        );
+        return $paymentConfig['errorEmail'] ?? '';
     }
 
     /**

@@ -1142,14 +1142,14 @@ class MultiBackend extends AbstractMultiDriver
      */
     protected function getSourceForMethod(string $method, array $params): string
     {
-        $source = '';
-        $checkFields = $this->sourceCheckFields[$method] ?? null;
-        if ($checkFields) {
-            $source = $this->getSourceFromParams($params, (array)$checkFields);
-        } else {
-            $source = $this->getSourceFromParams($params);
+        if ($source = $params['__source'] ?? null) {
+            return $source;
         }
-        return $source;
+        if ($checkFields = $this->sourceCheckFields[$method] ?? null) {
+            return $this->getSourceFromParams($params, (array)$checkFields);
+        } else {
+            return $this->getSourceFromParams($params);
+        }
     }
 
     /**

@@ -52,14 +52,14 @@ use VuFind\Db\Entity\PaymentEntityInterface;
 trait OnlinePaymentHandlerTrait
 {
     /**
-     * Mark fees paid for the given payment and patron
+     * Register a payment with ILS for the given patron
      *
-     * @param array                  $patron  Patron information
      * @param PaymentEntityInterface $payment Payment
+     * @param array                  $patron  Patron information
      *
      * @return bool
      */
-    protected function markFeesAsPaidForPatron(array $patron, PaymentEntityInterface $payment): bool
+    protected function registerPaymentForPatron(PaymentEntityInterface $payment, array $patron): bool
     {
         // Check that registration is not already in progress (i.e. registration started within 120 seconds)
         if ($payment->isRegistrationInProgress()) {
@@ -75,7 +75,7 @@ trait OnlinePaymentHandlerTrait
         $this->paymentService->persistEntity($payment);
         $this->addPaymentEvent($payment, 'Started registration with the ILS');
 
-        $paymentConfig = $this->ils->getConfig('onlinePayment', $patron);
+        $paymentConfig = $this->ils->getConfig('OnlinePayment', $patron);
         $fineIds = $this->paymentService->getFineIds($payment);
 
         if (

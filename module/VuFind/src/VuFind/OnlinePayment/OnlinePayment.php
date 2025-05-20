@@ -30,6 +30,7 @@
 
 namespace VuFind\OnlinePayment;
 
+use VuFind\ILS\Connection;
 use VuFind\OnlinePayment\Handler\HandlerInterface;
 use VuFind\OnlinePayment\Handler\PluginManager as HandlerPluginManager;
 
@@ -46,68 +47,50 @@ use VuFind\OnlinePayment\Handler\PluginManager as HandlerPluginManager;
 class OnlinePayment
 {
     /**
-     * Online payment handler plugin manager
-     *
-     * @var HandlerPluginManager
-     */
-    protected $handlerManager;
-
-    /**
-     * Data source configuration
-     *
-     * @var \VuFind\Config\Config
-     */
-    protected $config;
-
-    /**
      * Constructor.
      *
-     * @param HandlerPluginManager  $handlerManager Handler plugin manager
-     * @param \VuFind\Config\Config $config         Data source configuration
+     * @param HandlerPluginManager $handlerManager Handler plugin manager
+     * @param Connection           $ils            ILS Connection
      */
     public function __construct(
-        HandlerPluginManager $handlerManager,
-        \VuFind\Config\Config $config
+        protected HandlerPluginManager $handlerManager,
+        protected Connection $ils
     ) {
-        $this->handlerManager = $handlerManager;
-        $this->config = $config;
     }
 
     /**
      * Get online payment handler
      *
-     * @param string $source Datasource
+     * @param string $sourceIls Source ILS
      *
      * @return HandlerInterface
      *
      * @throws \Exception
      */
-    public function getHandler($source): HandlerInterface
+    public function getHandler(string $sourceIls): HandlerInterface
     {
-        if (!($handlerName = $this->getHandlerName($source))) {
-            throw new \Exception("Online payment handler not defined for $source");
+        if (!($handlerName = $this->getHandlerName($sourceIls))) {
+            throw new \Exception("Online payment handler not defined for '$sourceIls'");
         }
         if (!$this->handlerManager->has($handlerName)) {
-            throw new \Exception(
-                "Online payment handler $handlerName not found for $source"
-            );
+            throw new \Exception("Online payment handler '$handlerName' not found for '$sourceIls'");
         }
 
         $handler = $this->handlerManager->get($handlerName);
-        $handler->init($this->getConfig($source));
+        $handler->init($this->getOnlinePaymentConfig($sourceIls));
         return $handler;
     }
 
     /**
      * Get online payment handler name.
      *
-     * @param string $source Datasource
+     * @param string $sourceIls Source ILS
      *
      * @return string
      */
-    public function getHandlerName($source): string
+    public function getHandlerName(string $sourceIls): string
     {
-        if ($config = $this->getConfig($source)) {
+        if ($config = $this->getOnlinePaymentConfig($sourceIls)) {
             return $config['handler'] ?? '';
         }
         return '';
@@ -120,20 +103,20 @@ class OnlinePayment
      *
      * @return bool
      */
-    public function isEnabled($sourceIls): bool
+    public function isEnabled(string $sourceIls): bool
     {
-        return $this->getConfig($sourceIls) ? true : false;
+        return $this->getOnlinePaymentConfig($sourceIls) ? true : false;
     }
 
     /**
-     * Get online payment handler configuration for an ILS.
+     * Get online payment configuration for an ILS.
      *
      * @param string $sourceIls Source ILS
      *
      * @return array
      */
-    protected function getConfig($sourceIls)
+    protected function getOnlinePaymentConfig(string $sourceIls): array
     {
-        return $this->config[$sourceIls]['onlinePayment'] ?? [];
+        return $this->ils->getConfig('OnlinePayment', ['__source' => $sourceIls]) ?? [];
     }
 }

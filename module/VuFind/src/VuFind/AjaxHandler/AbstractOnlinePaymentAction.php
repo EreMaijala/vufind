@@ -94,13 +94,13 @@ abstract class AbstractOnlinePaymentAction extends \VuFind\AjaxHandler\AbstractB
     }
 
     /**
-     * Mark fees paid for the given payment
+     * Register the given payment with ILS
      *
      * @param PaymentEntityInterface $payment Payment
      *
      * @return bool
      */
-    protected function markFeesAsPaidForPayment(PaymentEntityInterface $payment): bool
+    protected function registerPaymentWithILS(PaymentEntityInterface $payment): bool
     {
         if (!($patron = $this->getPatronForPayment($payment))) {
             $this->logError(
@@ -115,7 +115,7 @@ abstract class AbstractOnlinePaymentAction extends \VuFind\AjaxHandler\AbstractB
             return false;
         }
 
-        $result = $this->markFeesAsPaidForPatron($patron, $payment);
+        $result = $this->registerPaymentForPatron($payment, $patron);
         if ($result) {
             $this->onlinePaymentSession->paymentOk = true;
         }
@@ -127,17 +127,14 @@ abstract class AbstractOnlinePaymentAction extends \VuFind\AjaxHandler\AbstractB
      *
      * @param string $sourceIls Patron MultiBackend source ILS
      *
-     * @return ?HandlerInterface Handler, or null on failure
+     * @return ?HandlerInterface Handler, or null if disabled or on error
      */
     protected function getOnlinePaymentHandler($sourceIls): ?HandlerInterface
     {
-        if (!$this->onlinePayment->isEnabled($sourceIls)) {
-            return null;
-        }
         try {
             return $this->onlinePayment->getHandler($sourceIls);
         } catch (\Exception $e) {
-            $this->logError("Error retrieving online payment handler for source $sourceIls: " . $e->getMessage());
+            $this->logError("Error retrieving online payment handler for source $sourceIls: " . (string)$e);
             return null;
         }
     }

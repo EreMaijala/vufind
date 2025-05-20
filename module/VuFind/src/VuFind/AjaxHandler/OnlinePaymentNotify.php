@@ -123,10 +123,11 @@ class OnlinePaymentNotify extends AbstractOnlinePaymentAction
         if (
             $markedAsPaid
             && ($patron = $this->getPatronForPayment($payment))
-            && ($this->dataSourceConfig[$patron['__source'] ?? 'default']['onlinePayment']['receipt'] ?? false)
+            && ($paymentConfig = $this->ils->getConfig('OnlinePayment', $patron))
+            && ($paymentConfig['receipt'] ?? false)
         ) {
             try {
-                $res = $this->receipt->sendEmail($payment->getUser(), $patron, $payment);
+                $res = $this->receipt->sendEmail($payment->getUser(), $patron, $payment, $paymentConfig);
                 $this->addPaymentEvent($payment, $res ? 'Receipt sent' : 'Receipt not sent (no email address)');
             } catch (\Exception $e) {
                 $this->logger->err("Failed to send email receipt for $localIdentifier: " . (string)$e);

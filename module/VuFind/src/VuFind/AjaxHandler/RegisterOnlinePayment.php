@@ -53,11 +53,11 @@ class RegisterOnlinePayment extends AbstractOnlinePaymentAction
      */
     public function handleRequest(Params $params)
     {
-        $paymentId = $params->fromPost('paymentId') ?? $params->fromQuery('paymentId');
-        if (!$paymentId) {
+        $localIdentifier = $params->fromPost('localIdentifier') ?? $params->fromQuery('localIdentifier');
+        if (!$localIdentifier) {
             return $this->formatResponse('', self::STATUS_HTTP_BAD_REQUEST);
         }
-        $payment = $this->paymentService->getPaymentByLocalIdentifier($paymentId);
+        $payment = $this->paymentService->getPaymentByLocalIdentifier($localIdentifier);
         if (!$payment) {
             return $this->formatResponse('', self::STATUS_HTTP_BAD_REQUEST);
         }
@@ -74,7 +74,7 @@ class RegisterOnlinePayment extends AbstractOnlinePaymentAction
             return $this->formatResponse('', self::STATUS_HTTP_ERROR);
         }
 
-        return $this->markFeesAsPaidForPayment($payment)
+        return $this->registerPaymentWithILS($payment)
             ? $this->formatResponse('')
             : $this->formatResponse('', self::STATUS_HTTP_ERROR);
     }

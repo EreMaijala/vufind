@@ -82,7 +82,6 @@ class Receipt implements TranslatorAwareInterface
      * Constructor.
      *
      * @param array                   $config            Main configuration
-     * @param array                   $dataSourceConfig  Data source configuration
      * @param DateConverter           $dateConverter     Date converter
      * @param CurrencyFormatter       $currencyFormatter Currency formatter
      * @param RouteInterface          $router            Router
@@ -92,7 +91,6 @@ class Receipt implements TranslatorAwareInterface
      */
     public function __construct(
         protected array $config,
-        protected array $dataSourceConfig,
         protected DateConverter $dateConverter,
         protected CurrencyFormatter $currencyFormatter,
         protected RouteInterface $router,
@@ -105,11 +103,12 @@ class Receipt implements TranslatorAwareInterface
     /**
      * Create a receipt PDF
      *
-     * @param PaymentEntityInterface $payment Payment
+     * @param PaymentEntityInterface $payment       Payment
+     * @param array                  $paymentConfig Payment configuration
      *
      * @return array
      */
-    public function createReceiptPDF(PaymentEntityInterface $payment): array
+    public function createReceiptPDF(PaymentEntityInterface $payment, array $paymentConfig): array
     {
         $source = $this->getSource($payment);
         $sourceName = $this->getSourceName($payment);
@@ -237,6 +236,7 @@ class Receipt implements TranslatorAwareInterface
      * @param UserEntityInterface    $user          User
      * @param array                  $patronProfile Patron information
      * @param PaymentEntityInterface $payment       Payment
+     * @param array                  $paymentConfig Payment configuration
      *
      * @return bool
      *
@@ -245,7 +245,8 @@ class Receipt implements TranslatorAwareInterface
     public function sendEmail(
         UserEntityInterface $user,
         array $patronProfile,
-        PaymentEntityInterface $payment
+        PaymentEntityInterface $payment,
+        array $paymentConfig
     ): bool {
         $recipients = array_unique(
             array_filter(
@@ -259,7 +260,7 @@ class Receipt implements TranslatorAwareInterface
             return false;
         }
 
-        $data = $this->createReceiptPDF($payment);
+        $data = $this->createReceiptPDF($payment, $paymentConfig);
 
         $this->mailer->setMaxRecipients(2);
         $from = $this->config['Mail']['default_from'] ?? $this->config['Site']['email'];
