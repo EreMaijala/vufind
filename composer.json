@@ -93,6 +93,7 @@
         "league/oauth2-server": "8.5.4",
         "lm-commons/lmc-rbac-mvc": "3.4.0",
         "matthiasmullie/minify": "1.3.73",
+        "paytrail/paytrail-php-sdk": "2.7.4",
         "pear/archive_tar": "^1.4",
         "pear/http_request2": "2.7.0",
         "phing/phing": "3.0.1",

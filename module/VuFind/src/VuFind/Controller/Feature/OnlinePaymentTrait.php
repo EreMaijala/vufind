@@ -230,7 +230,7 @@ trait OnlinePaymentTrait
             $csrfValidator = $this->serviceLocator->get(\VuFind\Validator\CsrfInterface::class);
             $csrf = $this->getRequest()->getPost()->get('csrf');
             if (!$csrfValidator->isValid($csrf)) {
-                $this->flashMessenger()->addErrorMessage('Payment::error_payment_failed');
+                $this->flashMessenger()->addErrorMessage('Payment::error_payment_request_failed');
                 header('Location: ' . $this->getServerUrl('myresearch-fines'));
                 exit();
             }
@@ -240,7 +240,7 @@ trait OnlinePaymentTrait
 
             // Payment requested, do preliminary checks:
             if ($paymentService->isPaymentInProgressForPatron($patron['cat_username'])) {
-                $this->flashMessenger()->addErrorMessage('Payment::error_payment_failed');
+                $this->flashMessenger()->addErrorMessage('Payment::error_payment_request_failed');
                 header('Location: ' . $this->getServerUrl('myresearch-fines'));
                 exit();
             }
@@ -280,7 +280,7 @@ trait OnlinePaymentTrait
                     'local_payment_id'
                 );
             } catch (PaymentException $e) {
-                $this->flashMessenger()->addErrorMessage('Payment::error_payment_failed');
+                $this->flashMessenger()->addErrorMessage($e->getMessage());
             }
             // We should only end up here on error, but redirect always just in case
             // the payment handler somehow misbehaves:
@@ -318,7 +318,7 @@ trait OnlinePaymentTrait
                     } elseif (BaseHandler::PAYMENT_CANCEL === $result) {
                         $this->flashMessenger()->addSuccessMessage('Payment::Payment Canceled');
                     } elseif (BaseHandler::PAYMENT_FAILURE === $result) {
-                        $this->flashMessenger()->addErrorMessage('Payment::error_payment_failed');
+                        $this->flashMessenger()->addErrorMessage('Payment::error_payment_request_failed');
                     }
                 } catch (PaymentException $e) {
                     $this->handleError(

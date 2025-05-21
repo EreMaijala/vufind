@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2022-2023.
+ * Copyright (C) The National Library of Finland 2022-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -70,6 +70,7 @@ class AbstractBaseFactory implements FactoryInterface
     ) {
         $dbServiceManager = $container->get(\VuFind\Db\Service\PluginManager::class);
         return new $requestedName(
+            $container->get(\VuFind\Config\PluginManager::class)->get('config')->toArray(),
             $container->get(\VuFindHttp\HttpService::class),
             $container->get(\VuFind\I18n\Locale\LocaleSettings::class),
             $dbServiceManager->get(PaymentServiceInterface::class),

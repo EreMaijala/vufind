@@ -46,6 +46,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      * @var array
      */
     protected $aliases = [
+        'Paytrail' => Paytrail::class,
         'Stripe' => Stripe::class,
     ];
 
@@ -55,6 +56,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      * @var array
      */
     protected $factories = [
+        Paytrail::class => AbstractBaseFactory::class,
         Stripe::class => AbstractBaseFactory::class,
     ];
 

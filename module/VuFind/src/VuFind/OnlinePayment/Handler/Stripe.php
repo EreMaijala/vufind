@@ -142,7 +142,7 @@ class Stripe extends AbstractBase implements
                     'currency' => $this->getCurrencyCode(),
                     'product_data' => [
                         'name' => $this->getServiceFeeProductCode() ?? $this->getDefaultProductCode(),
-                        'description' => $this->translator->translate('Service fee'),
+                        'description' => $this->translator->translate('Payment::Service Fee'),
                     ],
                     'unit_amount' => $serviceFee,
                 ],
@@ -189,7 +189,6 @@ class Stripe extends AbstractBase implements
             $currency,
             $fines
         );
-
         $this->redirectToPayment($stripeSession->url, $payment);
     }
 

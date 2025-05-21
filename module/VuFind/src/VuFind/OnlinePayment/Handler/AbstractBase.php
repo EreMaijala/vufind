@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2016-2024.
+ * Copyright (C) The National Library of Finland 2016-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -22,8 +22,6 @@
  *
  * @category VuFind
  * @package  OnlinePayment
- * @author   Leszek Manicki <leszek.z.manicki@helsinki.fi>
- * @author   Samuli Sillanpää <samuli.sillanpaa@helsinki.fi>
  * @author   Ere Maijala <ere.maijala@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/vufind2:developer_manual Wiki
@@ -50,8 +48,7 @@ use function is_object;
  *
  * @category VuFind
  * @package  OnlinePayment
- * @author   Leszek Manicki <leszek.z.manicki@helsinki.fi>
- * @author   Samuli Sillanpää <samuli.sillanpaa@helsinki.fi>
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/vufind2:developer_manual Wiki
  * @link     http://docs.paytrail.com/ Paytrail API documentation
@@ -80,7 +77,7 @@ abstract class AbstractBase implements
      *
      * @var array
      */
-    protected array $config = [];
+    protected array $paymentConfig = [];
 
     /**
      * Basic mappings from fine types to product codes
@@ -104,15 +101,9 @@ abstract class AbstractBase implements
     protected array $organizationProductCodePrefixMappings = [];
 
     /**
-     * Mappings from fine organizations to merchant identifiers for shop-in-shop support
-     *
-     * @var array
-     */
-    protected array $organizationMerchantIdMappings = [];
-
-    /**
      * Constructor
      *
+     * @param array                           $config          VuFind configuration
      * @param \VuFindHttp\HttpService         $http            HTTP service
      * @param LocaleSettings                  $localeSettings  Locale settings
      * @param PaymentServiceInterface         $paymentService  Payment database service
@@ -120,6 +111,7 @@ abstract class AbstractBase implements
      * @param PaymentEventLogServiceInterface $eventLogService Payment event log database service
      */
     public function __construct(
+        protected array $config,
         protected \VuFindHttp\HttpService $http,
         protected LocaleSettings $localeSettings,
         protected PaymentServiceInterface $paymentService,
@@ -132,18 +124,18 @@ abstract class AbstractBase implements
     /**
      * Initialize the handler
      *
-     * @param array $config Online payment configuration
+     * @param array $paymentConfig Online payment configuration
      *
      * @return void
      */
-    public function init(array $config): void
+    public function init(array $paymentConfig): void
     {
-        $this->config = $config;
+        $this->paymentConfig = $paymentConfig;
 
-        $this->productCodeMappings = $this->getProductCodeMappings();
-        $this->taxRateMappings = $this->getTaxRateMappings();
-        $this->organizationProductCodePrefixMappings = $this->getOrganizationProductCodePrefixMappings();
-        $this->organizationMerchantIdMappings = $this->getOrganizationMerchantIdMappings();
+        $this->productCodeMappings = $this->parseMappings($this->paymentConfig['productCodeMappings'] ?? '');
+        $this->taxRateMappings = $this->parseMappings($this->paymentConfig['taxRateMappings'] ?? '');
+        $this->organizationProductCodePrefixMappings
+            = $this->parseMappings($this->paymentConfig['organizationProductCodePrefixMappings'] ?? '');
     }
 
     /**
@@ -153,7 +145,7 @@ abstract class AbstractBase implements
      */
     public function getName(): string
     {
-        return $this->config['handler'];
+        return $this->paymentConfig['handler'];
     }
 
     /**
@@ -252,46 +244,6 @@ abstract class AbstractBase implements
         header("Location: $url", true, 302);
         $this->addPaymentEvent($payment, 'Redirected to payment service');
         exit();
-    }
-
-    /**
-     * Get product code mappings from configuration
-     *
-     * @return array
-     */
-    protected function getProductCodeMappings(): array
-    {
-        return $this->parseMappings($this->config['productCodeMappings'] ?? '');
-    }
-
-    /**
-     * Get tax rate mappings from configuration
-     *
-     * @return array
-     */
-    protected function getTaxRateMappings(): array
-    {
-        return $this->parseMappings($this->config['taxRateMappings'] ?? '');
-    }
-
-    /**
-     * Get organization to product code prefix mappings from configuration
-     *
-     * @return array
-     */
-    protected function getOrganizationProductCodePrefixMappings(): array
-    {
-        return $this->parseMappings($this->config['organizationProductCodePrefixMappings'] ?? '');
-    }
-
-    /**
-     * Get organization to merchant id mappings from configuration
-     *
-     * @return array
-     */
-    protected function getOrganizationMerchantIdMappings(): array
-    {
-        return $this->parseMappings($this->config['organizationMerchantIdMappings'] ?? '');
     }
 
     /**
@@ -439,7 +391,7 @@ abstract class AbstractBase implements
      */
     protected function getCurrencyCode(): string
     {
-        return $this->config['currency'] ?? 'USD';
+        return $this->paymentConfig['currency'] ?? 'USD';
     }
 
     /**
@@ -449,7 +401,7 @@ abstract class AbstractBase implements
      */
     protected function getDefaultProductCode(): ?string
     {
-        return $this->config['productCode'] ?? null;
+        return $this->paymentConfig['productCode'] ?? null;
     }
 
     /**
@@ -459,7 +411,7 @@ abstract class AbstractBase implements
      */
     protected function getServiceFeeProductCode(): ?string
     {
-        return $this->config['serviceFeeProductCode'] ?? null;
+        return $this->paymentConfig['serviceFeeProductCode'] ?? null;
     }
 
     /**
@@ -469,7 +421,7 @@ abstract class AbstractBase implements
      */
     protected function getServiceFeeTaxRate(): ?string
     {
-        return $this->config['serviceFeeTaxRate'] ?? null;
+        return $this->paymentConfig['serviceFeeTaxRate'] ?? null;
     }
 
     /**
@@ -485,7 +437,7 @@ abstract class AbstractBase implements
         if (
             !$this->productCodeMappings
             && !$this->organizationProductCodePrefixMappings
-            && !$this->organizationMerchantIdMappings
+            && !$this->getDefaultProductCode()
             && !isset($fine['product_code'])
         ) {
             return null;
@@ -529,6 +481,8 @@ abstract class AbstractBase implements
 
     /**
      * Get fine description
+     *
+     * Description includes fine type and record title
      *
      * @param array $fine      Fine
      * @param int   $maxLength Maximum length of the description

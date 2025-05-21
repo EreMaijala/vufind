@@ -140,7 +140,7 @@
           </div>
           <?php if (!empty($serviceFee)): ?>
             <div class="online-payment-service-fee js-service-fee" data-raw="<?=$this->escapeHtmlAttr($serviceFee)?>">
-              <?=$this->transEsc('Payment::Service fee'); ?>:
+              <?=$this->transEsc('Payment::Service Fee'); ?>:
               <span class="amount"><?=$this->safeMoneyFormat($serviceFee / 100.00);?></span>
             </div>
           <?php endif; ?>
@@ -173,7 +173,7 @@
                     <div class="checkbox">
                       <label>
                         <input type="checkbox" name="selectAll" class="checkbox-select-all js-select-all">
-                        <?=$this->transEsc('Select All')?>
+                        <?=$this->transEsc('select_all')?>
                         <span class="selected"></span>
                       </label>
                     </div>

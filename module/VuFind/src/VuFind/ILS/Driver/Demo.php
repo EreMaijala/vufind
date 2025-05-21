@@ -1183,6 +1183,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
         }
         $amount = 0;
         $payableFines = [];
+        $config = $this->getConfig('OnlinePayment');
         foreach ($fines as $fine) {
             if (
                 null !== $selectedFineIds
@@ -1190,8 +1191,8 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
             ) {
                 continue;
             }
-            // Nothing can be paid if there are manual fees:
-            if ('Manual Fee' === $fine['fine']) {
+            // Nothing can be paid if there are blocking fine types:
+            if (in_array($fine['fine'], $config['blockingNonPayable'] ?? [])) {
                 return [
                     'payable' => false,
                     'amount' => 0,
@@ -1204,7 +1205,6 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
             }
         }
         // Check minimum payment:
-        $config = $this->getConfig('OnlinePayment');
         $serviceFee = $config['serviceFee'] ?? 0;
         if ($amount + $serviceFee < ($config['minimumFee'] ?? 0)) {
             return [
@@ -1226,12 +1226,12 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      *
      * This is called after a successful online payment.
      *
-     * @param array  $patron                  Patron
-     * @param int    $amount                  Amount to be registered as paid
-     * @param string $localPaymentIdentifier  Local payment identifier
-     * @param string $remotePaymentIdentifier Remote payment identifier
-     * @param int    $paymentId               Internal payment id
-     * @param ?array $fineIds                 Fine IDs to mark paid or null for bulk payment
+     * @param array   $patron                  Patron
+     * @param int     $amount                  Amount to be registered as paid
+     * @param string  $localPaymentIdentifier  Local payment identifier
+     * @param ?string $remotePaymentIdentifier Remote payment identifier
+     * @param int     $paymentId               Internal payment id
+     * @param ?array  $fineIds                 Fine IDs to mark paid or null for bulk payment
      *
      * @throws ILSException
      * @return true|string True on success, error description on error
@@ -1242,7 +1242,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
         array $patron,
         int $amount,
         string $localPaymentIdentifier,
-        string $remotePaymentIdentifier,
+        ?string $remotePaymentIdentifier,
         int $paymentId,
         ?array $fineIds = null
     ) {
