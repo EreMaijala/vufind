@@ -66,10 +66,10 @@ class OnlinePaymentManager implements LoggerAwareInterface
      *
      * @param HandlerPluginManager            $handlerManager   Handler plugin manager
      * @param Connection                      $ils              ILS Connection
+     * @param ILSAuthenticator                $ilsAuthenticator ILS authenticator
      * @param PaymentServiceInterface         $paymentService   Payment database service
      * @param UserCardServiceInterface        $userCardService  User card database service
      * @param PaymentEventLogServiceInterface $eventLogService  Payment event log database service
-     * @param ILSAuthenticator                $ilsAuthenticator ILS authenticator
      * @param Receipt                         $receipt          Receipt handler
      * @param SessionManager                  $sessionManager   Session manager
      */

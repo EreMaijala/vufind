@@ -33,7 +33,6 @@ namespace VuFindConsole\Command\Util;
 use Laminas\View\Renderer\PhpRenderer;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -46,7 +45,6 @@ use VuFind\OnlinePayment\OnlinePaymentEventLogTrait;
 use VuFind\OnlinePayment\OnlinePaymentManager;
 
 use function count;
-use function intval;
 
 /**
  * Console service for processing unregistered online payments.
