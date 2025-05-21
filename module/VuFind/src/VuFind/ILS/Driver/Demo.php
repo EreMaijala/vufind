@@ -1088,6 +1088,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
         $nonPayable = $paymentConfig['nonPayable'] ?? [];
 
         $fineList = [];
+        $firstId = rand(1, 1000);
         for ($i = 0; $i < $fines; $i++) {
             // How many days overdue is the item?
             $day_overdue = rand() % 30 + 5;
@@ -1105,7 +1106,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
             }
 
             $fineList[] = [
-                'fine_id'  => $i,
+                'fine_id'  => $firstId + $i,
                 'amount'   => $fine * 100,
                 'checkout' => $this->dateConverter
                     ->convertToDisplayDate('U', $checkout),
@@ -1254,7 +1255,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
         if (isset($session->fines)) {
             foreach ($session->fines as $key => $fine) {
                 if (
-                    $fine['payableOnline']
+                    $fine['payable_online']
                     && (!$fineIds || in_array($fine['fine_id'], $fineIds))
                 ) {
                     unset($session->fines[$key]);

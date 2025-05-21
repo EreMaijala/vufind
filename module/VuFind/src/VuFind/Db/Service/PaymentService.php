@@ -91,7 +91,7 @@ class PaymentService extends AbstractDbService implements
      */
     public function getFines(PaymentEntityInterface $payment): array
     {
-        $feeTable = $this->getDbTable('Fee');
+        $feeTable = $this->getDbTable('PaymentFee');
         return iterator_to_array($feeTable->select(['payment_id' => $payment->getId()]));
     }
 
@@ -106,7 +106,7 @@ class PaymentService extends AbstractDbService implements
     {
         $fineIds = [];
         foreach ($this->getFines($payment) as $fee) {
-            if (!empty($fee['fine_id'])) {
+            if ('' !== $fee['fine_id']) {
                 $fineIds[] = $fee['fine_id'];
             }
         }
@@ -194,9 +194,9 @@ class PaymentService extends AbstractDbService implements
         $callback = function ($select) use ($catUsername, $paymentMaxDuration) {
             $select->where->equalTo('cat_username', $catUsername);
             $select->where->equalTo('status', PaymentStatus::InProgress->value);
-            $select->where->lessThan(
+            $select->where->greaterThan(
                 'created',
-                date('Y-m-d H:i:s', time() + $paymentMaxDuration * 60)
+                date('Y-m-d H:i:s', time() - $paymentMaxDuration * 60)
             );
         };
 
@@ -234,7 +234,7 @@ class PaymentService extends AbstractDbService implements
     /**
      * Get unresolved payments for reporting.
      *
-     * @param int $interval Minimum number of hours since last report was sent.
+     * @param int $interval Minimum number of minutes since last report was sent.
      *
      * @return PaymentEntityInterface[] payments
      */
@@ -251,7 +251,7 @@ class PaymentService extends AbstractDbService implements
                 ]
             );
             $select->where->greaterThan('paid', PaymentRow::NO_DATE);
-            $select->where->lessThan('reported', date('Y-m-d H:i:s', time() - $interval * 3600));
+            $select->where->lessThan('reported', date('Y-m-d H:i:s', time() - $interval * 60));
             $select->order('user_id');
         };
 

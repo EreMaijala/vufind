@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2023-2024.
+ * Copyright (C) The National Library of Finland 2023-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -34,6 +34,7 @@ use Laminas\View\Renderer\PhpRenderer;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Part\DataPart;
 use TCPDF;
+use VuFind\Config\Feature\EmailSettingsTrait;
 use VuFind\Date\Converter as DateConverter;
 use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Entity\PaymentFeeEntityInterface;
@@ -57,6 +58,7 @@ use function count;
  */
 class Receipt implements TranslatorAwareInterface
 {
+    use EmailSettingsTrait;
     use TranslatorAwareTrait;
 
     /**
@@ -248,12 +250,14 @@ class Receipt implements TranslatorAwareInterface
         PaymentEntityInterface $payment,
         array $paymentConfig
     ): bool {
-        $recipients = array_unique(
-            array_filter(
-                [
-                    trim($patronProfile['email'] ?? ''),
-                    trim($user->getEmail()),
-                ]
+        $recipients = array_values(
+            array_unique(
+                array_filter(
+                    [
+                        trim($patronProfile['email'] ?? ''),
+                        trim($user->getEmail()),
+                    ]
+                )
             )
         );
         if (!$recipients) {
@@ -263,7 +267,7 @@ class Receipt implements TranslatorAwareInterface
         $data = $this->createReceiptPDF($payment, $paymentConfig);
 
         $this->mailer->setMaxRecipients(2);
-        $from = $this->config['Mail']['default_from'] ?? $this->config['Site']['email'];
+        $from = $this->getEmailSenderAddress($this->config);
         $fromOverride = $this->mailer->getFromAddressOverride();
 
         $replyTo = null;

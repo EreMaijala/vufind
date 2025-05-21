@@ -307,11 +307,11 @@ trait OnlinePaymentTrait
                 try {
                     $result = $onlinePaymentManager->processPaymentHandlerResponse($payment, $request, false);
                     if (BaseHandler::PAYMENT_SUCCESS === $result['resultCode']) {
-                        $this->flashMessenger()->addSuccessMessage('Payment::Payment Successful');
                         // Reload payment and check if registration is still pending:
                         $payment = $paymentService->getPaymentByLocalIdentifier($localIdentifier);
                         if ($payment?->needsRegistration()) {
-                            // Display page and register payment with ILS asynchronously:
+                            // Display page with success message and register payment with ILS asynchronously:
+                            $this->flashMessenger()->addSuccessMessage('Payment::Payment Successful');
                             $view->registerPaymentLocalIdentifier = $payment->getLocalIdentifier();
                             $this->addPaymentEvent($payment, 'Registration requested');
                         }
@@ -340,7 +340,7 @@ trait OnlinePaymentTrait
                 $this->storeFines($patron, $payableOnline['amount']);
 
                 if ($onlinePaymentManager->getAndClearPaymentSuccessFlag()) {
-                    $this->flashMessenger()->addScuccessMessage('Payment::Payment Successful');
+                    $this->flashMessenger()->addSuccessMessage('Payment::Payment Successful');
                 }
 
                 $view->onlinePaymentEnabled = $allowPayment;

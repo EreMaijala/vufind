@@ -130,7 +130,7 @@ interface PaymentServiceInterface extends DbServiceInterface
     /**
      * Get unresolved payments for reporting.
      *
-     * @param int $interval Minimum number of hours since last report was sent.
+     * @param int $interval Minimum number of minutes since last report was sent.
      *
      * @return PaymentEntityInterface[]
      */

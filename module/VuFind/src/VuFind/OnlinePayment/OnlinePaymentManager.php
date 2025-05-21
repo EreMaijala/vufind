@@ -36,6 +36,7 @@ use Laminas\Session\SessionManager;
 use Laminas\Stdlib\RequestInterface;
 use VuFind\Auth\ILSAuthenticator;
 use VuFind\Db\Entity\PaymentEntityInterface;
+use VuFind\Db\Service\PaymentEventLogServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
 use VuFind\Db\Service\UserCardServiceInterface;
 use VuFind\Exception\PaymentException;
@@ -63,23 +64,26 @@ class OnlinePaymentManager implements LoggerAwareInterface
     /**
      * Constructor.
      *
-     * @param HandlerPluginManager     $handlerManager   Handler plugin manager
-     * @param Connection               $ils              ILS Connection
-     * @param PaymentServiceInterface  $paymentService   Payment database service
-     * @param UserCardServiceInterface $userCardService  User card service
-     * @param ILSAuthenticator         $ilsAuthenticator ILS authenticator
-     * @param Receipt                  $receipt          Receipt handler
-     * @param SessionManager           $sessionManager   Session manager
+     * @param HandlerPluginManager            $handlerManager   Handler plugin manager
+     * @param Connection                      $ils              ILS Connection
+     * @param PaymentServiceInterface         $paymentService   Payment database service
+     * @param UserCardServiceInterface        $userCardService  User card database service
+     * @param PaymentEventLogServiceInterface $eventLogService  Payment event log database service
+     * @param ILSAuthenticator                $ilsAuthenticator ILS authenticator
+     * @param Receipt                         $receipt          Receipt handler
+     * @param SessionManager                  $sessionManager   Session manager
      */
     public function __construct(
         protected HandlerPluginManager $handlerManager,
         protected Connection $ils,
+        protected ILSAuthenticator $ilsAuthenticator,
         protected PaymentServiceInterface $paymentService,
         protected UserCardServiceInterface $userCardService,
-        protected ILSAuthenticator $ilsAuthenticator,
+        PaymentEventLogServiceInterface $eventLogService,
         protected Receipt $receipt,
         protected SessionManager $sessionManager
     ) {
+        $this->eventLogService = $eventLogService;
     }
 
     /**
@@ -144,54 +148,6 @@ class OnlinePaymentManager implements LoggerAwareInterface
     }
 
     /**
-     * Find patron for a payment
-     *
-     * @param PaymentEntityInterface $payment Payment
-     *
-     * @return array Patron, or null on failure
-     */
-    public function getPatronForPayment(PaymentEntityInterface $payment): ?array
-    {
-        if (!($user = $payment->getUser())) {
-            return null;
-        }
-
-        // Check if user's current credentials match (typical case):
-        $catPassword = $this->ilsAuthenticator->getCatPasswordForUser($user);
-        if (
-            mb_strtolower($user->getCatUsername(), 'UTF-8') === mb_strtolower($payment->getCatUsername(), 'UTF-8')
-            && ($patron = $this->ils->patronLogin($user->getCatUsername(), $catPassword))
-        ) {
-            // Success!
-            return $patron;
-        }
-
-        // Check for a matching library card:
-        $cards = $this->userCardService->getLibraryCards($user, null, $payment->getCatUsername());
-
-        // Make sure to try all cards with a matching user name:
-        foreach ($cards as $card) {
-            $userCopy = clone $user;
-            // Note: these changes are not persisted, so there's no harm in setting them here:
-            $userCopy->setCatUsername($card->getCatUsername());
-            $userCopy->setRawCatPassword($card->getRawCatPassword());
-            $userCopy->setCatPassEnc($card->getCatPassEnc());
-            $catPassword = $this->ilsAuthenticator->getCatPasswordForUser($userCopy);
-
-            try {
-                if ($patron = $this->ils->patronLogin($userCopy->getCatUsername(), $catPassword)) {
-                    // Success!
-                    return $patron;
-                }
-            } catch (\Exception $e) {
-                $this->logError('Patron login error: ' . $e->getMessage());
-                $this->logException($e);
-            }
-        }
-        return null;
-    }
-
-    /**
      * Process a response from a payment handler
      *
      * @param PaymentEntityInterface $payment    Payment
@@ -243,6 +199,54 @@ class OnlinePaymentManager implements LoggerAwareInterface
         }
 
         return compact('resultCode', 'markedAsPaid');
+    }
+
+    /**
+     * Find patron for a payment
+     *
+     * @param PaymentEntityInterface $payment Payment
+     *
+     * @return array Patron, or null on failure
+     */
+    public function getPatronForPayment(PaymentEntityInterface $payment): ?array
+    {
+        if (!($user = $payment->getUser())) {
+            return null;
+        }
+
+        // Check if user's current credentials match (typical case):
+        $catPassword = $this->ilsAuthenticator->getCatPasswordForUser($user);
+        if (
+            mb_strtolower($user->getCatUsername(), 'UTF-8') === mb_strtolower($payment->getCatUsername(), 'UTF-8')
+            && ($patron = $this->ils->patronLogin($user->getCatUsername(), $catPassword))
+        ) {
+            // Success!
+            return $patron;
+        }
+
+        // Check for a matching library card:
+        $cards = $this->userCardService->getLibraryCards($user, null, $payment->getCatUsername());
+
+        // Make sure to try all cards with a matching user name:
+        foreach ($cards as $card) {
+            $userCopy = clone $user;
+            // Note: these changes are not persisted, so there's no harm in setting them here:
+            $userCopy->setCatUsername($card->getCatUsername());
+            $userCopy->setRawCatPassword($card->getRawCatPassword());
+            $userCopy->setCatPassEnc($card->getCatPassEnc());
+            $catPassword = $this->ilsAuthenticator->getCatPasswordForUser($userCopy);
+
+            try {
+                if ($patron = $this->ils->patronLogin($userCopy->getCatUsername(), $catPassword)) {
+                    // Success!
+                    return $patron;
+                }
+            } catch (\Exception $e) {
+                $this->logError('Patron login error: ' . $e->getMessage());
+                $this->logException($e);
+            }
+        }
+        return null;
     }
 
     /**

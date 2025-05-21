@@ -70,7 +70,7 @@
           $balance = isset($record['balance']) ? $this->safeMoneyFormat($record['balance'] / 100.00) : '';
           if ($this->onlinePayment && !$record['payable_online']) {
             $balance = '<span class="online-payment-nonpayable">' . $balance
-              . '<br><span class="online-payment-remark"> ' . $this->transEsc('Payment::nonpayable_fee') . '</span></span>';
+              . '<br><span class="online-payment-status-note"> ' . $this->transEsc('Payment::nonpayable_fee') . '</span></span>';
           }
 
           $tableData['Select'][] = $select;
@@ -107,14 +107,14 @@
 
     <?php // Online payment information area: ?>
     <div class="fines-info-area" tabindex="0">
-      <?php if (!empty($this->lastTransaction)): ?>
-        <div class="last-transaction-information">
+      <?php if (!empty($this->lastPayment)): ?>
+        <div class="last-payment-information">
           <div>
             <?=$this->transEsc('Payment::Last Paid')?>:
-            <span class="amount"><?=$this->safeMoneyFormat($this->lastTransaction->getAmount() / 100.00)?></span>
-            <?=$this->lastTransaction->getPaidDate()->format($this->config()->dateTimeFormat())?>
+            <span class="amount"><?=$this->safeMoneyFormat($this->lastPayment->getAmount() / 100.00)?></span>
+            <?=$this->lastPayment->getPaidDate()->format($this->config()->dateTimeFormat())?>
           </div>
-          <div class="text-right">
+          <div class="text-end">
             <a href="?paymentReceipt=true" class="btn btn-sm btn-primary" target="_blank">
               <?=$this->transEsc('Payment::download_receipt_pdf')?>
               <span class="visually-hidden"><?=$this->transEscAttr('Open in a new window')?></span>
@@ -122,51 +122,45 @@
           </div>
         </div>
       <?php endif; ?>
-      <div class="js-payment-total-due" data-raw="<?=$this->escapeHtmlAttr($totalDue)?>">
-        <p>
-          <?=$this->transEsc('Total Balance Due')?> (<?=count($this->fines ?? []);?>):
-          <span class="amount"><?=$this->safeMoneyFormat($totalDue / 100.00) ?></span>
-        </p>
+      <div class="online-payment-total-due js-payment-total-due" data-raw="<?=$this->escapeHtmlAttr($totalDue)?>">
+        <?=$this->transEsc('Total Balance Due')?> (<?=count($this->fines ?? []);?>):
+        <span class="amount"><?=$this->safeMoneyFormat($totalDue / 100.00) ?></span>
       </div>
       <?php if ($this->onlinePayment && $this->onlinePaymentEnabled): ?>
         <div class="online-payment-info">
-          <div id="online_payment_payable">
-            <p>
+          <div class="online-payment-payable-info">
+            <div class="online-payment-payable">
               <?=$this->transEsc('Payment::payable_online'); ?> (<?=$payableOnlineCnt ?>):
               <span class="amount"><?=$this->safeMoneyFormat($payableOnline / 100.00);?></span>
-            </p>
+            </div>
+            <div class="online-payment-minimum-payment js-minimum-payment" data-raw="<?=$this->escapeHtmlAttr($minimumFee)?>" class="alert alert-warning hidden">
+              <?=$this->transEsc('Payment::minimum_payment'); ?>:
+              <span class="amount"><?=$this->safeMoneyFormat($minimumFee / 100.00)?></span>
+            </div>
           </div>
-          <div class="online-payment-minimum-payment js-minimum-payment" data-raw="<?=$this->escapeHtmlAttr($minimumFee)?>" class="alert alert-warning hidden">
-            <?=$this->transEsc('Payment::minimum_payment'); ?>:
-            <span class="amount"><?=$this->safeMoneyFormat($minimumFee / 100.00)?></span>
-          </div>
-        </div>
-        <?php if (!empty($serviceFee)): ?>
-          <div class="online-payment-service-fee js-service-fee" data-raw="<?=$this->escapeHtmlAttr($serviceFee)?>">
-            <p>
+          <?php if (!empty($serviceFee)): ?>
+            <div class="online-payment-service-fee js-service-fee" data-raw="<?=$this->escapeHtmlAttr($serviceFee)?>">
               <?=$this->transEsc('Payment::Service fee'); ?>:
               <span class="amount"><?=$this->safeMoneyFormat($serviceFee / 100.00);?></span>
-            </p>
-          </div>
-        <?php endif; ?>
-        <?php if ($this->selectFees): ?>
-          <div class="online-payment-remaining-after">
-            <p>
+            </div>
+          <?php endif; ?>
+          <?php if ($this->selectFees): ?>
+            <div class="online-payment-remaining-after">
               <?=$this->transEsc('Payment::remaining_balance_after_payment'); ?>:
               <span class="amount js-payment-remaining-amount" data-template="<?=$this->escapeHtmlAttr($currencyTemplate)?>">
                 <?=$this->safeMoneyFormat(($this->selectFees ? $totalDue : $totalDue - $payableOnline) / 100)?>
               </span>
-            </p>
-          </div>
-        <?php endif; ?>
-        <?php if ($this->startedTransaction): ?>
-          <div class="alert alert-danger">
-            <?=$this->transEsc('Payment::in_progress_warning', ['%%startDateTime%%' => $this->startedTransaction->getCreated()->format($this->config()->dateTimeFormat())]); ?>
-          </div>
-        <?php endif; ?>
+            </div>
+          <?php endif; ?>
+        </div>
       <?php endif; ?>
     </div>
     <?php if ($this->onlinePayment): ?>
+      <?php if ($this->startedPayment): ?>
+        <div class="alert alert-danger">
+          <?=$this->transEsc('Payment::in_progress_warning', ['%%startDateTime%%' => $this->startedPayment->getCreated()->format($this->config()->dateTimeFormat())]); ?>
+        </div>
+      <?php endif; ?>
       <?php if ($this->onlinePaymentEnabled): ?>
         <form id="online_payment_form" class="online-payment-form" action="<?=$this->url('myresearch-fines')?>" method="post" data-lightbox data-clear-account-cache="fines" data-disable-on-submit>
           <input type="hidden" value="<?=$this->escapeHtmlAttr($this->auth()->getManager()->getCsrfHash())?>" name="csrf">

@@ -34,7 +34,9 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
+use VuFind\Db\Service\PaymentEventLogServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
+use VuFind\Db\Service\UserCardServiceInterface;
 
 /**
  * Online payment factory.
@@ -73,9 +75,10 @@ class OnlinePaymentManagerFactory implements FactoryInterface
         return new $requestedName(
             $container->get(\VuFind\OnlinePayment\Handler\PluginManager::class),
             $container->get(\VuFind\ILS\Connection::class),
-            $dbServiceManager->get(PaymentServiceInterface::class),
-            $dbServiceManager->get(\VuFind\Db\Service\UserCardServiceInterface::class),
             $container->get(\VuFind\Auth\ILSAuthenticator::class),
+            $dbServiceManager->get(PaymentServiceInterface::class),
+            $dbServiceManager->get(UserCardServiceInterface::class),
+            $dbServiceManager->get(PaymentEventLogServiceInterface::class),
             $container->get(\VuFind\OnlinePayment\Receipt::class),
             $container->get(\Laminas\Session\SessionManager::class)
         );

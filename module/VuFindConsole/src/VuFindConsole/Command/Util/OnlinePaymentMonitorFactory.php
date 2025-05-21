@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2015-2024.
+ * Copyright (C) The National Library of Finland 2015-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -28,7 +28,7 @@
  * @link     http://vufind.org/wiki/vufind2:developer_manual Wiki
  */
 
-namespace FinnaConsole\Command\Util;
+namespace VuFindConsole\Command\Util;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
@@ -75,18 +75,13 @@ class OnlinePaymentMonitorFactory implements FactoryInterface
         $theme->init();
 
         $dbServiceManager = $container->get(\VuFind\Db\Service\PluginManager::class);
-
         return new $requestedName(
-            $container->get(\VuFind\ILS\Connection::class),
-            $container->get(ILSAuthenticator::class),
             $dbServiceManager->get(\VuFind\Db\Service\PaymentServiceInterface::class),
-            $dbServiceManager->get(\VuFind\Db\Service\UserServiceInterface::class),
-            $dbServiceManager->get(\VuFind\Db\Service\UserCardServiceInterface::class),
-            $container->get(\VuFind\Config\PluginManager::class)->get('datasources'),
+            $container->get(\VuFind\OnlinePayment\OnlinePaymentManager::class),
             $container->get('ViewRenderer'),
             $container->get(\VuFind\Mailer\Mailer::class),
+            $container->get(\VuFind\Config\PluginManager::class)->get('config')->toArray(),
             $dbServiceManager->get(\VuFind\Db\Service\PaymentEventLogServiceInterface::class),
-            $container->get(\VuFind\OnlinePayment\OnlinePaymentManager::class),
             ...($options ?? [])
         );
     }

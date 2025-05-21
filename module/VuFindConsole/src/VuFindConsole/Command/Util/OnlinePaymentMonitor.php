@@ -37,10 +37,10 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use VuFind\Config\Feature\EmailSettingsTrait;
 use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Service\PaymentEventLogServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
-use VuFind\ILS\Connection;
 use VuFind\Mailer\Mailer;
 use VuFind\OnlinePayment\OnlinePaymentEventLogTrait;
 use VuFind\OnlinePayment\OnlinePaymentManager;
@@ -63,22 +63,37 @@ use function intval;
 )]
 class OnlinePaymentMonitor extends Command
 {
+    use EmailSettingsTrait;
     use OnlinePaymentEventLogTrait;
     use ConsoleLoggerTrait;
 
     /**
-     * Number of hours before considering unregistered payments to be expired.
+     * Minimum time after payment was paid for it to be considered for retry (SECONDS).
      *
      * @var int
      */
-    protected $expireHours = 3;
+    protected $minimumPaidAge = 120;
+
+    /**
+     * Notification report interval (MINUTES).
+     *
+     * @var int
+     */
+    protected $reportInterval = 120;
+
+    /**
+     * Retry duration from payment (MINUTES).
+     *
+     * @var int
+     */
+    protected $retryMinutes = 120;
 
     /**
      * Sender email address for notification of expired payments.
      *
-     * @var string
+     * @var ?string
      */
-    protected $fromEmail = '';
+    protected $fromEmail = null;
 
     /**
      * Payments successfully registered
@@ -104,19 +119,19 @@ class OnlinePaymentMonitor extends Command
     /**
      * Constructor
      *
-     * @param Connection                      $ils                  Catalog connection
      * @param PaymentServiceInterface         $paymentService       Payment database service
+     * @param OnlinePaymentManager            $onlinePaymentManager Online payment manager
      * @param PhpRenderer                     $viewRenderer         View renderer
      * @param Mailer                          $mailer               Mailer
-     * @param OnlinePaymentManager            $onlinePaymentManager Online payment manager
+     * @param array                           $config               VuFind configuration
      * @param PaymentEventLogServiceInterface $eventLogService      Payment event log database service
      */
     public function __construct(
-        protected Connection $ils,
         protected PaymentServiceInterface $paymentService,
+        protected OnlinePaymentManager $onlinePaymentManager,
         protected PhpRenderer $viewRenderer,
         protected Mailer $mailer,
-        protected OnlinePaymentManager $onlinePaymentManager,
+        protected array $config,
         PaymentEventLogServiceInterface $eventLogService,
     ) {
         $this->eventLogService = $eventLogService;
@@ -131,30 +146,34 @@ class OnlinePaymentMonitor extends Command
     protected function configure()
     {
         $this
-            ->setDescription(
-                'Validate unregistered online payment payments and send error'
-                    . ' notifications'
+            ->setDescription('Validate unregistered online payment payments and send error notifications')
+            ->addOption(
+                'report-interval',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Interval for re-sending of reports of unresolved payments (minutes)',
+                $this->reportInterval
             )
-            ->addArgument(
-                'expire_hours',
-                InputArgument::REQUIRED,
-                'Number of hours before considering unregistered payment to be expired.'
+            ->addOption(
+                'minimum-paid-age',
+                null,
+                InputOption::VALUE_REQUIRED,
+                "Minimum age of payments in 'paid' status until they are considered failed (seconds)",
+                $this->minimumPaidAge
             )
-            ->addArgument(
-                'from_email',
-                InputArgument::REQUIRED,
-                'Sender email address for notification of expired payments'
+            ->addOption(
+                'retry-duration',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Duration of registration retry attempts (minutes). After the duration an unregistered payment is'
+                . ' considered expired.',
+                $this->retryMinutes
             )
-            ->addArgument(
-                'report_interval_hours',
-                InputArgument::REQUIRED,
-                'Interval when to re-send report of unresolved payments'
-            )
-            ->addArgument(
-                'minimum_paid_age',
-                InputArgument::OPTIONAL,
-                "Minimum age of payments in 'paid' status until they are considered failed (seconds, default 120)",
-                120
+            ->addOption(
+                'from-email',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Sender email address for notifications of expired payments (default is sender address for feedback)'
             )
             ->addOption(
                 'no-email',
@@ -174,26 +193,26 @@ class OnlinePaymentMonitor extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->expireHours = $input->getArgument('expire_hours');
-        $this->fromEmail = $input->getArgument('from_email');
-        $reportIntervalHours = $input->getArgument('report_interval_hours');
-        $minimumPaidAge = intval($input->getArgument('minimum_paid_age'));
+        $this->retryMinutes = (int)$input->getOption('retry-duration');
+        $this->fromEmail = $input->getOption('from-email') ?? $this->getEmailSenderAddress($this->config);
+        $this->reportInterval = (int)$input->getOption('report-interval');
+        $this->minimumPaidAge = (int)$input->getOption('minimum-paid-age');
         $disableEmail = $input->getOption('no-email') ?: false;
 
         // Abort if we have an invalid minimum paid age.
-        if ($minimumPaidAge < 10) {
+        if ($this->minimumPaidAge < 10) {
             $output->writeln('Minimum paid age must be at least 10 seconds');
             return 1;
         }
 
         $this->msg('Online payment monitor started');
-        $failedPayments = $this->paymentService->getFailedPayments($minimumPaidAge);
+        $failedPayments = $this->paymentService->getFailedPayments($this->minimumPaidAge);
         foreach ($failedPayments as $payment) {
             $this->processPayment($payment);
         }
 
         // Report paid and unregistered payments whose registration can not be re-tried:
-        $unresolvedPayments = $this->paymentService->getUnresolvedPaymentsToReport($reportIntervalHours);
+        $unresolvedPayments = $this->paymentService->getUnresolvedPaymentsToReport($this->reportInterval);
 
         if ($this->registeredCount) {
             $this->msg("Total registered: $this->registeredCount");
@@ -231,10 +250,7 @@ class OnlinePaymentMonitor extends Command
         );
 
         // Check if the payment has remained unregistered for too long
-        $now = new \DateTime();
-        $diff = $now->diff($payment->getPaidDate());
-        $diffHours = ($diff->days * 24) + $diff->h;
-        if ($diffHours > $this->expireHours) {
+        if (time() - $payment->getPaidDate()->getTimestamp() > $this->retryMinutes * 60) {
             // Payment has expired
             $payment->setExpired();
             $this->paymentService->persistEntity($payment);
@@ -244,36 +260,7 @@ class OnlinePaymentMonitor extends Command
         }
 
         try {
-            $user = $payment->getUser();
-            if (!($patron = $this->onlinePaymentManager->getPatronForPayment($payment))) {
-                if ($user) {
-                    $this->warn(
-                        "Catalog login failed for user {$user->getUsername()} (id {$user->getId()}),"
-                        . " card {$payment->getCatUsername()}"
-                    );
-                    $payment->setRegistrationFailed('patron login error');
-                    $this->paymentService->persistEntity($payment);
-                    $this->addPaymentEvent($payment, 'Patron login failed');
-                } else {
-                    $this->warn(
-                        "Library card not found for user {$payment->getUserId()}, card {$payment->getCatUsername()}"
-                    );
-                    $payment->setRegistrationFailed('card not found');
-                    $this->paymentService->persistEntity($payment);
-                    $this->addPaymentEvent(
-                        $payment,
-                        "Library card not found for user id {$payment->getUserId()}",
-                        [
-                            'user_id' => $payment->getUserId(),
-                            'card' => $payment->getCatUsername(),
-                        ]
-                    );
-                }
-                ++$this->failedCount;
-                return;
-            }
-
-            if (!$this->onlinePaymentManager->registerPaymentForPatron($payment, $patron)) {
+            if (!$this->onlinePaymentManager->registerPaymentWithILS($payment)) {
                 ++$this->failedCount;
                 return;
             }
@@ -281,13 +268,13 @@ class OnlinePaymentMonitor extends Command
             return;
         } catch (\Exception $e) {
             $this->warn(
-                "Exception while processing transaction {$payment->getId()} for user id {$payment->getUserId()}"
+                "Exception while processing payment {$payment->getId()} for user id {$payment->getUserId()}"
                 . ", card {$payment->getCatUsername()}: "
                 . (string)$e
             );
             $this->addPaymentEvent(
                 $payment,
-                'Exception while processing transaction',
+                'Exception while processing payment',
                 [
                     'exception' => (string)$e,
                 ]
@@ -349,13 +336,13 @@ class OnlinePaymentMonitor extends Command
     /**
      * Get error email recipient address for a source ILS
      *
-     * @param string $source Source ILS
+     * @param string $sourceIls Source ILS
      *
      * @return string
      */
-    protected function getErrorEmail(string $source): string
+    protected function getErrorEmail(string $sourceIls): string
     {
-        $paymentConfig = $this->ils->getConfig('OnlinePayment', ['__source' => $source]);
+        $paymentConfig = $this->onlinePaymentManager->getOnlinePaymentConfig($sourceIls);
         return $paymentConfig['errorEmail'] ?? '';
     }
 
