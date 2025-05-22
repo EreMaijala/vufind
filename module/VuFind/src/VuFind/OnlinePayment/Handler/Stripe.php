@@ -90,10 +90,10 @@ class Stripe extends AbstractBase implements
         string $currency,
         string $paymentParam
     ): void {
-        if (!($secret = $this->config['secret'] ?? null)) {
-            throw new PaymentException('Configuration missing: secret');
+        if (!($apiKey = $this->paymentConfig['apiKey'] ?? null)) {
+            throw new PaymentException('Configuration missing: apiKey');
         }
-        StripeStripe::setApiKey($secret);
+        StripeStripe::setApiKey($apiKey);
 
         $patronId = $patron['cat_username'];
         $localIdentifier = $this->generateLocalIdentifier($patronId);
@@ -207,10 +207,10 @@ class Stripe extends AbstractBase implements
         PaymentEntityInterface $payment,
         \Laminas\Http\Request $request
     ): int {
-        if (!($secret = $this->config['secret'] ?? null)) {
-            throw new PaymentException('Configuration missing: secret');
+        if (!($apiKey = $this->paymentConfig['apiKey'] ?? null)) {
+            throw new PaymentException('Configuration missing: apiKey');
         }
-        StripeStripe::setApiKey($secret);
+        StripeStripe::setApiKey($apiKey);
         try {
             $stripeSession = Session::retrieve($payment->getRemoteIdentifier());
         } catch (ApiErrorException $e) {

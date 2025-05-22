@@ -138,16 +138,6 @@ class OnlinePaymentManager implements LoggerAwareInterface
     }
 
     /**
-     * Get session for storing payment data.
-     *
-     * @return SessionContainer
-     */
-    public function getOnlinePaymentSession(): SessionContainer
-    {
-        return new \Laminas\Session\Container('OnlinePayment', $this->sessionManager);
-    }
-
-    /**
      * Process a response from a payment handler
      *
      * @param PaymentEntityInterface $payment    Payment
@@ -405,6 +395,45 @@ class OnlinePaymentManager implements LoggerAwareInterface
     }
 
     /**
+     * Store total amount of fines in session for later checks.
+     *
+     * @param array $patron Patron
+     * @param int   $amount Total payable amount excluding fees
+     *
+     * @return void
+     */
+    public function storePayableAmount(array $patron, int $amount): void
+    {
+        $session = $this->getOnlinePaymentSession();
+        $session->catUsername = $patron['cat_username'];
+        $session->amount = $amount;
+    }
+
+    /**
+     * Get stored payable amount from session
+     *
+     * @param array $patron Patron
+     *
+     * @return int Payable amount or -1 if patron doesn't match
+     */
+    public function getStoredPayableAmount(array $patron): int
+    {
+        $session = $this->getOnlinePaymentSession();
+        if (!$session) {
+            $this->logError('PaymentSessionError: Session empty for patron: ' . json_encode($patron));
+            return true;
+        }
+        if ($session->catUsername !== $patron['cat_username']) {
+            $this->logError(
+                'PaymentSessionError: Patron cat_username does not match session: '
+                . $patron['cat_username'] . ' != ' . $session->catUsername
+            );
+            return -1;
+        }
+        return $session->amount;
+    }
+
+    /**
      * Get any successful payment flag from session and clear the session
      *
      * @return bool
@@ -425,5 +454,15 @@ class OnlinePaymentManager implements LoggerAwareInterface
     protected function storePaymentSuccessFlag(): void
     {
         $this->getOnlinePaymentSession()->paymentSuccessful = true;
+    }
+
+    /**
+     * Get session for storing payment data.
+     *
+     * @return SessionContainer
+     */
+    protected function getOnlinePaymentSession(): SessionContainer
+    {
+        return new \Laminas\Session\Container('OnlinePayment', $this->sessionManager);
     }
 }

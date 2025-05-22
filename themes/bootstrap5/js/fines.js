@@ -125,7 +125,7 @@ VuFind.register('fines', function fines() {
 
   /**
    * Register a payment
-   * @param {String} localIdentifier Local payment identifier
+   * @param {string} localIdentifier Local payment identifier
    */
   function registerPayment(localIdentifier) {
     fetch(

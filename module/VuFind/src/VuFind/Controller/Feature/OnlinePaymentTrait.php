@@ -57,36 +57,6 @@ trait OnlinePaymentTrait
     use OnlinePaymentEventLogTrait;
 
     /**
-     * Checks if the given list of fines is identical to the listing
-     * preserved in the session variable.
-     *
-     * @param array $patron Patron.
-     * @param int   $amount Total amount to pay without fees
-     *
-     * @return bool
-     */
-    protected function checkIfFinesUpdated(array $patron, int $amount): bool
-    {
-        $session = $this->serviceLocator->get(OnlinePaymentManager::class)->getOnlinePaymentSession();
-        if (!$session) {
-            $this->handleError('PaymentSessionError: Session empty for patron: ' . json_encode($patron));
-            return true;
-        }
-        if ($session->catUsername !== $patron['cat_username']) {
-            $this->handleError(
-                'PaymentSessionError: Patron cat_username does not match session: '
-                . $patron['cat_username'] . ' != ' . $session->catUsername
-            );
-            return true;
-        }
-        if ($session->amount !== $amount) {
-            $this->handleError('PaymentSessionError: Payment amount updated: ' . $session->amount . ' != ' . $amount);
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Return online payment handler.
      *
      * @param string $sourceIls Patron ILS source
@@ -127,7 +97,6 @@ trait OnlinePaymentTrait
             $this->handleDebugMsg("Online payment not enabled for $sourceIls");
             return;
         }
-        $session = $onlinePaymentManager->getOnlinePaymentSession();
 
         try {
             if (!($paymentHandler = $this->getOnlinePaymentHandler($sourceIls))) {
@@ -180,21 +149,14 @@ trait OnlinePaymentTrait
             return;
         }
 
-        $payableFines = array_filter(
-            $fines,
-            function ($fine) {
-                return $fine['payable_online'];
-            }
-        );
-
         $view->onlinePayment = true;
         $view->paymentHandler = $onlinePaymentManager->getHandlerName($sourceIls);
         $view->serviceFee = $paymentConfig['serviceFee'] ?? 0;
         $view->minimumFee = $paymentConfig['minimumFee'] ?? 0;
         $view->payableOnline = $payableOnline['amount'];
         $view->payableTotal = $payableOnline['amount'] + $view->serviceFee;
-        $view->payableOnlineCnt = count($payableFines);
-        $view->nonPayableFines = count($fines) != count($payableFines);
+        $view->payableOnlineCnt = count($payableOnline['fines']);
+        $view->nonPayableFines = count($fines) != count($payableOnline['fines']);
         $view->registerPayment = false;
         $view->selectFees = $selectFees;
 
@@ -222,8 +184,9 @@ trait OnlinePaymentTrait
 
         $paymentInProgress = $paymentService->isPaymentInProgressForPatron($patron['cat_username']);
         if (
-            $pay && $session && $payableOnline
-            && $payableOnline['payable'] && $payableOnline['amount']
+            $pay
+            && $payableOnline['payable']
+            && $payableOnline['amount']
             && !$paymentInProgress
         ) {
             // Check CSRF:
@@ -248,7 +211,7 @@ trait OnlinePaymentTrait
                 (($paymentConfig['exactBalanceRequired'] ?? true)
                 || !empty($paymentConfig['creditUnsupported']))
                 && !$selectFees
-                && $this->checkIfFinesUpdated($patron, $payableOnline['amount'])
+                && $onlinePaymentManager->getStoredPayableAmount($patron) !== $payableOnline['amount']
             ) {
                 // Fines updated, redirect and show updated list.
                 $this->flashMessenger()->addErrorMessage('Payment::error_fines_changed');
@@ -256,6 +219,8 @@ trait OnlinePaymentTrait
                 exit();
             }
             $returnUrl = $this->getServerUrl('myresearch-fines');
+            // Include language in notify url because it's a back-channel request that
+            // doesn't have access to user's session:
             $notifyUrl = $this->getServerUrl('home') . 'AJAX/onlinePaymentNotify?lng='
                 . urlencode($this->getTranslatorLocale());
             [$driver, ] = explode('.', $patron['cat_username'], 2);
@@ -275,7 +240,7 @@ trait OnlinePaymentTrait
                     $driver,
                     $payableOnline['amount'],
                     $view->serviceFee,
-                    $payableOnline['fines'] ?? $payableFines,
+                    $payableOnline['fines'],
                     $paymentConfig['currency'],
                     'local_payment_id'
                 );
@@ -336,8 +301,8 @@ trait OnlinePaymentTrait
                 // Check if payment is permitted:
                 $allowPayment = $payableOnline && $payableOnline['payable'] && $payableOnline['amount'];
 
-                // Store current fines to session:
-                $this->storeFines($patron, $payableOnline['amount']);
+                // Save current payable amount to session:
+                $onlinePaymentManager->storePayableAmount($patron, $payableOnline['amount']);
 
                 if ($onlinePaymentManager->getAndClearPaymentSuccessFlag()) {
                     $this->flashMessenger()->addSuccessMessage('Payment::Payment Successful');
@@ -358,21 +323,6 @@ trait OnlinePaymentTrait
                 }
             }
         }
-    }
-
-    /**
-     * Store fines to session.
-     *
-     * @param array $patron Patron
-     * @param int   $amount Total payable amount excluding fees
-     *
-     * @return void
-     */
-    protected function storeFines(array $patron, int $amount): void
-    {
-        $session = $this->serviceLocator->get(OnlinePaymentManager::class)->getOnlinePaymentSession();
-        $session->catUsername = $patron['cat_username'];
-        $session->amount = $amount;
     }
 
     /**

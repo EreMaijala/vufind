@@ -1174,12 +1174,14 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      */
     public function getOnlinePaymentDetails(array $patron, array $fines, ?array $selectedFineIds): array
     {
+        $failureResult = [
+            'payable' => false,
+            'amount' => 0,
+            'fines' => [],
+            'reason' => 'Payment::minimum_payment',
+        ];
         if (!$fines) {
-            return [
-                'payable' => false,
-                'amount' => 0,
-                'reason' => 'Payment::minimum_payment',
-            ];
+            return $failureResult;
         }
         $amount = 0;
         $payableFines = [];
@@ -1193,12 +1195,8 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
             }
             // Nothing can be paid if there are blocking fine types:
             if (in_array($fine['fine'], $config['blockingNonPayable'] ?? [])) {
-                return [
-                    'payable' => false,
-                    'amount' => 0,
-                    'reason' => 'Payment::fines_contain_nonpayable_fees',
-                ];
-                break;
+                $failureResult['reason'] = 'Payment::fines_contain_nonpayable_fees';
+                return $failureResult;
             } elseif ($fine['payable_online'] ?? false) {
                 $amount += $fine['balance'];
                 $payableFines[] = $fine;
@@ -1207,11 +1205,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
         // Check minimum payment:
         $serviceFee = $config['serviceFee'] ?? 0;
         if ($amount + $serviceFee < ($config['minimumFee'] ?? 0)) {
-            return [
-                'payable' => false,
-                'amount' => 0,
-                'reason' => 'Payment::minimum_payment',
-            ];
+            return $failureResult;
         }
         $res = [
             'payable' => $amount > 0,
