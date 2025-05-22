@@ -94,11 +94,8 @@ class Paytrail extends AbstractBase
      * @param string              $notifyBaseUrl Notify URL
      * @param UserEntityInterface $user          User
      * @param array               $patron        Patron information
-     * @param string              $sourceIls     Patron MultiBackend source ILS
      * @param int                 $amount        Amount (excluding service fee)
-     * @param int                 $serviceFee    Service fee
      * @param array               $fines         Fines data
-     * @param string              $currency      Currency
      * @param string              $paymentParam  Payment status URL parameter
      *
      * @return void
@@ -110,19 +107,15 @@ class Paytrail extends AbstractBase
         string $notifyBaseUrl,
         UserEntityInterface $user,
         array $patron,
-        string $sourceIls,
         int $amount,
-        int $serviceFee,
         array $fines,
-        string $currency,
         string $paymentParam
     ): void {
-        $patronId = $patron['cat_username'];
         $email = $user->getEmail() ?? $patron['email'] ?? null;
         if (!$email) {
             throw new PaymentException('Payment::email_address_missing');
         }
-        $localIdentifier = $this->generateLocalIdentifier($patronId);
+        $localIdentifier = $this->generateLocalIdentifier($patron);
 
         $returnUrl = $this->addQueryParams(
             $returnBaseUrl,
@@ -154,10 +147,10 @@ class Paytrail extends AbstractBase
             ->setStamp($localIdentifier)
             ->setRedirectUrls($returnUrls)
             ->setCallbackUrls($callbackUrls)
-            ->setReference("$localIdentifier - $patronId")
-            ->setCurrency($currency)
+            ->setReference("$localIdentifier - {$patron['cat_username']}")
+            ->setCurrency($this->getCurrencyCode())
             ->setLanguage($language)
-            ->setAmount($amount + $serviceFee)
+            ->setAmount($amount + $this->getServiceFee())
             ->setCustomer($customer);
 
         // Map fines to items:
@@ -189,7 +182,7 @@ class Paytrail extends AbstractBase
 
             $items[] = $item;
         }
-        if ($serviceFee) {
+        if ($serviceFee = $this->getServiceFee()) {
             $item = (new Item())
                 ->setDescription($this->translator->translate('Payment::Service Fee'))
                 ->setProductCode($this->getServiceFeeProductCode())
@@ -214,12 +207,9 @@ class Paytrail extends AbstractBase
         $payment = $this->createPaymentEntity(
             $localIdentifier,
             null,
-            $sourceIls,
             $user,
-            $patronId,
+            $patron,
             $amount,
-            $serviceFee,
-            $currency,
             $fines
         );
         $this->redirectToPayment($paymentResponse->getHref(), $payment);

@@ -67,11 +67,8 @@ class Stripe extends AbstractBase implements
      * @param string              $notifyBaseUrl Notify URL
      * @param UserEntityInterface $user          User
      * @param array               $patron        Patron information
-     * @param string              $sourceIls     Patron MultiBackend source ILS
      * @param int                 $amount        Amount (excluding service fee)
-     * @param int                 $serviceFee    Service fee
      * @param array               $fines         Fines data
-     * @param string              $currency      Currency
      * @param string              $paymentParam  Payment status URL parameter
      *
      * @return void
@@ -83,11 +80,8 @@ class Stripe extends AbstractBase implements
         string $notifyBaseUrl,
         UserEntityInterface $user,
         array $patron,
-        string $sourceIls,
         int $amount,
-        int $serviceFee,
         array $fines,
-        string $currency,
         string $paymentParam
     ): void {
         if (!($apiKey = $this->paymentConfig['apiKey'] ?? null)) {
@@ -95,8 +89,7 @@ class Stripe extends AbstractBase implements
         }
         StripeStripe::setApiKey($apiKey);
 
-        $patronId = $patron['cat_username'];
-        $localIdentifier = $this->generateLocalIdentifier($patronId);
+        $localIdentifier = $this->generateLocalIdentifier($patron);
 
         $returnUrl = $this->addQueryParams(
             $returnBaseUrl,
@@ -136,7 +129,7 @@ class Stripe extends AbstractBase implements
 
             $lineItems[] = $item;
         }
-        if ($serviceFee) {
+        if ($serviceFee = $this->getServiceFee()) {
             $item = [
                 'price_data' => [
                     'currency' => $this->getCurrencyCode(),
@@ -181,12 +174,9 @@ class Stripe extends AbstractBase implements
         $payment = $this->createPaymentEntity(
             $localIdentifier,
             $stripeSession->id,
-            $sourceIls,
             $user,
-            $patronId,
+            $patron,
             $amount,
-            $serviceFee,
-            $currency,
             $fines
         );
         $this->redirectToPayment($stripeSession->url, $payment);

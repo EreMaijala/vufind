@@ -151,13 +151,13 @@ abstract class AbstractBase implements
     /**
      * Generate the internal payment transaction identifier.
      *
-     * @param string $patronId Patron's Catalog Username (barcode)
+     * @param array $patron Patron
      *
      * @return string
      */
-    protected function generateLocalIdentifier(string $patronId): string
+    protected function generateLocalIdentifier(array $patron): string
     {
-        return md5($patronId . '_' . microtime(true));
+        return md5($patron['cat_username'] . '_' . microtime(true));
     }
 
     /**
@@ -180,12 +180,9 @@ abstract class AbstractBase implements
      *
      * @param string              $localIdentifier  Local payment identifier
      * @param ?string             $remoteIdentifier Handler's payment identifier
-     * @param string              $sourceIls        Patron MultiBackend source ILS
      * @param UserEntityInterface $user             User
-     * @param string              $patronId         Patron's catalog username (e.g. barcode)
+     * @param array               $patron           Patron
      * @param int                 $amount           Amount (excluding service fee)
-     * @param int                 $serviceFee       Service fee
-     * @param string              $currency         Currency
      * @param array               $fines            Fines data
      *
      * @return PaymentEntityInterface
@@ -193,29 +190,25 @@ abstract class AbstractBase implements
     protected function createPaymentEntity(
         string $localIdentifier,
         ?string $remoteIdentifier,
-        string $sourceIls,
         UserEntityInterface $user,
-        string $patronId,
+        array $patron,
         int $amount,
-        int $serviceFee,
-        string $currency,
         array $fines
     ): PaymentEntityInterface {
         $payment = $this->paymentService->createEntity()
             ->setLocalIdentifier($localIdentifier)
             ->setRemoteIdentifier($remoteIdentifier)
-            ->setSourceIls($sourceIls)
+            ->setSourceIls($this->getSourceIls($patron))
             ->setUser($user)
-            ->setCatUsername($patronId)
+            ->setCatUsername($patron['cat_username'])
             ->setAmount($amount)
-            ->setServiceFee($serviceFee)
-            ->setCurrency($currency);
+            ->setServiceFee($this->getServiceFee())
+            ->setCurrency($this->getCurrencyCode());
         $this->paymentService->persistEntity($payment);
 
         foreach ($fines as $fine) {
             // Sanitize fine strings
             $fee = $this->feeService->createEntity()
-                ->setUser($user)
                 ->setPayment($payment)
                 ->setAmount($fine['balance'])
                 ->setType(iconv('UTF-8', 'UTF-8//IGNORE', $fine['fine'] ?? ''))
@@ -395,6 +388,16 @@ abstract class AbstractBase implements
     }
 
     /**
+     * Get service fee
+     *
+     * @return int
+     */
+    protected function getServiceFee(): int
+    {
+        return (int)($this->paymentConfig['serviceFee'] ?? 0);
+    }
+
+    /**
      * Get the default product code
      *
      * @return ?string
@@ -422,6 +425,18 @@ abstract class AbstractBase implements
     protected function getServiceFeeTaxRate(): ?string
     {
         return $this->paymentConfig['serviceFeeTaxRate'] ?? null;
+    }
+
+    /**
+     * Get source ILS for patron
+     *
+     * @param array $patron Patron
+     *
+     * @return string
+     */
+    protected function getSourceIls(array $patron): string
+    {
+        return $patron['__source'] ?? 'default';
     }
 
     /**

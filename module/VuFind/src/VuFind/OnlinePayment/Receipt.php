@@ -297,12 +297,12 @@ class Receipt implements TranslatorAwareInterface
             $from = new Address($fromOverride, $name);
         }
 
-        $sourceIls = $this->getSource($payment);
+        $sourceIls = $payment->getSourceIls();
         $sourceName = $this->getSourceName($payment);
         $contactInfo = $this->getContactInfo($sourceIls);
         $messageContent = $this->renderer->partial(
             'Email/receipt.phtml',
-            compact('user', 'patronProfile', 'payment', 'source', 'sourceName', 'contactInfo')
+            compact('user', 'patronProfile', 'payment', 'sourceIls', 'sourceName', 'contactInfo')
         );
         $pdf = (new DataPart($data['pdf'], $data['filename'], 'application/pdf'))->asInline();
 

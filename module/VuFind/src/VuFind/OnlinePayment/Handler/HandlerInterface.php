@@ -66,11 +66,8 @@ interface HandlerInterface
      * @param string              $notifyBaseUrl Notify URL
      * @param UserEntityInterface $user          User
      * @param array               $patron        Patron information
-     * @param string              $sourceIls     Patron MultiBackend source ILS
      * @param int                 $amount        Amount (excluding service fee)
-     * @param int                 $serviceFee    Service fee
      * @param array               $fines         Fines data
-     * @param string              $currency      Currency
      * @param string              $paymentParam  Payment status URL parameter
      *
      * @return void
@@ -82,11 +79,8 @@ interface HandlerInterface
         string $notifyBaseUrl,
         UserEntityInterface $user,
         array $patron,
-        string $sourceIls,
         int $amount,
-        int $serviceFee,
         array $fines,
-        string $currency,
         string $paymentParam
     ): void;
 

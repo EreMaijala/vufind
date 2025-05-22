@@ -91,46 +91,17 @@ trait OnlinePaymentTrait
     {
         $view->onlinePaymentEnabled = false;
         $sourceIls = $patron['__source'] ?? 'default';
-        // Check if payment handler is configured
-        $onlinePaymentManager = $this->serviceLocator->get(OnlinePaymentManager::class);
-        if (!$onlinePaymentManager->isEnabled($sourceIls)) {
-            $this->handleDebugMsg("Online payment not enabled for $sourceIls");
-            return;
-        }
-
-        try {
-            if (!($paymentHandler = $this->getOnlinePaymentHandler($sourceIls))) {
-                $this->handleDebugMsg("No online payment handler defined for $sourceIls");
-                return;
-            }
-        } catch (\Exception $e) {
-            $this->handleError("Could not initialize payment handler for $sourceIls: " . (string)$e);
-            return;
-        }
-
-        $catalog = $this->getILS();
-
-        // Check if online payment configuration exists for the ILS driver
-        $paymentConfig = $onlinePaymentManager->getOnlinePaymentConfig($sourceIls);
-        if (empty($paymentConfig)) {
-            $this->handleDebugMsg("No online payment ILS configuration for $sourceIls");
-            return;
-        }
-
-        // Check if online payment is enabled for the ILS driver
-        if (!$catalog->checkFunction('registerPayment', compact('patron'))) {
-            $this->handleDebugMsg("registerPayment not available for $sourceIls");
-            return;
-        }
-
-        // Check that mandatory settings exist
-        if (!isset($paymentConfig['currency'])) {
-            $this->handleError("Mandatory setting 'currency' missing from ILS driver for $sourceIls");
-            return;
-        }
 
         if (!($user = $this->getUser())) {
             $this->handleError('Could not get user');
+            return;
+        }
+
+        // Check if online payment configuration exists and is valid for the ILS driver
+        $onlinePaymentManager = $this->serviceLocator->get(OnlinePaymentManager::class);
+        $paymentConfig = $onlinePaymentManager->getAndValidateOnlinePaymentConfig($patron);
+        if (!$paymentConfig) {
+            $this->handleDebugMsg("No online payment ILS configuration for $sourceIls");
             return;
         }
 
@@ -223,25 +194,16 @@ trait OnlinePaymentTrait
             // doesn't have access to user's session:
             $notifyUrl = $this->getServerUrl('home') . 'AJAX/onlinePaymentNotify?lng='
                 . urlencode($this->getTranslatorLocale());
-            [$driver, ] = explode('.', $patron['cat_username'], 2);
-
-            $patronProfile = array_merge(
-                $patron,
-                $catalog->getMyProfile($patron)
-            );
 
             // Start payment
             try {
-                $paymentHandler->startPayment(
+                $onlinePaymentManager->startPayment(
                     $returnUrl,
                     $notifyUrl,
                     $user,
-                    $patronProfile,
-                    $driver,
+                    $patron,
                     $paymentDetails['amount'],
-                    $view->serviceFee,
                     $paymentDetails['fines'],
-                    $paymentConfig['currency'],
                     'local_payment_id'
                 );
             } catch (PaymentException $e) {

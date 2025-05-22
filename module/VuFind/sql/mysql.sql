@@ -475,19 +475,16 @@ CREATE TABLE `payment` (
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `payment_fee` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) NOT NULL,
   `payment_id` int(11) NOT NULL,
   `title` varchar(255) NOT NULL DEFAULT '',
   `type` varchar(255) NOT NULL DEFAULT '',
   `description` varchar(255) NOT NULL DEFAULT '',
   `amount` int NOT NULL DEFAULT '0',
-  `currency` varchar(3) NOT NULL DEFAULT 'EUR',
+  `currency` varchar(3) NOT NULL,
   `fine_id` mediumtext NOT NULL DEFAULT '',
   `organization` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `payment_fee_ibfk1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `payment_fee_ibfk2` FOREIGN KEY (`payment_id`) REFERENCES `payment` (`id`) ON DELETE CASCADE
+  CONSTRAINT `payment_fee_ibfk1` FOREIGN KEY (`payment_id`) REFERENCES `payment` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 collate utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

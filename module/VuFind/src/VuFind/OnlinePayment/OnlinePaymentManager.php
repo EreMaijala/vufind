@@ -36,6 +36,7 @@ use Laminas\Session\SessionManager;
 use Laminas\Stdlib\RequestInterface;
 use VuFind\Auth\ILSAuthenticator;
 use VuFind\Db\Entity\PaymentEntityInterface;
+use VuFind\Db\Entity\UserEntityInterface;
 use VuFind\Db\Service\PaymentEventLogServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
 use VuFind\Db\Service\UserCardServiceInterface;
@@ -138,6 +139,51 @@ class OnlinePaymentManager implements LoggerAwareInterface
     }
 
     /**
+     * Start payment.
+     *
+     * Starts payment with the payment service and redirects the user to the service.
+     *
+     * @param string              $returnBaseUrl Return URL
+     * @param string              $notifyBaseUrl Notify URL
+     * @param UserEntityInterface $user          User
+     * @param array               $patron        Patron information
+     * @param int                 $amount        Amount (excluding service fee)
+     * @param array               $fines         Fines data
+     * @param string              $paymentParam  Payment status URL parameter
+     *
+     * @return void
+     *
+     * @throws PaymentException
+     */
+    public function startPayment(
+        string $returnBaseUrl,
+        string $notifyBaseUrl,
+        UserEntityInterface $user,
+        array $patron,
+        int $amount,
+        array $fines,
+        string $paymentParam
+    ) {
+        $sourceIls = $this->getSourceIls($patron);
+        $paymentHandler = $this->getHandler($sourceIls);
+
+        $patronProfile = array_merge(
+            $patron,
+            $this->ils->getMyProfile($patron)
+        );
+
+        $paymentHandler->startPayment(
+            $returnBaseUrl,
+            $notifyBaseUrl,
+            $user,
+            $patronProfile,
+            $amount,
+            $fines,
+            $paymentParam
+        );
+    }
+
+    /**
      * Process a response from a payment handler
      *
      * @param PaymentEntityInterface $payment    Payment
@@ -169,7 +215,7 @@ class OnlinePaymentManager implements LoggerAwareInterface
         if (
             $markedAsPaid
             && ($patron = $this->getPatronForPayment($payment))
-            && ($paymentConfig = $this->getOnlinePaymentConfig($patron['__source'] ?? 'default'))
+            && ($paymentConfig = $this->getOnlinePaymentConfig($this->getSourceIls($patron)))
             && ($paymentConfig['receipt'] ?? false)
         ) {
             try {
@@ -293,7 +339,7 @@ class OnlinePaymentManager implements LoggerAwareInterface
         $details = $this->ils->getOnlinePaymentDetails($patron, $fines, $selectedFineIds);
         // Check minimum payment:
         if ($details['payable']) {
-            $paymentConfig = $this->getOnlinePaymentConfig($patron['__source'] ?? 'default');
+            $paymentConfig = $this->getOnlinePaymentConfig($this->getSourceIls($patron));
             $serviceFee = $paymentConfig['serviceFee'] ?? 0;
             $minimumFee = $paymentConfig['minimumFee'] ?? 0;
             if ($details['amount'] + $serviceFee < $minimumFee) {
@@ -429,6 +475,52 @@ class OnlinePaymentManager implements LoggerAwareInterface
     {
         // There are several instances where false could be returned instead of an array, so account for that:
         return ($this->ils->getConfig('OnlinePayment', ['__source' => $sourceIls]) ?? []) ?: [];
+    }
+
+    /**
+     * Get and validate online payment configuration for an ILS patron.
+     *
+     * @param array $patron Patron
+     *
+     * @return array
+     */
+    public function getAndValidateOnlinePaymentConfig(array $patron): array
+    {
+        $sourceIls = $this->getSourceIls($patron);
+        $paymentConfig = $this->getOnlinePaymentConfig($sourceIls);
+
+        if (!$paymentConfig['enabled'] ?? false) {
+            return [];
+        }
+
+        // Check if online payment is enabled for the ILS driver
+        if (!$this->ils->checkFunction('registerPayment', compact('patron'))) {
+            $this->debug("registerPayment not available for $sourceIls");
+            return [];
+        }
+
+        // Check that mandatory settings exist
+        $mandatory = ['currency', 'handler'];
+        foreach ($mandatory as $current) {
+            if (empty($paymentConfig[$current])) {
+                $this->logError("Mandatory setting '$current' missing from ILS driver for $sourceIls");
+                return [];
+            }
+        }
+
+        return $paymentConfig;
+    }
+
+    /**
+     * Get patron's source ILS
+     *
+     * @param array $patron Patron
+     *
+     * @return string
+     */
+    protected function getSourceIls(array $patron): string
+    {
+        return $patron['__source'] ?? 'default';
     }
 
     /**

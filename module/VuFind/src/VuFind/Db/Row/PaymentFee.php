@@ -32,7 +32,6 @@ namespace VuFind\Db\Row;
 
 use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Entity\PaymentFeeEntityInterface;
-use VuFind\Db\Entity\UserEntityInterface;
 
 /**
  * Row definition for payment fee
@@ -45,7 +44,6 @@ use VuFind\Db\Entity\UserEntityInterface;
  * @link     http://vufind.org   Main Site
  *
  * @property string $payment_id
- * @property int $user_id
  * @property string $title
  * @property string $type
  * @property string $description
@@ -102,29 +100,6 @@ class PaymentFee extends \VuFind\Db\Row\RowGateway implements
     {
         return $this->getDbService(\VuFind\Db\Service\PaymentServiceInterface::class)
             ->getPaymentById($this->payment_id);
-    }
-
-    /**
-     * Set user.
-     *
-     * @param UserEntityInterface $user User owning the list.
-     *
-     * @return static
-     */
-    public function setUser(UserEntityInterface $user): static
-    {
-        $this->user_id = $user->getId();
-        return $this;
-    }
-
-    /**
-     * Get user.
-     *
-     * @return UserEntityInterface
-     */
-    public function getUser(): UserEntityInterface
-    {
-        return $this->getDbService(\VuFind\Db\Service\UserServiceInterface::class)->getUserById($this->user_id);
     }
 
     /**

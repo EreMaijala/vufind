@@ -64,22 +64,6 @@ interface PaymentFeeEntityInterface extends EntityInterface
     public function getPayment(): PaymentEntityInterface;
 
     /**
-     * Set user.
-     *
-     * @param UserEntityInterface $user User.
-     *
-     * @return static
-     */
-    public function setUser(UserEntityInterface $user): static;
-
-    /**
-     * Get user.
-     *
-     * @return UserEntityInterface
-     */
-    public function getUser(): UserEntityInterface;
-
-    /**
      * Title setter
      *
      * @param string $title Title
