@@ -1085,7 +1085,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
         $fines = rand() % 20 - 2;
 
         $paymentConfig = $this->config['OnlinePayment'] ?? [];
-        $nonPayable = $paymentConfig['nonPayable'] ?? [];
+        $nonPayable = $paymentConfig['nonPayableTypes'] ?? [];
 
         $fineList = [];
         $firstId = rand(1, 1000);
@@ -1108,10 +1108,8 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
             $fineList[] = [
                 'fine_id'  => $firstId + $i,
                 'amount'   => $fine * 100,
-                'checkout' => $this->dateConverter
-                    ->convertToDisplayDate('U', $checkout),
-                'createdate' => $this->dateConverter
-                    ->convertToDisplayDate('U', time()),
+                'checkout' => $this->dateConverter->convertToDisplayDate('U', $checkout),
+                'createdate' => $this->dateConverter->convertToDisplayDate('U', time()),
                 'fine'     => $type,
                 // Additional description for long overdue fines:
                 'description' => 'Manual Fee' === $type ? 'Interlibrary loan request fee' : '',
@@ -1174,45 +1172,35 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      */
     public function getOnlinePaymentDetails(array $patron, array $fines, ?array $selectedFineIds): array
     {
-        $failureResult = [
-            'payable' => false,
-            'amount' => 0,
-            'fines' => [],
-            'reason' => 'Payment::minimum_payment',
-        ];
-        if (!$fines) {
-            return $failureResult;
-        }
         $amount = 0;
         $payableFines = [];
-        $config = $this->getConfig('OnlinePayment');
+        $config = $this->config['OnlinePayment'] ?? [];
         foreach ($fines as $fine) {
+            // Nothing can be paid if there are blocking fine types:
+            if (in_array($fine['fine'], $config['blockingNonPayableTypes'] ?? [])) {
+                return [
+                    'payable' => false,
+                    'amount' => 0,
+                    'fines' => [],
+                    'reason' => 'Payment::fines_contain_nonpayable_fees',
+                ];
+            }
             if (
                 null !== $selectedFineIds
                 && !in_array($fine['fine_id'], $selectedFineIds)
             ) {
                 continue;
             }
-            // Nothing can be paid if there are blocking fine types:
-            if (in_array($fine['fine'], $config['blockingNonPayable'] ?? [])) {
-                $failureResult['reason'] = 'Payment::fines_contain_nonpayable_fees';
-                return $failureResult;
-            } elseif ($fine['payable_online'] ?? false) {
+            if ($fine['payable_online'] ?? false) {
                 $amount += $fine['balance'];
                 $payableFines[] = $fine;
             }
         }
-        // Check minimum payment:
-        $serviceFee = $config['serviceFee'] ?? 0;
-        if ($amount + $serviceFee < ($config['minimumFee'] ?? 0)) {
-            return $failureResult;
-        }
-        $res = [
+        return [
             'payable' => $amount > 0,
             'amount' => $amount,
             'fines' => $payableFines,
         ];
-        return $res;
     }
 
     /**
@@ -1228,7 +1216,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
      * @param ?array  $fineIds                 Fine IDs to mark paid or null for bulk payment
      *
      * @throws ILSException
-     * @return true|string True on success, error description on error
+     * @return array Associative array with keys success (bool, always) and reason (string, on error)
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
@@ -1239,7 +1227,7 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
         ?string $remotePaymentIdentifier,
         int $paymentId,
         ?array $fineIds = null
-    ) {
+    ): array {
         if ($this->isFailing(__METHOD__, 10)) {
             throw new ILSException('Payment::registration_failed');
         }
@@ -1266,7 +1254,9 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
             ];
         }
 
-        return true;
+        return [
+            'success' => true,
+        ];
     }
 
     /**

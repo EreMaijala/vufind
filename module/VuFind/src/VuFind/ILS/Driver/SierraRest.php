@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2016-2024.
+ * Copyright (C) The National Library of Finland 2016-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -255,6 +255,27 @@ class SierraRest extends AbstractBase implements
     protected $fineTypeMappings = [];
 
     /**
+     * Types of fines that can be paid online
+     *
+     * @var array
+     */
+    protected $onlinePayableFineTypes = [2, 4, 5, 6];
+
+    /**
+     * Manual fine description regexp patterns that allow online payment
+     *
+     * @var array
+     */
+    protected $onlinePayableManualFineDescriptionPatterns = [];
+
+    /**
+     * Product code mappings for fines
+     *
+     * @var array
+     */
+    protected $productCodeMappings = [];
+
+    /**
      * Status codes indicating that a hold is available for pickup
      *
      * @var array
@@ -482,6 +503,23 @@ class SierraRest extends AbstractBase implements
         }
         $this->patronBlockMappings = $this->config['PatronBlockMappings'] ?? [];
         $this->fineTypeMappings = (array)($this->config['FineTypeMappings'] ?? []);
+        if ($types = $this->config['OnlinePayment']['fineTypes'] ?? '') {
+            $this->onlinePayableFineTypes = $this->explodeSetting(',', $types);
+        }
+        $this->onlinePayableManualFineDescriptionPatterns
+            = $this->config['OnlinePayment']['manualFineDescriptions'] ?? [];
+        if ($mappings = $this->config['OnlinePayment']['driverProductCodeMappings'] ?? []) {
+            foreach ($mappings as $mapping) {
+                $parts = explode('=', $mapping, 2);
+                if (!isset($parts[1])) {
+                    continue;
+                }
+                $this->productCodeMappings[] = [
+                    'productCode' => $parts[0],
+                    'regexp' => $parts[1],
+                ];
+            }
+        }
 
         if (isset($this->config['Catalog']['api_version'])) {
             $this->apiVersion = $this->config['Catalog']['api_version'];
@@ -1576,6 +1614,7 @@ class SierraRest extends AbstractBase implements
             [$this->apiBase, 'patrons', $patron['id'], 'fines'],
             [
                 'limit' => 10000,
+                'fields' => 'default,invoiceNumber',
             ],
             'GET',
             $patron
@@ -1624,10 +1663,10 @@ class SierraRest extends AbstractBase implements
             }
 
             $fines[] = [
-                'amount' => $amount * 100,
+                'amount' => (int)round($amount * 100),
                 'fine' => $this->fineTypeMappings[$type] ?? $type,
                 'description' => $entry['description'] ?? '',
-                'balance' => $balance * 100,
+                'balance' => (int)round($balance * 100),
                 'createdate' => $this->dateConverter->convertToDisplayDate(
                     'Y-m-d',
                     $entry['assessedDate']
@@ -1635,9 +1674,163 @@ class SierraRest extends AbstractBase implements
                 'checkout' => '',
                 'id' => $this->formatBibId($bibId),
                 'title' => $title,
+                'fine_id' => $this->extractId($entry['id']),
+                'organization' => substr($entry['location']['code'] ?? '', 0, 1),
+                'payable_online' => $balance > 0 && $this->finePayableOnline($entry),
+                'product_code' => $this->getFineProductCode($entry),
+                '__invoice_number' => $entry['invoiceNumber'], // Internal invoice number required for payment
             ];
         }
         return $fines;
+    }
+
+    /**
+     * Return details on fees payable online.
+     *
+     * @param array  $patron          Patron
+     * @param array  $fines           Patron's fines
+     * @param ?array $selectedFineIds Selected fines
+     *
+     * @throws ILSException
+     * @return array Associative array of payment details
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function getOnlinePaymentDetails(array $patron, array $fines, ?array $selectedFineIds): array
+    {
+        $amount = 0;
+        $payableFines = [];
+        $config = $this->config['OnlinePayment'] ?? [];
+        foreach ($fines as $fine) {
+            // Nothing can be paid if there are blocking fine types:
+            if (in_array($fine['fine'], $config['blockingNonPayableTypes'] ?? [])) {
+                return [
+                    'payable' => false,
+                    'amount' => 0,
+                    'fines' => [],
+                    'reason' => 'Payment::fines_contain_nonpayable_fees',
+                ];
+            }
+            if (
+                null !== $selectedFineIds
+                && !in_array($fine['fine_id'], $selectedFineIds)
+            ) {
+                continue;
+            }
+            if ($fine['payable_online']) {
+                $amount += $fine['balance'];
+                $payableFines[] = $fine;
+            }
+        }
+        return [
+            'payable' => $amount > 0,
+            'amount' => $amount,
+            'fines' => $payableFines,
+        ];
+    }
+
+    /**
+     * Register a payment.
+     *
+     * This is called after a successful online payment.
+     *
+     * @param array   $patron                  Patron
+     * @param int     $amount                  Amount to be registered as paid
+     * @param string  $localPaymentIdentifier  Local payment identifier
+     * @param ?string $remotePaymentIdentifier Remote payment identifier
+     * @param int     $paymentId               Internal payment id
+     * @param ?array  $fineIds                 Fine IDs to mark paid or null for bulk payment
+     *
+     * @throws ILSException
+     * @return array Associative array with keys success (bool, always) and reason (string, on error)
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function registerPayment(
+        array $patron,
+        int $amount,
+        string $localPaymentIdentifier,
+        ?string $remotePaymentIdentifier,
+        int $paymentId,
+        ?array $fineIds = null
+    ): array {
+        if (empty($fineIds)) {
+            $this->logError('Bulk payment not supported');
+            throw new ILSException('Bulk payment not supported');
+        }
+
+        $fines = $this->getMyFines($patron);
+        if (!$fines) {
+            $this->logError('No fines to pay found');
+            return [
+                'success' => false,
+                'reason' => 'Payment::error_fines_changed',
+            ];
+        }
+
+        $amountRemaining = $amount;
+        $payments = [];
+        foreach ($fines as $fine) {
+            if (
+                in_array($fine['fine_id'], $fineIds)
+                && $fine['payable_online'] && $fine['balance'] > 0
+            ) {
+                $pay = (int)round(min($fine['balance'], $amountRemaining));
+                $payments[] = [
+                    'amount' => $pay,
+                    'paymentType' => 1,
+                    'invoiceNumber' => (string)$fine['__invoice_number'],
+                ];
+                $amountRemaining -= $pay;
+            }
+        }
+        if (!$payments) {
+            $this->logError('Fine IDs do not match any of the payable fines');
+            return [
+                'success' => false,
+                'reason' => 'Payment::error_fines_changed',
+            ];
+        }
+
+        $request = [
+            'payments' => $payments,
+        ];
+        if ($this->statGroup) {
+            $request['statgroup'] = $this->statGroup;
+        }
+
+        $result = $this->makeRequest(
+            [
+                'v6', 'patrons', $patron['id'], 'fines', 'payment',
+            ],
+            json_encode($request),
+            'PUT',
+            $patron,
+            true
+        );
+
+        if (!in_array($result['statusCode'], ['200', '204'])) {
+            $this->logError(
+                "Payment request failed with status code {$result['statusCode']}: "
+                . (var_export($result['response'] ?? '', true))
+            );
+            return [
+                'success' => false,
+                'reason' => 'Payment::error_payment_request_failed',
+            ];
+        }
+        // Sierra doesn't support storing any remaining amount, so we'll just have to
+        // live with the assumption that any fine amount didn't somehow get smaller
+        // during payment. That would be unlikely in any case.
+
+        // Clear patron's block cache
+        $patronId = $patron['id'];
+        $cacheId = "blocks|$patronId";
+        $this->removeCachedData($cacheId);
+
+        return [
+            'success' => true,
+        ];
     }
 
     /**
@@ -1728,6 +1921,13 @@ class SierraRest extends AbstractBase implements
                 'purge_selected'  => $this->config['TransactionHistory']['purgeSelected'] ?? true,
             ];
         }
+        if ('OnlinePayment' === $function) {
+            $result = $this->config['OnlinePayment'] ?? [];
+            $result['exactBalanceRequired'] = false;
+            $result['selectFines'] = true;
+            return $result;
+        }
+
         return $this->config[$function] ?? false;
     }
 
@@ -3637,5 +3837,49 @@ WHERE
             $titleInfo['author'] = 'Unknown Author';
         }
         return $titleInfo;
+    }
+
+    /**
+     * Check if a fine can be paid online
+     *
+     * @param array $fine Fine
+     *
+     * @return bool
+     */
+    protected function finePayableOnline(array $fine): bool
+    {
+        $code = $fine['chargeType']['code'] ?? 0;
+        $desc = $fine['description'] ?? '';
+        if (in_array($code, $this->onlinePayableFineTypes)) {
+            return true;
+        }
+        foreach ($this->onlinePayableManualFineDescriptionPatterns as $pattern) {
+            if (preg_match($pattern, $desc)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get a product code for a fine
+     *
+     * @param array $fine Fine
+     *
+     * @return ?string
+     */
+    protected function getFineProductCode(array $fine): ?string
+    {
+        $location = $fine['location']['code'] ?? '';
+        $type = $fine['chargeType']['code'] ?? 0;
+        $desc = $fine['description'] ?? '';
+
+        $key = "$location--$type--$desc";
+        foreach ($this->productCodeMappings as $mapping) {
+            if (preg_match($mapping['regexp'], $key)) {
+                return $mapping['productCode'];
+            }
+        }
+        return null;
     }
 }

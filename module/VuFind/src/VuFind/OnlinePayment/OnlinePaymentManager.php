@@ -269,6 +269,42 @@ class OnlinePaymentManager implements LoggerAwareInterface
     }
 
     /**
+     * Return details on fees payable online.
+     *
+     * @param array  $patron          Patron
+     * @param array  $fines           Patron's fines
+     * @param ?array $selectedFineIds Selected fines
+     *
+     * @throws ILSException
+     * @return array Associative array of payment details
+     *
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     */
+    public function getAndCheckOnlinePaymentDetails(array $patron, array $fines, ?array $selectedFineIds): array
+    {
+        if (!$fines) {
+            return [
+                'payable' => false,
+                'amount' => 0,
+                'fines' => [],
+                'reason' => 'Payment::minimum_payment',
+            ];
+        }
+        $details = $this->ils->getOnlinePaymentDetails($patron, $fines, $selectedFineIds);
+        // Check minimum payment:
+        if ($details['payable']) {
+            $paymentConfig = $this->getOnlinePaymentConfig($patron['__source'] ?? 'default');
+            $serviceFee = $paymentConfig['serviceFee'] ?? 0;
+            $minimumFee = $paymentConfig['minimumFee'] ?? 0;
+            if ($details['amount'] + $serviceFee < $minimumFee) {
+                $details['payable'] = false;
+                $details['reason'] = 'Payment::minimum_payment';
+            }
+        }
+        return $details;
+    }
+
+    /**
      * Register a payment with ILS for the given patron
      *
      * @param PaymentEntityInterface $payment Payment
@@ -302,7 +338,7 @@ class OnlinePaymentManager implements LoggerAwareInterface
             try {
                 $fines = $this->ils->getMyFines($patron);
                 // Filter by fines selected for the payment if fine_id field is available:
-                $finesAmount = $this->ils->getOnlinePaymentDetails(
+                $paymentDetails = $this->getAndCheckOnlinePaymentDetails(
                     $patron,
                     $fines,
                     $fineIds ?: null
@@ -316,16 +352,16 @@ class OnlinePaymentManager implements LoggerAwareInterface
             $exact = $paymentConfig['exactBalanceRequired'] ?? true;
             $noCredit = $exact || !empty($paymentConfig['creditUnsupported']);
             if (
-                $finesAmount['payable'] && !empty($finesAmount['amount'])
-                && (($exact && $payment->getAmount() != $finesAmount['amount'])
-                || ($noCredit && $payment->getAmount() > $finesAmount['amount']))
+                $paymentDetails['payable'] && !empty($paymentDetails['amount'])
+                && (($exact && $payment->getAmount() != $paymentDetails['amount'])
+                || ($noCredit && $payment->getAmount() > $paymentDetails['amount']))
             ) {
                 // Payable sum updated. Skip registration and inform user
                 // that payment processing has been delayed.
                 $this->logError(
                     'Payment ' . $payment->getLocalIdentifier() . ': payable sum updated.'
                     . ' Paid amount: ' . $payment->getAmount() . ', payable: '
-                    . var_export($finesAmount, true)
+                    . var_export($paymentDetails, true)
                 );
                 $payment->setFinesUpdated();
                 $this->paymentService->persistEntity($payment);
@@ -348,12 +384,12 @@ class OnlinePaymentManager implements LoggerAwareInterface
                 'Payment ' . $payment->getLocalIdentifier() . ': done marking fees as paid, result: '
                 . var_export($res, true)
             );
-            if (true !== $res) {
+            if (!$res['success']) {
                 $this->logError(
                     'Payment registration error (patron ' . $patron['id'] . '): '
-                    . 'registerPayment failed: ' . ($res ?: 'no error information')
+                    . 'registerPayment failed: ' . ($res['reason'] ?? 'no error information')
                 );
-                if ('fines_updated' === $res) {
+                if ('Payment::error_fines_changed' === $res['reason']) {
                     $payment->setFinesUpdated();
                     $this->paymentService->persistEntity($payment);
                     $this->addPaymentEvent($payment, 'Registration with the ILS failed: fines updated');
@@ -362,7 +398,7 @@ class OnlinePaymentManager implements LoggerAwareInterface
                     $this->paymentService->persistEntity($payment);
                     $this->addPaymentEvent(
                         $payment,
-                        'Registration with the ILS failed: ' . ($res ?: 'no error information')
+                        'Registration with the ILS failed: ' . ($res['reason'] ?? 'no error information')
                     );
                 }
                 return false;
@@ -391,7 +427,8 @@ class OnlinePaymentManager implements LoggerAwareInterface
      */
     public function getOnlinePaymentConfig(string $sourceIls): array
     {
-        return $this->ils->getConfig('OnlinePayment', ['__source' => $sourceIls]) ?? [];
+        // There are several instances where false could be returned instead of an array, so account for that:
+        return ($this->ils->getConfig('OnlinePayment', ['__source' => $sourceIls]) ?? []) ?: [];
     }
 
     /**

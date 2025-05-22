@@ -139,12 +139,12 @@ trait OnlinePaymentTrait
         $selectedIds = ($selectFees && $pay)
             ? $this->getRequest()->getPost()->get('selectedIDS', [])
             : null;
-        $payableOnline = $catalog->getOnlinePaymentDetails(
+        $paymentDetails = $onlinePaymentManager->getAndCheckOnlinePaymentDetails(
             $patron,
             $fines,
             $selectedIds
         );
-        if ($selectedIds && empty($payableOnline['fines'])) {
+        if ($selectedIds && !$paymentDetails['fines']) {
             $this->handleError("Fines to pay missing from ILS driver for $sourceIls");
             return;
         }
@@ -153,10 +153,10 @@ trait OnlinePaymentTrait
         $view->paymentHandler = $onlinePaymentManager->getHandlerName($sourceIls);
         $view->serviceFee = $paymentConfig['serviceFee'] ?? 0;
         $view->minimumFee = $paymentConfig['minimumFee'] ?? 0;
-        $view->payableOnline = $payableOnline['amount'];
-        $view->payableTotal = $payableOnline['amount'] + $view->serviceFee;
-        $view->payableOnlineCnt = count($payableOnline['fines']);
-        $view->nonPayableFines = count($fines) != count($payableOnline['fines']);
+        $view->payableOnline = $paymentDetails['amount'];
+        $view->payableTotal = $paymentDetails['amount'] + $view->serviceFee;
+        $view->payableOnlineCnt = count($paymentDetails['fines']);
+        $view->nonPayableFines = count($fines) != count($paymentDetails['fines']);
         $view->registerPayment = false;
         $view->selectFees = $selectFees;
 
@@ -185,8 +185,8 @@ trait OnlinePaymentTrait
         $paymentInProgress = $paymentService->isPaymentInProgressForPatron($patron['cat_username']);
         if (
             $pay
-            && $payableOnline['payable']
-            && $payableOnline['amount']
+            && $paymentDetails['payable']
+            && $paymentDetails['amount']
             && !$paymentInProgress
         ) {
             // Check CSRF:
@@ -211,7 +211,7 @@ trait OnlinePaymentTrait
                 (($paymentConfig['exactBalanceRequired'] ?? true)
                 || !empty($paymentConfig['creditUnsupported']))
                 && !$selectFees
-                && $onlinePaymentManager->getStoredPayableAmount($patron) !== $payableOnline['amount']
+                && $onlinePaymentManager->getStoredPayableAmount($patron) !== $paymentDetails['amount']
             ) {
                 // Fines updated, redirect and show updated list.
                 $this->flashMessenger()->addErrorMessage('Payment::error_fines_changed');
@@ -238,9 +238,9 @@ trait OnlinePaymentTrait
                     $user,
                     $patronProfile,
                     $driver,
-                    $payableOnline['amount'],
+                    $paymentDetails['amount'],
                     $view->serviceFee,
-                    $payableOnline['fines'],
+                    $paymentDetails['fines'],
                     $paymentConfig['currency'],
                     'local_payment_id'
                 );
@@ -299,10 +299,10 @@ trait OnlinePaymentTrait
                 $this->flashMessenger()->addErrorMessage('Payment::registration_failed');
             } else {
                 // Check if payment is permitted:
-                $allowPayment = $payableOnline && $payableOnline['payable'] && $payableOnline['amount'];
+                $allowPayment = $paymentDetails['payable'] && $paymentDetails['amount'];
 
                 // Save current payable amount to session:
-                $onlinePaymentManager->storePayableAmount($patron, $payableOnline['amount']);
+                $onlinePaymentManager->storePayableAmount($patron, $paymentDetails['amount']);
 
                 if ($onlinePaymentManager->getAndClearPaymentSuccessFlag()) {
                     $this->flashMessenger()->addSuccessMessage('Payment::Payment Successful');
@@ -310,8 +310,8 @@ trait OnlinePaymentTrait
 
                 $view->onlinePaymentEnabled = $allowPayment;
                 $view->selectedIds = $this->getRequest()->getPost()->get('selectedIDS', []);
-                if (!empty($payableOnline['reason'])) {
-                    $view->nonPayableReason = $payableOnline['reason'];
+                if (!empty($paymentDetails['reason'])) {
+                    $view->nonPayableReason = $paymentDetails['reason'];
                 } elseif ($this->formWasSubmitted('pay')) {
                     $view->setTemplate('myresearch/fines-confirm-pay.phtml');
                 } else {

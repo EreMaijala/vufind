@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2023.
+ * Copyright (C) The National Library of Finland 2023-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -73,6 +73,7 @@ class ReceiptFactory implements FactoryInterface
         return new $requestedName(
             $configManager->get('config')->toArray(),
             $container->get(\VuFind\Date\Converter::class),
+            $container->get(\VuFind\I18n\Locale\LocaleSettings::class),
             $container->get(\VuFind\Service\CurrencyFormatter::class),
             $container->get('HttpRouter'),
             $container->get(\VuFind\Mailer\Mailer::class),

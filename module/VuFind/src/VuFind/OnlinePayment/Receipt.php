@@ -40,6 +40,7 @@ use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Entity\PaymentFeeEntityInterface;
 use VuFind\Db\Entity\UserEntityInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
+use VuFind\I18n\Locale\LocaleSettings;
 use VuFind\I18n\Translator\TranslatorAwareInterface;
 use VuFind\I18n\Translator\TranslatorAwareTrait;
 use VuFind\Mailer\Mailer;
@@ -81,10 +82,18 @@ class Receipt implements TranslatorAwareInterface
     protected int $bottom = 280;
 
     /**
+     * Payment configuration
+     *
+     * @var array
+     */
+    protected array $paymentConfig = [];
+
+    /**
      * Constructor.
      *
      * @param array                   $config            Main configuration
      * @param DateConverter           $dateConverter     Date converter
+     * @param LocaleSettings          $localeSettings    Locale settings
      * @param CurrencyFormatter       $currencyFormatter Currency formatter
      * @param RouteInterface          $router            Router
      * @param Mailer                  $mailer            Mailer
@@ -94,6 +103,7 @@ class Receipt implements TranslatorAwareInterface
     public function __construct(
         protected array $config,
         protected DateConverter $dateConverter,
+        protected LocaleSettings $localeSettings,
         protected CurrencyFormatter $currencyFormatter,
         protected RouteInterface $router,
         protected Mailer $mailer,
@@ -112,19 +122,20 @@ class Receipt implements TranslatorAwareInterface
      */
     public function createReceiptPDF(PaymentEntityInterface $payment, array $paymentConfig): array
     {
-        $source = $this->getSource($payment);
+        $this->paymentConfig = $paymentConfig;
+
+        $sourceIls = $payment->getSourceIls();
         $sourceName = $this->getSourceName($payment);
-        $contactInfo = $this->getContactInfo($source);
+        $contactInfo = $this->getContactInfo($sourceIls);
 
         $paidDate = $this->dateConverter->convertToDisplayDateAndTime(
             'U',
             $payment->getPaidDate()->getTimestamp()
         );
 
-        $dsConfig = $this->dataSourceConfig[$source] ?? [];
-        $businessId = $dsConfig['onlinePayment']['businessId'] ?? '';
+        $businessId = $paymentConfig['businessId'] ?? '';
         $organizationBusinessIdMappings = [];
-        if ($map = $dsConfig['onlinePayment']['organizationBusinessIdMappings'] ?? '') {
+        if ($map = $paymentConfig['organizationBusinessIdMappings'] ?? '') {
             foreach (explode(':', $map) as $item) {
                 $parts = explode('=', $item, 2);
                 if (count($parts) !== 2) {
@@ -145,14 +156,17 @@ class Receipt implements TranslatorAwareInterface
         }
 
         $heading = $this->translate('Payment::breakdown_title') . " - $sourceName";
-        [$language] = explode('-', $this->getTranslatorLocale(), 2);
+        $locale = $this->localeSettings->getUserLocale();
+        [$language] = explode('-', $locale, 2);
+        $rtl = $this->localeSettings->isRightToLeftLocale($locale);
         $languageConfig = [
             'a_meta_charset' => 'utf-8',
-            'a_meta_dir' => 'ltr',
+            'a_meta_dir' => $rtl ? 'rtl' : 'ltr',
             'a_meta_language' => $language,
             'w_page' => 'page',
         ];
-        $pdf = new TCPDF();
+        $format = $this->paymentConfig['receiptFormat'] ?? 'A4';
+        $pdf = new TCPDF(format: $format);
         $pdf->setLanguageArray($languageConfig);
         $pdf->SetCreator($this->config->Site->generator ?? 'VuFind');
         $pdf->SetLanguageArray(
@@ -192,14 +206,14 @@ class Receipt implements TranslatorAwareInterface
 
             $fineOrg = $fine->getOrganization();
             $lineBusinessId = $fineOrg ? ($organizationBusinessIdMappings[$fineOrg] ?? '') : '';
-            $this->addLine($pdf, $fine, $source, $sourceName, $businessId, $lineBusinessId, $hasFineOrgs);
+            $this->addLine($pdf, $fine, $sourceIls, $sourceName, $businessId, $lineBusinessId, $hasFineOrgs);
             // If we exceed bottom, revert and add a new page:
             if ($pdf->GetY() > $linesBottom) {
                 $pdf = $savePDF;
                 $pdf->AddPage();
                 $pdf->SetY(25);
                 $this->addHeaders($pdf, $hasFineOrgs);
-                $this->addLine($pdf, $fine, $source, $sourceName, $businessId, $lineBusinessId, $hasFineOrgs);
+                $this->addLine($pdf, $fine, $sourceIls, $sourceName, $businessId, $lineBusinessId, $hasFineOrgs);
             }
         }
         $pdf->SetY($pdf->GetY() + 1);
@@ -283,9 +297,9 @@ class Receipt implements TranslatorAwareInterface
             $from = new Address($fromOverride, $name);
         }
 
-        $source = $this->getSource($payment);
+        $sourceIls = $this->getSource($payment);
         $sourceName = $this->getSourceName($payment);
-        $contactInfo = $this->getContactInfo($source);
+        $contactInfo = $this->getContactInfo($sourceIls);
         $messageContent = $this->renderer->partial(
             'Email/receipt.phtml',
             compact('user', 'patronProfile', 'payment', 'source', 'sourceName', 'contactInfo')
@@ -358,7 +372,7 @@ class Receipt implements TranslatorAwareInterface
      *
      * @param TCPDF                     $pdf            PDF
      * @param PaymentFeeEntityInterface $fine           Fee or fine
-     * @param string                    $source         Source ID
+     * @param string                    $sourceIls      Source ILS
      * @param string                    $sourceName     Source name
      * @param string                    $businessId     Source business ID
      * @param string                    $lineBusinessId Line business ID
@@ -369,7 +383,7 @@ class Receipt implements TranslatorAwareInterface
     protected function addLine(
         TCPDF $pdf,
         PaymentFeeEntityInterface $fine,
-        string $source,
+        string $sourceIls,
         string $sourceName,
         string $businessId,
         string $lineBusinessId,
@@ -401,7 +415,7 @@ class Receipt implements TranslatorAwareInterface
 
         if ($recipient) {
             if (($fineOrg = $fine->getOrganization()) && $lineBusinessId) {
-                $recipient = $this->translate("Payment::organisation_{$source}_{$fineOrg}", [], $fineOrg)
+                $recipient = $this->translate("Payment::organisation_{$sourceIls}_{$fineOrg}", [], $fineOrg)
                     . " ($lineBusinessId)";
             } else {
                 $recipient = $sourceName . ($businessId ? " ($businessId)" : '');
@@ -460,19 +474,6 @@ class Receipt implements TranslatorAwareInterface
     }
 
     /**
-     * Get source identifier from payment
-     *
-     * @param PaymentEntityInterface $payment Payment
-     *
-     * @return string
-     */
-    protected function getSource(PaymentEntityInterface $payment): string
-    {
-        [$source] = explode('.', $payment->getCatUsername());
-        return $source;
-    }
-
-    /**
      * Get source name from payment
      *
      * @param PaymentEntityInterface $payment Payment
@@ -481,8 +482,8 @@ class Receipt implements TranslatorAwareInterface
      */
     protected function getSourceName(PaymentEntityInterface $payment): string
     {
-        $source = $this->getSource($payment);
-        return $this->translate('source_' . $source, [], $source);
+        $sourceIls = $payment->getSourceIls();
+        return $this->translate('source_' . $sourceIls, [], $sourceIls);
     }
 
     /**
@@ -494,19 +495,6 @@ class Receipt implements TranslatorAwareInterface
      */
     protected function getContactInfo(string $source): string
     {
-        $dsConfig = $this->dataSourceConfig[$source] ?? [];
-        if ($orgId = $dsConfig['onlinePayment']['organisationInfoId'] ?? '') {
-            return $this->router->assemble(
-                [],
-                [
-                    'name' => 'organisationinfo-home',
-                    'query' => [
-                        'id' => $orgId,
-                    ],
-                    'force_canonical' => true,
-                ]
-            );
-        }
-        return $dsConfig['onlinePayment']['contactInfo'] ?? '';
+        return $this->paymentConfig['contactInfo'] ?? '';
     }
 }

@@ -133,7 +133,7 @@
               <?=$this->transEsc('Payment::payable_online'); ?> (<?=$payableOnlineCnt ?>):
               <span class="amount"><?=$this->safeMoneyFormat($payableOnline / 100.00);?></span>
             </div>
-            <div class="online-payment-minimum-payment js-minimum-payment" data-raw="<?=$this->escapeHtmlAttr($minimumFee)?>" class="alert alert-warning hidden">
+            <div class="online-payment-minimum-payment js-minimum-payment hidden" data-raw="<?=$this->escapeHtmlAttr($minimumFee)?>">
               <?=$this->transEsc('Payment::minimum_payment'); ?>:
               <span class="amount"><?=$this->safeMoneyFormat($minimumFee / 100.00)?></span>
             </div>

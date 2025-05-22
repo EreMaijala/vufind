@@ -3,7 +3,7 @@ VuFind.register('fines', function fines() {
   const CHECKBOX_ITEM_SELECTOR = 'form#online_payment_form .js-select-item';
   const CHECKBOX_ALL_SELECTOR = 'form#online_payment_form .js-select-all';
 
-  var paySelectedDefaultText;
+  let paySelectedDefaultText;
 
   /**
    * Get the whole part from currency in cents
@@ -60,6 +60,63 @@ VuFind.register('fines', function fines() {
   }
 
   /**
+   * Update the information on fines selected for payment
+   */
+  function updateSelectedInfo() {
+    const payButton = document.querySelector('.js-pay-selected');
+    const minimumElem = document.querySelector('.js-minimum-payment');
+    const srInfoElem = document.querySelector('.js-selected-to-pay-sr');
+    const totalPaymentElem = document.querySelector('.js-payment-total-due');
+    const remainingElem = document.querySelector('.js-payment-remaining-amount');
+    if (!payButton || !minimumElem || !srInfoElem || !totalPaymentElem || !remainingElem) {
+      console.warn('Online payment page element(s) missing');
+      return;
+    }
+
+    // Count the balance for selected fees:
+    var selectedAmount = 0;
+    document.querySelectorAll(CHECKBOX_ITEM_SELECTOR + ':checked').forEach((cb) => {
+      selectedAmount += parseInt(cb.dataset.amount, 10);
+    });
+
+    // If something is selected, include any service fee:
+    var serviceFee = 0;
+    if (selectedAmount) {
+      const serviceFeeElem = document.querySelector('.js-service-fee');
+      if (serviceFeeElem) {
+        serviceFee = parseInt(serviceFeeElem.dataset.raw, 10);
+      }
+    }
+
+    const minimumAmount = parseInt(minimumElem.dataset.raw, 10);
+    if (selectedAmount + serviceFee >= minimumAmount) {
+      payButton.removeAttribute('disabled');
+      payButton.value = formatAmount(selectedAmount + serviceFee, payButton.dataset.template);
+      minimumElem.classList.add('hidden');
+      ariaLive(minimumElem, '');
+    } else {
+      payButton.setAttribute('disabled', 'disabled');
+      payButton.value = paySelectedDefaultText;
+      // Show minimum payable amount if it's non-zero:
+      if (minimumAmount) {
+        minimumElem.classList.remove('hidden');
+        ariaLive(minimumElem, 'polite');
+      } else {
+        minimumElem.classList.add('hidden');
+        ariaLive(minimumElem, '');
+      }
+    }
+
+    // Update SR info:
+    srInfoElem.textContent = formatAmount(selectedAmount + serviceFee, srInfoElem.dataset.template);
+    ariaLive(srInfoElem, 'polite');
+
+    // Update summary for remaining after payment:
+    const remainingAmount = parseInt(totalPaymentElem.dataset.raw, 10) - selectedAmount;
+    remainingElem.textContent = formatAmount(remainingAmount, remainingElem.dataset.template);
+  }
+
+  /**
    * Initialize payment
    * @returns {void}
    */
@@ -70,56 +127,11 @@ VuFind.register('fines', function fines() {
       // No button, no need to do anything
       return;
     }
-    const minimumElem = document.querySelector('.js-minimum-payment');
-    const srInfoElem = document.querySelector('.js-selected-to-pay-sr');
-    const totalPaymentElem = document.querySelector('.js-payment-total-due');
-    const remainingElem = document.querySelector('.js-payment-remaining-amount');
-    if (!minimumElem || !srInfoElem || !totalPaymentElem || !remainingElem) {
-      console.warn('Online payment page element(s) missing');
-      return;
-    }
 
     paySelectedDefaultText = payButton.value;
-    const checkCheckboxes = function () {
-      // Count the balance for selected fees:
-      var selectedAmount = 0;
-      document.querySelectorAll(CHECKBOX_ITEM_SELECTOR + ':checked').forEach((cb) => {
-        selectedAmount += parseInt(cb.dataset.amount, 10);
-      });
-
-      // If something is selected, include any service fee:
-      var serviceFee = 0;
-      if (selectedAmount) {
-        const serviceFeeElem = document.querySelector('.js-service-fee');
-        if (serviceFeeElem) {
-          serviceFee = parseInt(serviceFeeElem.dataset.raw, 10);
-        }
-      }
-
-      const minimumAmount = parseInt(minimumElem.dataset.raw, 10);
-      if (selectedAmount + serviceFee >= minimumAmount) {
-        payButton.removeAttribute('disabled');
-        payButton.value = formatAmount(selectedAmount + serviceFee, payButton.dataset.template);
-        minimumElem.classList.add('hidden');
-        ariaLive(minimumElem, '');
-      } else {
-        payButton.setAttribute('disabled', 'disabled');
-        payButton.value = paySelectedDefaultText;
-        minimumElem.classList.remove('hidden');
-        ariaLive(minimumElem, 'polite');
-      }
-
-      // Update SR info:
-      srInfoElem.textContent = formatAmount(selectedAmount + serviceFee, srInfoElem.dataset.template);
-      ariaLive(srInfoElem, 'polite');
-
-      // Update summary for remaining after payment:
-      const remainingAmount = parseInt(totalPaymentElem.dataset.raw, 10) - selectedAmount;
-      remainingElem.textContent = formatAmount(remainingAmount, remainingElem.dataset.template);
-    };
-
+    updateSelectedInfo();
     document.querySelectorAll(CHECKBOX_ITEM_SELECTOR + ',' + CHECKBOX_ALL_SELECTOR).forEach((checkbox) => {
-      checkbox.addEventListener('change', checkCheckboxes);
+      checkbox.addEventListener('change', updateSelectedInfo);
     });
   }
 
