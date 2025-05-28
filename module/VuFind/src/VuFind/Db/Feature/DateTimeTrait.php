@@ -51,7 +51,9 @@ trait DateTimeTrait
      */
     protected function getNullableDateTimeFromNonNullable(DateTime $date): ?DateTime
     {
-        return $date !== $this->getUnassignedDefaultDateTime() ? $date : null;
+        return $date->format('Y-m-d H:i:s') !== $this->getUnassignedDefaultDateTime()->format('Y-m-d H:i:s')
+            ? $date
+            : null;
     }
 
     /**
