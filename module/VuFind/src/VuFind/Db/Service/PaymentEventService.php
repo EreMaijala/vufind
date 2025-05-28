@@ -87,7 +87,7 @@ class PaymentEventService extends AbstractDbService implements PaymentEventServi
     public function getEventsForPayment(PaymentEntityInterface $payment): array
     {
         $dql = 'SELECT pe FROM ' . $this->getEntityClass(PaymentEventEntityInterface::class)
-            . ' pe WHERE pe.payment = :payment';
+            . ' pe WHERE pe.payment = :payment ORDER BY pe.date DESC, pe.id DESC';
         $parameters = compact('payment');
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);

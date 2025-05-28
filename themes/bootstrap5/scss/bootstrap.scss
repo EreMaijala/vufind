@@ -66,6 +66,7 @@ $fa-font-path: "../../bootstrap5/css/vendor/font-awesome/webfonts";
 @import "mixins/mixins";
 
 @import "components/accessibility";
+@import "components/admin";
 @import "components/advanced-search";
 @import "components/alphabrowse";
 @import "components/autocomplete";
@@ -328,36 +329,6 @@ body.rtl .dropdown-menu {
     text-decoration: none;
     background-color: #333;
     outline: dotted 1px #000;
-  }
-}
-
-/* ------ Admin ------ */
-.form-admin-maintenance {
-  .form-control, .form-select {
-    display: inline-block;
-    width: 8rem;
-  }
-}
-.form-feedback-search {
-  margin-bottom: 1rem;
-
-  label {
-    margin-top: 0.5rem;
-    margin-right: 0.5rem;
-  }
-
-  input {
-    display: block;
-  }
-}
-
-.form-feedback-list {
-  > input {
-    margin-top: 0.5rem;
-  }
-
-  table {
-    margin-top: 1rem;
   }
 }
 

@@ -41,7 +41,7 @@ namespace VuFind\Db\Type;
 enum PaymentStatus: int
 {
     case InProgress = 0;
-    case Complete = 1;
+    case Completed = 1;
     case Canceled = 2;
     case Paid = 3;
     case PaymentFailed = 4;

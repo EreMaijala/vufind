@@ -359,4 +359,11 @@ interface PaymentEntityInterface extends EntityInterface
      * @return static
      */
     public function setFinesUpdated(): static;
+
+    /**
+     * Set payment registration issues resolved.
+     *
+     * @return static
+     */
+    public function setRegistrationResolved(): static;
 }

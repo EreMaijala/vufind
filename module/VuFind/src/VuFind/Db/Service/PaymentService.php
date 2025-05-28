@@ -29,10 +29,16 @@
 
 namespace VuFind\Db\Service;
 
+use DateInterval;
 use DateTime;
+use Doctrine\ORM\Tools\Pagination\Paginator as DoctrinePaginator;
+use DoctrineORMModule\Paginator\Adapter\DoctrinePaginator as DoctrinePaginatorAdapter;
+use Laminas\Paginator\Paginator;
 use VuFind\Db\Entity\PaymentEntityInterface;
 use VuFind\Db\Feature\DateTimeTrait;
 use VuFind\Db\Type\PaymentStatus;
+
+use function intval;
 
 /**
  * Database service for payment transactions.
@@ -108,7 +114,7 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
     public function getLastPaidPaymentForPatron(string $catUsername): ?PaymentEntityInterface
     {
         $statuses = [
-            PaymentStatus::Complete->value,
+            PaymentStatus::Completed->value,
             PaymentStatus::Paid->value,
             PaymentStatus::RegistrationFailed->value,
             PaymentStatus::RegistrationExpired->value,
@@ -223,7 +229,7 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
         $dql = <<<DQL
             SELECT p FROM {$this->getEntityClass(PaymentEntityInterface::class)} p
               WHERE p.status IN ({PaymentStatus::FinesUpdated->value}, {PaymentStatus::RegistrationExpired->value})
-                AND p.paid > {$this->getUnassignedDefaultDateTime()}
+                AND p.paid > {$this->getUnassignedDefaultDateTime()->format('Y-m-d H:i:s')}
                 AND p.reported < :reportedLimit
               ORDER BY p.created
             DQL;
@@ -233,6 +239,108 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
         $query = $this->entityManager->createQuery($dql);
         $query->setParameters($parameters);
         return $query->getResult();
+    }
+
+    /**
+     * Get a filtered list of payments
+     *
+     * @param PaymentStatus[] $statuses         Payment statuses (optional filter)
+     * @param ?string         $localIdentifier  Local identifier (optional filter)
+     * @param ?string         $remoteIdentifier Remote identifier (optional filter)
+     * @param ?string         $sourceIls        Source ILS (optional filter)
+     * @param ?string         $catUsername      ILS username (optional filter)
+     * @param ?DateTime       $createdFrom      Beginning of creation date range (optional filter)
+     * @param ?DateTime       $createdUntil     End of creation date range (optional filter)
+     * @param ?DateTime       $paidFrom         Beginning of payment date range (optional filter)
+     * @param ?DateTime       $paidUntil        End of payment date range (optional filter)
+     * @param ?int            $page             Current page (optional)
+     * @param int             $limit            Limit per page (optional)
+     *
+     * @return Paginator
+     */
+    public function getPaymentPaginator(
+        array $statuses = [],
+        ?string $localIdentifier = null,
+        ?string $remoteIdentifier = null,
+        ?string $sourceIls = null,
+        ?string $catUsername = null,
+        ?DateTime $createdFrom = null,
+        ?DateTime $createdUntil = null,
+        ?DateTime $paidFrom = null,
+        ?DateTime $paidUntil = null,
+        ?int $page = null,
+        int $limit = 20
+    ): Paginator {
+        $dql = 'SELECT p FROM ' . $this->getEntityClass(PaymentEntityInterface::class) . ' p';
+        $parameters = $dqlWhere = [];
+
+        if ($statuses) {
+            $dqlWhere[] = 'p.status IN (' . implode(',', array_map(fn ($s) => $s->value, $statuses)) . ')';
+        }
+        if (null !== $localIdentifier) {
+            $dqlWhere[] = 'p.localIdentifier LIKE :localIdentifier';
+            $parameters['localIdentifier'] = $localIdentifier;
+        }
+        if (null !== $remoteIdentifier) {
+            $dqlWhere[] = 'p.remoteIdentifier LIKE :remoteIdentifier';
+            $parameters['remoteIdentifier'] = $remoteIdentifier;
+        }
+        if (null !== $sourceIls) {
+            $dqlWhere[] = 'p.sourceIls LIKE :sourceIls';
+            $parameters['sourceIls'] = $sourceIls;
+        }
+        if (null !== $catUsername) {
+            $dqlWhere[] = 'p.catUsername LIKE :catUsername';
+            $parameters['catUsername'] = $catUsername;
+        }
+        if (null !== $createdFrom) {
+            $dqlWhere[] = 'p.created >= :createdFrom';
+            $parameters['createdFrom'] = $createdFrom;
+        }
+        if (null !== $createdUntil) {
+            $dqlWhere[] = 'p.created < :createdUntil';
+            $parameters['createdUntil'] = $createdUntil->add(DateInterval::createFromDateString('1 day'));
+        }
+        if (null !== $paidFrom) {
+            $dqlWhere[] = 'p.paid >= :paidFrom';
+            $parameters['paidFrom'] = $paidFrom;
+        }
+        if (null !== $paidUntil) {
+            $dqlWhere[] = 'p.paid < :paidUntil';
+            $parameters['paidUntil'] = $paidUntil->add(DateInterval::createFromDateString('1 day'));
+        }
+
+        if ($dqlWhere) {
+            $dql .= ' WHERE ' . implode(' AND ', $dqlWhere);
+        }
+        $dql .= ' ORDER BY p.created DESC';
+        $query = $this->entityManager->createQuery($dql);
+        $query->setParameters($parameters);
+
+        $page = null === $page ? null : intval($page);
+        if (null !== $page) {
+            $query->setMaxResults($limit);
+            $query->setFirstResult($limit * ($page - 1));
+        }
+        $paginator = new Paginator(new DoctrinePaginatorAdapter(new DoctrinePaginator($query)));
+        if (null !== $page) {
+            $paginator->setCurrentPageNumber($page);
+            $paginator->setItemCountPerPage($limit);
+        }
+        return $paginator;
+    }
+
+    /**
+     * Get a list of unique source ILS values.
+     *
+     * @return array
+     */
+    public function getUniqueSourceIlsList(): array
+    {
+        $dql = 'SELECT DISTINCT p.sourceIls FROM ' . $this->getEntityClass(PaymentEntityInterface::class)
+            . ' p ORDER BY p.sourceIls';
+        $query = $this->entityManager->createQuery($dql);
+        return $query->getSingleColumnResult();
     }
 
     /**

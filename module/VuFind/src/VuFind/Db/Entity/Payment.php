@@ -187,13 +187,12 @@ class Payment implements PaymentEntityInterface
      */
     public function __construct()
     {
-        // Set the default value as a DateTime object
-        $noDate = $this->getUnassignedDefaultDateTime();
-        $this->created = $noDate;
-        $this->paid = $noDate;
-        $this->registrationStarted = $noDate;
-        $this->registered = $noDate;
-        $this->reported = $noDate;
+        // Set the default values as a DateTime objects
+        $this->created = $this->getUnassignedDefaultDateTime();
+        $this->paid = $this->getUnassignedDefaultDateTime();
+        $this->registrationStarted = $this->getUnassignedDefaultDateTime();
+        $this->registered = $this->getUnassignedDefaultDateTime();
+        $this->reported = $this->getUnassignedDefaultDateTime();
     }
 
     /**
@@ -547,7 +546,7 @@ class Payment implements PaymentEntityInterface
      */
     public function isRegistered(): bool
     {
-        return $this->status === PaymentStatus::Complete->value;
+        return $this->status === PaymentStatus::Completed->value;
     }
 
     /**
@@ -599,7 +598,7 @@ class Payment implements PaymentEntityInterface
     public function setRegistered(): static
     {
         $this->registered = new DateTime();
-        $this->status = PaymentStatus::Complete->value;
+        $this->status = PaymentStatus::Completed->value;
         $this->statusMessage = '';
         return $this;
     }
@@ -672,6 +671,19 @@ class Payment implements PaymentEntityInterface
     public function setFinesUpdated(): static
     {
         $this->status = PaymentStatus::FinesUpdated->value;
+        $this->statusMessage = '';
+        return $this;
+    }
+
+    /**
+     * Set payment registration issues resolved.
+     *
+     * @return static
+     */
+    public function setRegistrationResolved(): static
+    {
+        $this->registered = new DateTime();
+        $this->status = PaymentStatus::RegistrationResolved->value;
         $this->statusMessage = '';
         return $this;
     }
