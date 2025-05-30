@@ -125,7 +125,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Payment setter
+     * Set payment.
      *
      * @param PaymentEntityInterface $payment Payment
      *
@@ -138,7 +138,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Payment getter
+     * Get payment.
      *
      * @return PaymentEntityInterface
      */
@@ -148,9 +148,9 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Date setter
+     * Set date.
      *
-     * @param DateTime $dateTime Created date
+     * @param DateTime $dateTime Date
      *
      * @return static
      */
@@ -161,7 +161,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Date getter
+     * Get date.
      *
      * @return DateTime
      */
@@ -171,7 +171,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Server IP address setter
+     * Set server IP address.
      *
      * @param ?string $serverIp Server IP address
      *
@@ -184,7 +184,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Server IP address getter
+     * Get server IP address.
      *
      * @return ?string
      */
@@ -194,7 +194,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Server name setter
+     * Get server name.
      *
      * @param ?string $serverName Server name
      *
@@ -207,7 +207,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Server name getter
+     * Set server name.
      *
      * @return ?string
      */
@@ -217,7 +217,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Request URI setter
+     * Set request URI.
      *
      * @param ?string $requestUri Request URI
      *
@@ -230,7 +230,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Request URI getter
+     * Get request URI.
      *
      * @return ?string
      */
@@ -240,7 +240,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Message setter
+     * Set message.
      *
      * @param ?string $message Message
      *
@@ -253,7 +253,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Message getter
+     * Get message.
      *
      * @return ?string
      */
@@ -263,7 +263,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Additional Data setter
+     * Set additional data.
      *
      * @param ?string $data Data
      *
@@ -276,7 +276,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Additional data getter
+     * Get additional data.
      *
      * @return ?string
      */

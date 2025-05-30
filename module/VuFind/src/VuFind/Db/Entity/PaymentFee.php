@@ -120,7 +120,7 @@ class PaymentFee implements PaymentFeeEntityInterface
     protected $organization;
 
     /**
-     * Id getter
+     * Get identifier (returns null for an uninitialized or non-persisted object).
      *
      * @return ?int
      */
@@ -130,7 +130,17 @@ class PaymentFee implements PaymentFeeEntityInterface
     }
 
     /**
-     * Payment setter
+     * Get payment.
+     *
+     * @return PaymentEntityInterface
+     */
+    public function getPayment(): PaymentEntityInterface
+    {
+        return $this->payment;
+    }
+
+    /**
+     * Set payment.
      *
      * @param PaymentEntityInterface $payment Payment.
      *
@@ -143,30 +153,7 @@ class PaymentFee implements PaymentFeeEntityInterface
     }
 
     /**
-     * Payment getter
-     *
-     * @return PaymentEntityInterface
-     */
-    public function getPayment(): PaymentEntityInterface
-    {
-        return $this->payment;
-    }
-
-    /**
-     * Title setter
-     *
-     * @param string $title Title
-     *
-     * @return static
-     */
-    public function setTitle(string $title): static
-    {
-        $this->title = $title;
-        return $this;
-    }
-
-    /**
-     * Title getter
+     * Get title.
      *
      * @return string
      */
@@ -176,20 +163,20 @@ class PaymentFee implements PaymentFeeEntityInterface
     }
 
     /**
-     * Type setter
+     * Set title.
      *
-     * @param string $type Type
+     * @param string $title Title
      *
      * @return static
      */
-    public function setType(string $type): static
+    public function setTitle(string $title): static
     {
-        $this->type = $type;
+        $this->title = mb_substr($title, 0, 255, 'UTF-8');
         return $this;
     }
 
     /**
-     * Type getter
+     * Get type.
      *
      * @return string
      */
@@ -199,20 +186,20 @@ class PaymentFee implements PaymentFeeEntityInterface
     }
 
     /**
-     * Description setter
+     * Set type.
      *
-     * @param string $description Description
+     * @param string $type Type
      *
      * @return static
      */
-    public function setDescription(string $description): static
+    public function setType(string $type): static
     {
-        $this->description = $description;
+        $this->type = mb_substr($type, 0, 255, 'UTF-8');
         return $this;
     }
 
     /**
-     * Description getter
+     * Get description.
      *
      * @return string
      */
@@ -222,7 +209,30 @@ class PaymentFee implements PaymentFeeEntityInterface
     }
 
     /**
-     * Amount setter
+     * Set description.
+     *
+     * @param string $description Description
+     *
+     * @return static
+     */
+    public function setDescription(string $description): static
+    {
+        $this->description = mb_substr($description, 0, 255, 'UTF-8');
+        return $this;
+    }
+
+    /**
+     * Get amount.
+     *
+     * @return int
+     */
+    public function getAmount(): int
+    {
+        return $this->amount;
+    }
+
+    /**
+     * Set amount.
      *
      * @param int $amount Amount
      *
@@ -235,30 +245,7 @@ class PaymentFee implements PaymentFeeEntityInterface
     }
 
     /**
-     * Amount getter
-     *
-     * @return int
-     */
-    public function getAmount(): int
-    {
-        return $this->amount;
-    }
-
-    /**
-     * Currency setter
-     *
-     * @param string $currency Currency
-     *
-     * @return static
-     */
-    public function setCurrency(string $currency): static
-    {
-        $this->currency = $currency;
-        return $this;
-    }
-
-    /**
-     * Currency getter
+     * Get currency.
      *
      * @return string
      */
@@ -268,20 +255,20 @@ class PaymentFee implements PaymentFeeEntityInterface
     }
 
     /**
-     * Fine Id setter
+     * Set currency.
      *
-     * @param string $fineId Fine ID (ILS)
+     * @param string $currency Currency
      *
      * @return static
      */
-    public function setFineId(string $fineId): static
+    public function setCurrency(string $currency): static
     {
-        $this->fineId = $fineId;
+        $this->currency = mb_substr($currency, 0, 3, 'UTF-8');
         return $this;
     }
 
     /**
-     * Fine Id getter
+     * Get fine ID.
      *
      * @return string
      */
@@ -291,7 +278,31 @@ class PaymentFee implements PaymentFeeEntityInterface
     }
 
     /**
-     * Organization setter
+     * Set fine ID.
+     *
+     * @param string $fineId Fine ID (ILS)
+     *
+     * @return static
+     */
+    public function setFineId(string $fineId): static
+    {
+        // No trimming - fail intentionally if fine ID is too long
+        $this->fineId = $fineId;
+        return $this;
+    }
+
+    /**
+     * Get organization.
+     *
+     * @return string
+     */
+    public function getOrganization(): string
+    {
+        return $this->organization ?? '';
+    }
+
+    /**
+     * Set organization.
      *
      * @param string $organization Organization
      *
@@ -299,17 +310,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      */
     public function setOrganization(string $organization): static
     {
-        $this->organization = $organization;
+        $this->organization = mb_substr($organization, 0, 255, 'UTF-8');
         return $this;
-    }
-
-    /**
-     * Organization getter
-     *
-     * @return string
-     */
-    public function getOrganization(): string
-    {
-        return $this->organization ?? '';
     }
 }

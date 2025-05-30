@@ -44,52 +44,43 @@ use VuFind\Db\Type\PaymentStatus;
 interface PaymentEntityInterface extends EntityInterface
 {
     /**
-     * Id getter
+     * Get identifier (returns null for an uninitialized or non-persisted object).
      *
      * @return ?int
      */
     public function getId(): ?int;
 
     /**
-     * Payment Identifier setter
-     *
-     * @param ?string $localIdentifier Payment Identifier.
-     *
-     * @return static
-     */
-    public function setLocalIdentifier(?string $localIdentifier): static;
-
-    /**
-     * Payment Identifier getter
+     * Get Local payment identifier.
      *
      * @return ?string
      */
     public function getLocalIdentifier(): ?string;
 
     /**
-     * Remote Identifier setter
+     * Set local payment identifier.
      *
-     * @param ?string $remoteIdentifier Payment Identifier.
+     * @param ?string $localIdentifier Local identifier
      *
      * @return static
      */
-    public function setRemoteIdentifier(?string $remoteIdentifier): static;
+    public function setLocalIdentifier(?string $localIdentifier): static;
 
     /**
-     * Remote Identifier getter
+     * Get remote payment identifier.
      *
      * @return ?string
      */
     public function getRemoteIdentifier(): ?string;
 
     /**
-     * Set user.
+     * Set remote payment identifier.
      *
-     * @param UserEntityInterface $user User
+     * @param ?string $remoteIdentifier Remote identifier
      *
      * @return static
      */
-    public function setUser(UserEntityInterface $user): static;
+    public function setRemoteIdentifier(?string $remoteIdentifier): static;
 
     /**
      * Get user.
@@ -99,7 +90,23 @@ interface PaymentEntityInterface extends EntityInterface
     public function getUser(): ?UserEntityInterface;
 
     /**
-     * Source ILS setter
+     * Set user.
+     *
+     * @param ?UserEntityInterface $user User
+     *
+     * @return static
+     */
+    public function setUser(?UserEntityInterface $user): static;
+
+    /**
+     * Get source ILS.
+     *
+     * @return string
+     */
+    public function getSourceIls(): string;
+
+    /**
+     * Set source ILS.
      *
      * @param string $sourceIls Source ILS
      *
@@ -108,14 +115,14 @@ interface PaymentEntityInterface extends EntityInterface
     public function setSourceIls(string $sourceIls): static;
 
     /**
-     * Source ILS getter
+     * Get amount.
      *
-     * @return string
+     * @return int
      */
-    public function getSourceIls(): string;
+    public function getAmount(): int;
 
     /**
-     * Amount setter
+     * Set amount.
      *
      * @param int $amount Amount
      *
@@ -124,30 +131,30 @@ interface PaymentEntityInterface extends EntityInterface
     public function setAmount(int $amount): static;
 
     /**
-     * Amount getter
-     *
-     * @return int
-     */
-    public function getAmount(): int;
-
-    /**
-     * Currency setter
-     *
-     * @param string $currency Currency.
-     *
-     * @return static
-     */
-    public function setCurrency(string $currency): static;
-
-    /**
-     * Currency getter
+     * Get currency.
      *
      * @return string
      */
     public function getCurrency(): string;
 
     /**
-     * Service fee setter
+     * Set currency.
+     *
+     * @param string $currency Currency
+     *
+     * @return static
+     */
+    public function setCurrency(string $currency): static;
+
+    /**
+     * Get service fee.
+     *
+     * @return int
+     */
+    public function getServiceFee(): int;
+
+    /**
+     * Set service fee.
      *
      * @param int $amount Amount
      *
@@ -156,14 +163,14 @@ interface PaymentEntityInterface extends EntityInterface
     public function setServiceFee(int $amount): static;
 
     /**
-     * Service fee getter
+     * Get created date.
      *
-     * @return int
+     * @return DateTime
      */
-    public function getServiceFee(): int;
+    public function getCreated(): Datetime;
 
     /**
-     * Created setter
+     * Set created date.
      *
      * @param DateTime $dateTime Created date
      *
@@ -172,14 +179,14 @@ interface PaymentEntityInterface extends EntityInterface
     public function setCreated(DateTime $dateTime): static;
 
     /**
-     * Created getter
+     * Get paid date.
      *
      * @return DateTime
      */
-    public function getCreated(): Datetime;
+    public function getPaidDate(): ?Datetime;
 
     /**
-     * Paid date setter
+     * Set paid date.
      *
      * @param ?DateTime $dateTime Paid date
      *
@@ -188,14 +195,14 @@ interface PaymentEntityInterface extends EntityInterface
     public function setPaidDate(?DateTime $dateTime): static;
 
     /**
-     * Paid date getter
+     * Get registration start date.
      *
-     * @return DateTime
+     * @return ?DateTime
      */
-    public function getPaidDate(): ?Datetime;
+    public function getRegistrationStartDate(): ?Datetime;
 
     /**
-     * Registration started setter
+     * Set registration start date.
      *
      * @param ?DateTime $dateTime Registration start date
      *
@@ -204,14 +211,14 @@ interface PaymentEntityInterface extends EntityInterface
     public function setRegistrationStartDate(?DateTime $dateTime): static;
 
     /**
-     * Registration started getter
+     * Get registration date.
      *
      * @return ?DateTime
      */
-    public function getRegistrationStartDate(): ?Datetime;
+    public function getRegistrationDate(): ?Datetime;
 
     /**
-     * Registration date setter
+     * Set registration date.
      *
      * @param ?DateTime $dateTime Registration date
      *
@@ -220,14 +227,14 @@ interface PaymentEntityInterface extends EntityInterface
     public function setRegistrationDate(?DateTime $dateTime): static;
 
     /**
-     * Registration date getter
+     * Get status.
      *
-     * @return ?DateTime
+     * @return PaymentStatus
      */
-    public function getRegistrationDate(): ?Datetime;
+    public function getStatus(): PaymentStatus;
 
     /**
-     * Status setter
+     * Set status.
      *
      * @param PaymentStatus $status Status
      *
@@ -236,36 +243,22 @@ interface PaymentEntityInterface extends EntityInterface
     public function setStatus(PaymentStatus $status): static;
 
     /**
-     * Status getter
-     *
-     * @return PaymentStatus
-     */
-    public function getStatus(): PaymentStatus;
-
-    /**
-     * Status message setter
-     *
-     * @param string $message Status message
-     *
-     * @return static
-     */
-    public function setStatusMessage(string $message): static;
-
-    /**
-     * Status message getter
+     * Get status message.
      *
      * @return string
      */
     public function getStatusMessage(): string;
 
     /**
-     * Catalog username setter
+     * Set status message.
      *
-     * @param string $catUsername Catalog username
+     * Note that some other methods override the status message, so ensure that this is called last if required!
+     *
+     * @param string $msg Status message
      *
      * @return static
      */
-    public function setCatUsername(string $catUsername): static;
+    public function setStatusMessage(string $msg): static;
 
     /**
      * Get catalog username.
@@ -275,56 +268,65 @@ interface PaymentEntityInterface extends EntityInterface
     public function getCatUsername(): string;
 
     /**
-     * Check if the payment is in progress
+     * Set catalog username.
+     *
+     * @param string $catUsername Catalog username
+     *
+     * @return static
+     */
+    public function setCatUsername(string $catUsername): static;
+
+    /**
+     * Check if the payment is in progress.
      *
      * @return bool
      */
     public function isInProgress(): bool;
 
     /**
-     * Check if the payment is registered (fees marked paid in the ILS)
+     * Check if the payment is registered with the ILS
      *
      * @return bool
      */
     public function isRegistered(): bool;
 
     /**
-     * Set payment canceled
+     * Set payment canceled.
      *
-     * @return void
+     * @return static
      */
     public function setCanceled(): static;
 
     /**
-     * Check if the payment is paid and needs registration with the ILS
+     * Set payment failed.
+     *
+     * @return static
+     */
+    public function setPaymentFailed(): static;
+
+    /**
+     * Check if the payment is paid and needs registration with the ILS.
      *
      * @return bool
      */
     public function needsRegistration(): bool;
 
     /**
-     * Check if registration is in progress (i.e. started within 120 seconds)
-     *
-     * @return bool
-     */
-    public function isRegistrationInProgress(): bool;
-
-    /**
-     * Set payment paid
+     * Set payment paid.
      *
      * @return static
      */
     public function setPaid(): static;
 
     /**
-     * Set payment registered
+     * Set payment registered.
      *
      * @return static
      */
     public function setRegistered(): static;
 
     /**
-     * Set payment status to "registration failed"
+     * Set payment status to "registration failed".
      *
      * @param string $msg Message
      *
@@ -333,28 +335,35 @@ interface PaymentEntityInterface extends EntityInterface
     public function setRegistrationFailed(string $msg): static;
 
     /**
-     * Set registration start timestamp
+     * Set registration start timestamp.
      *
      * @return static
      */
     public function setRegistrationStarted(): static;
 
     /**
-     * Set payment status to "registration expired"
+     * Check if registration is in progress (i.e. started within 120 seconds).
+     *
+     * @return bool
+     */
+    public function isRegistrationInProgress(): bool;
+
+    /**
+     * Set payment status to "registration expired".
      *
      * @return static
      */
     public function setExpired(): static;
 
     /**
-     * Set payment reported date
+     * Set payment reported.
      *
      * @return static
      */
     public function setReported(): static;
 
     /**
-     * Set payment status to "fines updated"
+     * Set payment status to "fines updated".
      *
      * @return static
      */

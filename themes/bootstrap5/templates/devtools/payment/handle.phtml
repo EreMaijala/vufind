@@ -1,0 +1,9 @@
+<?php // This template is only used by integration tests and does not need to be translated ?>
+
+<form method="POST">
+  <input type="hidden" name="requestId" value="<?=$this->escapeHtmlAttr($this->requestId)?>">
+  <button type="submit" class="btn btn-default" name="success" value="1">Return Success</button>
+  <button type="submit" class="btn btn-default" name="failure" value="1">Return Failure</button>
+  <button type="submit" class="btn btn-default" name="cancel" value="1">Cancel Payment</button>
+  <button type="submit" class="btn btn-default" name="notify" value="1">Only Notify Success</button>
+</form>

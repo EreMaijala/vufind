@@ -207,11 +207,27 @@ class OnlinePaymentManager implements LoggerAwareInterface
         $linkType = $fromNotify ? 'notify handler' : 'backlink';
         $this->debug("Online payment $linkType for " . $payment->getLocalIdentifier() . " result: $resultCode");
         $markedAsPaid = false;
-        if (BaseHandler::PAYMENT_SUCCESS === $resultCode) {
-            if ($markedAsPaid = $payment->isInProgress()) {
-                $payment->setPaid();
+        switch ($resultCode) {
+            case BaseHandler::PAYMENT_SUCCESS:
+                if ($markedAsPaid = $payment->isInProgress()) {
+                    $payment->setPaid();
+                    $this->paymentService->persistEntity($payment);
+                    $this->addPaymentEvent($payment, 'Payment marked as paid');
+                }
+                break;
+            case BaseHandler::PAYMENT_CANCEL:
+                $payment->setCanceled();
                 $this->paymentService->persistEntity($payment);
-            }
+                $this->addPaymentEvent($payment, 'Payment marked as canceled');
+                break;
+            case BaseHandler::PAYMENT_FAILURE:
+                $payment->setPaymentFailed();
+                $this->paymentService->persistEntity($payment);
+                $this->addPaymentEvent($payment, 'Payment marked as failed');
+                break;
+            case BaseHandler::PAYMENT_PENDING:
+                $this->addPaymentEvent($payment, 'Payment still pending');
+                break;
         }
 
         // Send receipt if the payment was marked as paid and receipt is enabled:

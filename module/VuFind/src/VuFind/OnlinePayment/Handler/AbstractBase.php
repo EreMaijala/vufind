@@ -70,7 +70,7 @@ abstract class AbstractBase implements
     public const PAYMENT_SUCCESS = 0; // Payment successful
     public const PAYMENT_CANCEL = 1;  // Payment canceled
     public const PAYMENT_FAILURE = 2; // Payment failed
-    public const PAYMENT_PENDING = 3; // Payment in progress
+    public const PAYMENT_PENDING = 3; // Payment still in progress (local status won't be updated)
 
     /**
      * Payment Configuration.
@@ -104,7 +104,7 @@ abstract class AbstractBase implements
      * Constructor
      *
      * @param array                        $config            VuFind configuration
-     * @param \VuFindHttp\HttpService      $http              HTTP service
+     * @param \VuFindHttp\HttpService      $httpService       HTTP service
      * @param LocaleSettings               $localeSettings    Locale settings
      * @param PaymentServiceInterface      $paymentService    Payment database service
      * @param PaymentFeeServiceInterface   $paymentFeeService Payment fee database service
@@ -112,7 +112,7 @@ abstract class AbstractBase implements
      */
     public function __construct(
         protected array $config,
-        protected \VuFindHttp\HttpService $http,
+        protected \VuFindHttp\HttpService $httpService,
         protected LocaleSettings $localeSettings,
         protected PaymentServiceInterface $paymentService,
         protected PaymentFeeServiceInterface $paymentFeeService,

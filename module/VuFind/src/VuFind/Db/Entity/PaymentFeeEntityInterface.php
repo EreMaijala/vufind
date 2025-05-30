@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2024.
+ * Copyright (C) The National Library of Finland 2024-2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -41,14 +41,21 @@ namespace VuFind\Db\Entity;
 interface PaymentFeeEntityInterface extends EntityInterface
 {
     /**
-     * Id getter
+     * Get identifier (returns null for an uninitialized or non-persisted object).
      *
      * @return ?int
      */
     public function getId(): ?int;
 
     /**
-     * Payment setter
+     * Get payment.
+     *
+     * @return PaymentEntityInterface
+     */
+    public function getPayment(): PaymentEntityInterface;
+
+    /**
+     * Set payment.
      *
      * @param PaymentEntityInterface $payment Payment.
      *
@@ -57,14 +64,14 @@ interface PaymentFeeEntityInterface extends EntityInterface
     public function setPayment(PaymentEntityInterface $payment): static;
 
     /**
-     * Payment getter
+     * Get title.
      *
-     * @return PaymentEntityInterface
+     * @return string
      */
-    public function getPayment(): PaymentEntityInterface;
+    public function getTitle(): string;
 
     /**
-     * Title setter
+     * Set title.
      *
      * @param string $title Title
      *
@@ -73,14 +80,14 @@ interface PaymentFeeEntityInterface extends EntityInterface
     public function setTitle(string $title): static;
 
     /**
-     * Title getter
+     * Get type.
      *
      * @return string
      */
-    public function getTitle(): string;
+    public function getType(): string;
 
     /**
-     * Type setter
+     * Set type.
      *
      * @param string $type Type
      *
@@ -89,14 +96,14 @@ interface PaymentFeeEntityInterface extends EntityInterface
     public function setType(string $type): static;
 
     /**
-     * Type getter
+     * Get description.
      *
      * @return string
      */
-    public function getType(): string;
+    public function getDescription(): string;
 
     /**
-     * Description setter
+     * Set description.
      *
      * @param string $description Description
      *
@@ -105,14 +112,14 @@ interface PaymentFeeEntityInterface extends EntityInterface
     public function setDescription(string $description): static;
 
     /**
-     * Description getter
+     * Get amount.
      *
-     * @return string
+     * @return int
      */
-    public function getDescription(): string;
+    public function getAmount(): int;
 
     /**
-     * Amount setter
+     * Set amount.
      *
      * @param int $amount Amount
      *
@@ -121,14 +128,14 @@ interface PaymentFeeEntityInterface extends EntityInterface
     public function setAmount(int $amount): static;
 
     /**
-     * Amount getter
+     * Get currency.
      *
-     * @return int
+     * @return string
      */
-    public function getAmount(): int;
+    public function getCurrency(): string;
 
     /**
-     * Currency setter
+     * Set currency.
      *
      * @param string $currency Currency
      *
@@ -137,14 +144,14 @@ interface PaymentFeeEntityInterface extends EntityInterface
     public function setCurrency(string $currency): static;
 
     /**
-     * Currency getter
+     * Get fine ID.
      *
      * @return string
      */
-    public function getCurrency(): string;
+    public function getFineId(): string;
 
     /**
-     * Fine Id setter
+     * Set fine ID.
      *
      * @param string $fineId Fine ID (ILS)
      *
@@ -153,25 +160,18 @@ interface PaymentFeeEntityInterface extends EntityInterface
     public function setFineId(string $fineId): static;
 
     /**
-     * Fine Id getter
+     * Get organization.
      *
      * @return string
      */
-    public function getFineId(): string;
+    public function getOrganization(): string;
 
     /**
-     * Organization setter
+     * Set organization.
      *
      * @param string $organization Organization
      *
      * @return static
      */
     public function setOrganization(string $organization): static;
-
-    /**
-     * Organization getter
-     *
-     * @return string
-     */
-    public function getOrganization(): string;
 }
