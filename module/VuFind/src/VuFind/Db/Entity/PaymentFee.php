@@ -171,7 +171,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      */
     public function setTitle(string $title): static
     {
-        $this->title = $title;
+        $this->title = mb_substr($title, 0, 255, 'UTF-8');
         return $this;
     }
 
@@ -194,7 +194,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      */
     public function setType(string $type): static
     {
-        $this->type = $type;
+        $this->type = mb_substr($type, 0, 255, 'UTF-8');
         return $this;
     }
 
@@ -217,7 +217,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      */
     public function setDescription(string $description): static
     {
-        $this->description = $description;
+        $this->description = mb_substr($description, 0, 255, 'UTF-8');
         return $this;
     }
 
@@ -263,7 +263,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      */
     public function setCurrency(string $currency): static
     {
-        $this->currency = $currency;
+        mb_substr($currency, 0, 3, 'UTF-8');
         return $this;
     }
 
@@ -286,6 +286,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      */
     public function setFineId(string $fineId): static
     {
+         // No trimming - fail intentionally if fine ID is too long
         $this->fineId = $fineId;
         return $this;
     }
@@ -309,7 +310,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      */
     public function setOrganization(string $organization): static
     {
-        $this->organization = $organization;
+        $this->organization = mb_substr($organization, 0, 255, 'UTF-8');
         return $this;
     }
 }

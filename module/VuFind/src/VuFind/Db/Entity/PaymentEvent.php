@@ -160,7 +160,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     /**
      * Set date.
      *
-     * @param DateTime $dateTime Created date
+     * @param DateTime $dateTime Date
      *
      * @return static
      */

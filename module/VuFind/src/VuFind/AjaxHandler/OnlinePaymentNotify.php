@@ -90,7 +90,7 @@ class OnlinePaymentNotify extends AbstractOnlinePaymentAction
         }
 
         try {
-            $result = $this->onlinePaymentManager->processPaymentHandlerResponse($payment, $request, true);
+            $this->onlinePaymentManager->processPaymentHandlerResponse($payment, $request, true);
         } catch (\Exception $e) {
             $this->logError(
                 'Error processing payment notification for ' . $payment->getSourceIls()
@@ -100,9 +100,6 @@ class OnlinePaymentNotify extends AbstractOnlinePaymentAction
             return $this->formatResponse('', self::STATUS_HTTP_ERROR);
         }
 
-        return $this->formatResponse(
-            '',
-            BaseHandler::PAYMENT_FAILURE === $result['resultCode'] ? static::STATUS_HTTP_ERROR : null
-        );
+        return $this->formatResponse('');
     }
 }

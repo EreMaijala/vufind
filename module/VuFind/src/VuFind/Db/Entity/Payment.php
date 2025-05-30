@@ -206,7 +206,7 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Get Local payment identifier.
+     * Get local payment identifier.
      *
      * @return string
      */
@@ -530,7 +530,7 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Check if the payment is in progress
+     * Check if the payment is in progress.
      *
      * @return bool
      */
@@ -540,7 +540,7 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Check if the payment is registered with the ILS
+     * Check if the payment is registered with the ILS.
      *
      * @return bool
      */
@@ -550,7 +550,7 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Set payment canceled
+     * Set payment canceled.
      *
      * @return static
      */
@@ -562,7 +562,19 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Check if the payment is paid and needs registration with the ILS
+     * Set payment failed.
+     *
+     * @return static
+     */
+    public function setPaymentFailed(): static
+    {
+        $this->status = PaymentStatus::PaymentFailed->value;
+        $this->statusMessage = '';
+        return $this;
+    }
+
+    /**
+     * Check if the payment is paid and needs registration with the ILS.
      *
      * @return bool
      */
@@ -578,7 +590,7 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Set payment paid
+     * Set payment paid.
      *
      * @return static
      */
@@ -591,7 +603,7 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Set payment registered
+     * Set payment registered.
      *
      * @return static
      */
@@ -604,7 +616,7 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Set payment status to "registration failed"
+     * Set payment status to "registration failed".
      *
      * @param string $msg Message
      *
@@ -619,7 +631,7 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Set registration start timestamp
+     * Set registration start timestamp.
      *
      * @return static
      */
@@ -630,7 +642,7 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Check if registration is in progress (i.e. started within 120 seconds)
+     * Check if registration is in progress (i.e. started within 120 seconds).
      *
      * @return bool
      */
@@ -641,7 +653,7 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Set payment status to "registration expired"
+     * Set payment status to "registration expired".
      *
      * @return static
      */
@@ -653,7 +665,7 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Set payment reported
+     * Set payment reported.
      *
      * @return static
      */
@@ -664,7 +676,7 @@ class Payment implements PaymentEntityInterface
     }
 
     /**
-     * Set payment status to "fines updated"
+     * Set payment status to "fines updated".
      *
      * @return static
      */

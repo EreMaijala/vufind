@@ -192,6 +192,8 @@ class Stripe extends AbstractBase implements
      * @param \Laminas\Http\Request  $request Request
      *
      * @return int One of the result codes defined in AbstractBase
+     *
+     * @throws PaymentException
      */
     public function processPaymentResponse(
         PaymentEntityInterface $payment,

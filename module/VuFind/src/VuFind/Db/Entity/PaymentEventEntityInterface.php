@@ -68,7 +68,7 @@ interface PaymentEventEntityInterface extends EntityInterface
     /**
      * Set date.
      *
-     * @param DateTime $dateTime Created date
+     * @param DateTime $dateTime Date
      *
      * @return static
      */

@@ -5,7 +5,7 @@
  *
  * PHP version 8
  *
- * Copyright (C) The National Library of Finland 2022.
+ * Copyright (C) The National Library of Finland 2025.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -48,6 +48,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
     protected $aliases = [
         'Paytrail' => Paytrail::class,
         'Stripe' => Stripe::class,
+        'Test' => Test::class,
     ];
 
     /**
@@ -58,6 +59,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
     protected $factories = [
         Paytrail::class => AbstractBaseFactory::class,
         Stripe::class => AbstractBaseFactory::class,
+        Test::class => AbstractBaseFactory::class,
     ];
 
     /**

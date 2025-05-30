@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Paytrail Payment API handler
+ * Payment handle for Paytrail
  *
  * PHP version 8
  *
@@ -42,7 +42,7 @@ use VuFind\Db\Entity\UserEntityInterface;
 use VuFind\Exception\PaymentException;
 
 /**
- * Paytrail Payment API handler module.
+ * Payment handle for Paytrail
  *
  * @category VuFind
  * @package  OnlinePayment
@@ -225,38 +225,31 @@ class Paytrail extends AbstractBase
      * @param \Laminas\Http\Request  $request Request
      *
      * @return int One of the result codes defined in AbstractBase
+     *
+     * @throws PaymentException
      */
     public function processPaymentResponse(
         PaymentEntityInterface $payment,
         \Laminas\Http\Request $request
     ): int {
         if (!($params = $this->getPaymentResponseParams($request))) {
-            return self::PAYMENT_FAILURE;
+            throw new PaymentException('Could not get payment response params');
         }
 
         // Make sure the transaction IDs match:
         if ($payment->getLocalIdentifier() !== $params['checkout-stamp']) {
-            return self::PAYMENT_FAILURE;
+            throw new PaymentException('Payment stamp mismatch');
         }
 
         $status = $params['checkout-status'];
         switch ($status) {
             case 'ok':
-                if ($marked = $payment->isInProgress()) {
-                    $payment->setPaid();
-                    $this->paymentService->persistEntity($payment);
-                }
-                $this->addPaymentEvent($payment, 'Payment marked as paid');
                 return self::PAYMENT_SUCCESS;
             case 'fail':
-                $payment->setCanceled();
-                $this->paymentService->persistEntity($payment);
-                $this->addPaymentEvent($payment, 'Payment marked as canceled');
                 return self::PAYMENT_CANCEL;
             case 'new':
             case 'pending':
             case 'delayed':
-                $this->addPaymentEvent($payment, 'Transaction pending (received status $status)');
                 return self::PAYMENT_PENDING;
         }
 

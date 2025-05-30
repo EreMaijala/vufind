@@ -197,12 +197,12 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
     {
         $dql = <<<DQL
             SELECT p FROM {$this->getEntityClass(PaymentEntityInterface::class)} p
-              WHERE p.paid > {$this->getUnassignedDefaultDateTime()}
+              WHERE p.paid > :emptyDate
                 AND (
-                  p.status = {PaymentStatus::RegistrationFailed->value}
+                  p.status = :statusFailed
                   OR
                   (
-                    p.status = {PaymentStatus::Paid->value}
+                    p.status = :statusPaid
                     AND
                     p.paid < :paidLimit
                   )
@@ -210,6 +210,9 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
               ORDER BY p.created
             DQL;
         $parameters = [
+            'emptyDate' => $this->getUnassignedDefaultDateTime()->format('Y-m-d H:i:s'),
+            'statusFailed' => PaymentStatus::RegistrationFailed->value,
+            'statusPaid' => PaymentStatus::Paid->value,
             'paidLimit' => date('Y-m-d H:i:s', time() - $minimumPaidAge),
         ];
         $query = $this->entityManager->createQuery($dql);
@@ -226,14 +229,16 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
      */
     public function getUnresolvedPaymentsToReport(int $interval): array
     {
+        $statuses = implode(',', [PaymentStatus::FinesUpdated->value, PaymentStatus::RegistrationExpired->value]);
         $dql = <<<DQL
             SELECT p FROM {$this->getEntityClass(PaymentEntityInterface::class)} p
-              WHERE p.status IN ({PaymentStatus::FinesUpdated->value}, {PaymentStatus::RegistrationExpired->value})
-                AND p.paid > {$this->getUnassignedDefaultDateTime()->format('Y-m-d H:i:s')}
+              WHERE p.status IN ($statuses)
+                AND p.paid > :emptyDate
                 AND p.reported < :reportedLimit
               ORDER BY p.created
             DQL;
         $parameters = [
+            'emptyDate' => $this->getUnassignedDefaultDateTime()->format('Y-m-d H:i:s'),
             'reportedLimit' => date('Y-m-d H:i:s', time() - $interval * 60),
         ];
         $query = $this->entityManager->createQuery($dql);
