@@ -41,6 +41,7 @@ use VuFind\Db\Service\PaymentEventServiceInterface;
 use VuFind\Db\Service\PaymentFeeServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
 use VuFind\Db\Service\UserCardServiceInterface;
+use VuFind\Db\Type\PaymentStatus;
 use VuFind\Exception\PaymentException;
 use VuFind\ILS\Connection;
 use VuFind\Log\LoggerAwareTrait;
@@ -216,14 +217,18 @@ class OnlinePaymentManager implements LoggerAwareInterface
                 }
                 break;
             case BaseHandler::PAYMENT_CANCEL:
-                $payment->setCanceled();
-                $this->paymentService->persistEntity($payment);
-                $this->addPaymentEvent($payment, 'Payment marked as canceled');
+                if (PaymentStatus::InProgress === $payment->getStatus()) {
+                    $payment->setCanceled();
+                    $this->paymentService->persistEntity($payment);
+                    $this->addPaymentEvent($payment, 'Payment marked as canceled');
+                }
                 break;
             case BaseHandler::PAYMENT_FAILURE:
-                $payment->setPaymentFailed();
-                $this->paymentService->persistEntity($payment);
-                $this->addPaymentEvent($payment, 'Payment marked as failed');
+                if (PaymentStatus::InProgress === $payment->getStatus()) {
+                    $payment->setPaymentFailed();
+                    $this->paymentService->persistEntity($payment);
+                    $this->addPaymentEvent($payment, 'Payment marked as failed');
+                }
                 break;
             case BaseHandler::PAYMENT_PENDING:
                 $this->addPaymentEvent($payment, 'Payment still pending');
