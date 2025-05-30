@@ -32,7 +32,6 @@ namespace VuFind\AjaxHandler;
 use Laminas\Mvc\Controller\Plugin\Params;
 use VuFind\Controller\AjaxController;
 use VuFind\Http\PhpEnvironment\Request;
-use VuFind\OnlinePayment\Handler\AbstractBase as BaseHandler;
 
 use function assert;
 

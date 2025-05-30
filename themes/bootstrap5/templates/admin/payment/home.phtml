@@ -129,7 +129,7 @@ $this->headTitle($this->translate('VuFind Administration - Online Payment Manage
             <td class="actions" data-label="<?=$this->transEscAttr('Actions')?>">
               <div class="action-buttons">
                 <a class="btn btn-default" href="<?=$this->url('admin/payment-details', ['id' => $paymentEntity->getId()]); ?>" data-lightbox>
-                  <?=$this->transEsc('Additional data')?>
+                  <?=$this->transEsc('Payment::Details')?>
                 </a>
                 <?php if (in_array($paymentEntity->getStatus()->value, $this->resolvableStatuses)): ?>
                   <a class="btn btn-default" href="<?=$this->url('admin/payment-resolve', ['id' => $paymentEntity->getId()]); ?>" data-lightbox>
