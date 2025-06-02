@@ -522,7 +522,7 @@ class OnlinePaymentManager implements LoggerAwareInterface
         $sourceIls = $this->getSourceIls($patron);
         $paymentConfig = $this->getOnlinePaymentConfig($sourceIls);
 
-        if (!$paymentConfig['enabled'] ?? false) {
+        if (!($paymentConfig['enabled'] ?? false)) {
             return [];
         }
 

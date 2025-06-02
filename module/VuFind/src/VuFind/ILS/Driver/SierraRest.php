@@ -33,6 +33,7 @@ use Laminas\Log\LoggerAwareInterface;
 use VuFind\Date\DateException;
 use VuFind\Exception\ILS as ILSException;
 use VuFind\I18n\Translator\TranslatorAwareInterface;
+use VuFind\ILS\Logic\OnlinePaymentTrait;
 use VuFindHttp\HttpServiceAwareInterface;
 
 use function call_user_func_array;
@@ -69,6 +70,9 @@ class SierraRest extends AbstractBase implements
     use \VuFind\I18n\HasSorterTrait;
     use \VuFind\Service\Feature\RetryTrait;
     use \VuFind\Config\Feature\ExplodeSettingTrait;
+    use OnlinePaymentTrait {
+        fineIsPayable as fineIsPayableBase;
+    }
 
     /**
      * Fixed field number for location in holdings records
@@ -255,18 +259,11 @@ class SierraRest extends AbstractBase implements
     protected $fineTypeMappings = [];
 
     /**
-     * Types of fines that can be paid online
+     * Sierras' types of fines that can be paid online
      *
      * @var array
      */
     protected $onlinePayableFineTypes = [2, 4, 5, 6];
-
-    /**
-     * Manual fine description regexp patterns that allow online payment
-     *
-     * @var array
-     */
-    protected $onlinePayableManualFineDescriptionPatterns = [];
 
     /**
      * Product code mappings for fines
@@ -506,8 +503,6 @@ class SierraRest extends AbstractBase implements
         if ($types = $this->config['OnlinePayment']['fineTypes'] ?? '') {
             $this->onlinePayableFineTypes = $this->explodeSetting(',', $types);
         }
-        $this->onlinePayableManualFineDescriptionPatterns
-            = $this->config['OnlinePayment']['manualFineDescriptions'] ?? [];
         if ($mappings = $this->config['OnlinePayment']['driverProductCodeMappings'] ?? []) {
             foreach ($mappings as $mapping) {
                 $parts = explode('=', $mapping, 2);
@@ -1662,7 +1657,7 @@ class SierraRest extends AbstractBase implements
                 }
             }
 
-            $fines[] = [
+            $fine = [
                 'amount' => (int)round($amount * 100),
                 'fine' => $this->fineTypeMappings[$type] ?? $type,
                 'description' => $entry['description'] ?? '',
@@ -1676,57 +1671,13 @@ class SierraRest extends AbstractBase implements
                 'title' => $title,
                 'fine_id' => $this->extractId($entry['id']),
                 'organization' => substr($entry['location']['code'] ?? '', 0, 1),
-                'payable_online' => $balance > 0 && $this->finePayableOnline($entry),
                 'product_code' => $this->getFineProductCode($entry),
                 '__invoice_number' => $entry['invoiceNumber'], // Internal invoice number required for payment
             ];
+            $fine['payable_online'] = $this->fineIsPayable($fine, $entry);
+            $fines[] = $fine;
         }
         return $fines;
-    }
-
-    /**
-     * Return details on fees payable online.
-     *
-     * @param array  $patron          Patron
-     * @param array  $fines           Patron's fines
-     * @param ?array $selectedFineIds Selected fines
-     *
-     * @throws ILSException
-     * @return array Associative array of payment details
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function getOnlinePaymentDetails(array $patron, array $fines, ?array $selectedFineIds): array
-    {
-        $amount = 0;
-        $payableFines = [];
-        $config = $this->config['OnlinePayment'] ?? [];
-        foreach ($fines as $fine) {
-            // Nothing can be paid if there are blocking fine types:
-            if (in_array($fine['fine'], $config['blockingNonPayableTypes'] ?? [])) {
-                return [
-                    'payable' => false,
-                    'amount' => 0,
-                    'fines' => [],
-                    'reason' => 'Payment::fines_contain_nonpayable_fees',
-                ];
-            }
-            if (
-                null !== $selectedFineIds
-                && !in_array($fine['fine_id'], $selectedFineIds)
-            ) {
-                continue;
-            }
-            if ($fine['payable_online']) {
-                $amount += $fine['balance'];
-                $payableFines[] = $fine;
-            }
-        }
-        return [
-            'payable' => $amount > 0,
-            'amount' => $amount,
-            'fines' => $payableFines,
-        ];
     }
 
     /**
@@ -3840,20 +3791,24 @@ WHERE
     }
 
     /**
-     * Check if a fine can be paid online
+     * Check if a fine is payable.
      *
-     * @param array $fine Fine
+     * @param array $fine       Fine
+     * @param array $sierraFine Sierra fine entry
      *
      * @return bool
      */
-    protected function finePayableOnline(array $fine): bool
+    protected function fineIsPayable(array $fine, array $sierraFine): bool
     {
-        $code = $fine['chargeType']['code'] ?? 0;
-        $desc = $fine['description'] ?? '';
-        if (in_array($code, $this->onlinePayableFineTypes)) {
-            return true;
+        if (!$this->fineIsPayableBase($fine)) {
+            return false;
         }
-        foreach ($this->onlinePayableManualFineDescriptionPatterns as $pattern) {
+        $code = $sierraFine['chargeType']['code'] ?? 0;
+        if (!in_array($code, $this->onlinePayableFineTypes)) {
+            return false;
+        }
+        $desc = $fine['description'] ?? '';
+        foreach ((array)($this->config['OnlinePayment']['manualFineDescriptions'] ?? []) as $pattern) {
             if (preg_match($pattern, $desc)) {
                 return true;
             }

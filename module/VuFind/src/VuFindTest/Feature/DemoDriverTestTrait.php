@@ -258,6 +258,7 @@ trait DemoDriverTestTrait
                 'renewMyItems' => 0,
                 'updateHolds' => 0,
                 'purgeTransactionHistory' => 0,
+                'registerPayment' => 0,
             ],
             'StaticHoldings' => [
                 $bibId => json_encode([$this->getFakeItem()]),
