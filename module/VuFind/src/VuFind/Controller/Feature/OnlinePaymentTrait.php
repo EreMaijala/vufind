@@ -242,9 +242,9 @@ trait OnlinePaymentTrait
                             $view->registerPaymentLocalIdentifier = $payment->getLocalIdentifier();
                             $this->addPaymentEvent($payment, 'Registration requested');
                         }
-                    } elseif (BaseHandler::PAYMENT_CANCEL === $result) {
+                    } elseif (BaseHandler::PAYMENT_CANCEL === $result['resultCode']) {
                         $this->flashMessenger()->addSuccessMessage('Payment::Payment Canceled');
-                    } elseif (BaseHandler::PAYMENT_FAILURE === $result) {
+                    } elseif (BaseHandler::PAYMENT_FAILURE === $result['resultCode']) {
                         $this->flashMessenger()->addErrorMessage('Payment::error_payment_request_failed');
                     }
                 } catch (PaymentException $e) {

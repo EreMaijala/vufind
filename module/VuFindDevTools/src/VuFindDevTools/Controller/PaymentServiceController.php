@@ -134,7 +134,8 @@ class PaymentServiceController extends \VuFind\Controller\AbstractBase
             }
         }
 
-        $view = $this->createViewModel(compact('requestId'));
+        $returnUrl = $session['returnUrl'];
+        $view = $this->createViewModel(compact('requestId', 'returnUrl'));
         $view->setTemplate('/devtools/payment/handle.phtml');
         return $view;
     }

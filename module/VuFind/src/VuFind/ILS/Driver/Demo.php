@@ -42,6 +42,7 @@ use VuFind\Date\DateException;
 use VuFind\Exception\ILS as ILSException;
 use VuFind\ILS\Logic\AvailabilityStatus;
 use VuFind\ILS\Logic\AvailabilityStatusInterface;
+use VuFind\ILS\Logic\OnlinePaymentTrait;
 use VuFindSearch\Command\RandomCommand;
 use VuFindSearch\Query\Query;
 use VuFindSearch\Service as SearchService;
@@ -67,6 +68,7 @@ use function strlen;
 class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
 {
     use \VuFind\I18n\HasSorterTrait;
+    use OnlinePaymentTrait;
 
     /**
      * Catalog ID used to distinguish between multiple Demo driver instances with the
@@ -1097,9 +1099,6 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
         // 90% of 1-18 (give or take some odd maths)
         $fines = rand() % 20 - 2;
 
-        $paymentConfig = $this->config['OnlinePayment'] ?? [];
-        $nonPayable = $paymentConfig['nonPayableTypes'] ?? [];
-
         $fineList = [];
         $firstId = rand(1, 1000);
         for ($i = 0; $i < $fines; $i++) {
@@ -1109,41 +1108,46 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
             $checkout = strtotime('now - ' . ($day_overdue + 14) . ' days');
             // 1 in 10 chance of this being a "Manual Fee":
             if (rand(1, 10) === 1) {
-                $fine = 2.50;
+                $amount = 2.50;
                 $type = 'Manual Fee';
             } else {
                 // 50c a day fine
-                $fine = $day_overdue * 0.50;
+                $amount = $day_overdue * 0.50;
                 // After 20 days it becomes 'Long Overdue'
                 $type = $day_overdue > 20 ? 'Long Overdue' : 'Overdue';
             }
+            // 50% chance they've paid half of it:
+            $balance = (rand() % 100 > 49 ? $amount / 2 : $amount);
 
-            $fineList[] = [
+            $fine = [
                 'fine_id'  => $firstId + $i,
-                'amount'   => $fine * 100,
+                'amount'   => (int)round($amount * 100),
                 'checkout' => $this->dateConverter->convertToDisplayDate('U', $checkout),
                 'createdate' => $this->dateConverter->convertToDisplayDate('U', time()),
                 'fine'     => $type,
-                // Additional description for long overdue fines:
+                // Additional description:
                 'description' => 'Manual Fee' === $type ? 'Interlibrary loan request fee' : '',
-                // 50% chance they've paid half of it
-                'balance'  => (rand() % 100 > 49 ? $fine / 2 : $fine) * 100,
+                'balance'  => (int)round($balance * 100),
                 'duedate'  => $this->dateConverter->convertToDisplayDate(
                     'U',
                     strtotime("now - $day_overdue days")
                 ),
-                'payable_online' => !in_array($type, $nonPayable),
             ];
+
+            $fine['payable_online'] = $this->fineIsPayable($fine);
+
             // Some fines will have no id or title:
             if (rand() % 3 != 1) {
                 if ($this->idsInMyResearch) {
-                    [$fineList[$i]['id'], $fineList[$i]['title']]
+                    [$fine['id'], $fine['title']]
                         = $this->getRandomBibIdAndTitle();
-                    $fineList[$i]['source'] = $this->getRecordSource();
+                    $fine['source'] = $this->getRecordSource();
                 } else {
-                    $fineList[$i]['title'] = 'Demo Title ' . $i;
+                    $fine['title'] = 'Demo Title ' . $i;
                 }
             }
+
+            $fineList[] = $fine;
         }
         return $fineList;
     }
@@ -1169,51 +1173,6 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
                 : $this->getRandomFines();
         }
         return $session->fines;
-    }
-
-    /**
-     * Return details on fees payable online.
-     *
-     * @param array  $patron          Patron
-     * @param array  $fines           Patron's fines
-     * @param ?array $selectedFineIds Selected fines
-     *
-     * @throws ILSException
-     * @return array Associative array of payment details
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
-     */
-    public function getOnlinePaymentDetails(array $patron, array $fines, ?array $selectedFineIds): array
-    {
-        $amount = 0;
-        $payableFines = [];
-        $config = $this->config['OnlinePayment'] ?? [];
-        foreach ($fines as $fine) {
-            // Nothing can be paid if there are blocking fine types:
-            if (in_array($fine['fine'], $config['blockingNonPayableTypes'] ?? [])) {
-                return [
-                    'payable' => false,
-                    'amount' => 0,
-                    'fines' => [],
-                    'reason' => 'Payment::fines_contain_nonpayable_fees',
-                ];
-            }
-            if (
-                null !== $selectedFineIds
-                && !in_array($fine['fine_id'], $selectedFineIds)
-            ) {
-                continue;
-            }
-            if ($fine['payable_online'] ?? false) {
-                $amount += $fine['balance'];
-                $payableFines[] = $fine;
-            }
-        }
-        return [
-            'payable' => $amount > 0,
-            'amount' => $amount,
-            'fines' => $payableFines,
-        ];
     }
 
     /**
@@ -1250,8 +1209,8 @@ class Demo extends AbstractBase implements \VuFind\I18n\HasSorterInterface
         if (isset($session->fines)) {
             foreach ($session->fines as $key => $fine) {
                 if (
-                    $fine['payable_online']
-                    && (!$fineIds || in_array($fine['fine_id'], $fineIds))
+                    ($fine['payable_online'] ?? false)
+                    && (!$fineIds || in_array($fine['fine_id'] ?? '', $fineIds))
                 ) {
                     unset($session->fines[$key]);
                     $paid += $fine['balance'];

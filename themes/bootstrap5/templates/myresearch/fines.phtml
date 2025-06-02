@@ -46,10 +46,10 @@
           // Handle online payment fine selection and balance check:
           $select = '';
           if ($this->onlinePaymentEnabled && $this->selectFees) {
-            if ($record['payable_online']) {
+            if ($record['payable_online'] ?? false) {
               ob_start();
               ?>
-                <div class="checkbox-container">
+                <div class="checkbox">
                   <label>
                     <span class="visually-hidden">
                       <?=$this->transEsc('Select')?>
@@ -65,7 +65,7 @@
             }
           }
           $balance = isset($record['balance']) ? $this->safeMoneyFormat($record['balance'] / 100.00) : '';
-          if ($this->onlinePayment && !$record['payable_online']) {
+          if ($this->onlinePayment && !($record['payable_online'] ?? false)) {
             $balance = '<span class="online-payment-nonpayable">' . $balance
               . '<br><span class="online-payment-status-note"> ' . $this->transEsc('Payment::nonpayable_fee') . '</span></span>';
           }
@@ -165,16 +165,12 @@
           <?php if ($this->selectFees): ?>
             <div class="myresearch-table online-payment" aria-label="<?=$this->transEscAttr('Actions');?>">
               <div class="toolbar">
-                <div class="checkbox-col">
-                  <div class="checkbox-container mylist-select-all">
-                    <div class="checkbox">
-                      <label>
-                        <input type="checkbox" name="selectAll" class="checkbox-select-all js-select-all">
-                        <?=$this->transEsc('select_all')?>
-                        <span class="selected"></span>
-                      </label>
-                    </div>
-                  </div>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" name="selectAll" class="checkbox-select-all js-select-all">
+                    <?=$this->transEsc('select_all')?>
+                    <span class="selected"></span>
+                  </label>
                 </div>
                 <div class="payment-row">
                   <span class="visually-hidden js-selected-to-pay-sr" data-template="<?=$this->transEscAttr('Payment::selected_to_pay') . ' ' . $this->transEscAttr($currencyTemplate)?>">
@@ -190,8 +186,8 @@
             </div>
           <?php endif; ?>
       <?php elseif (!empty($this->nonPayableReason) && !empty($this->fines)): ?>
-        <div class="fines-info-area">
-          <p><?=$this->transEsc($this->nonPayableReason); ?><?=$this->nonPayableReason == 'Payment::minimum_payment' ? (': <span class="amount">' . $this->safeMoneyFormat($this->minimumFee / 100.00)) . '</span>' : '';?></p>
+        <div class="fines-info-area fines-info-area__blocked">
+          <?=$this->transEsc($this->nonPayableReason); ?><?=$this->nonPayableReason == 'Payment::minimum_payment' ? (': <span class="amount">' . $this->safeMoneyFormat($this->minimumFee / 100.00)) . '</span>' : '';?>
         </div>
       <?php endif; ?>
     <?php endif; ?>

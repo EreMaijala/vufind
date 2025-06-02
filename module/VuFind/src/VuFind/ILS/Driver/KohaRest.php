@@ -36,6 +36,7 @@ use VuFind\Date\DateException;
 use VuFind\Exception\AuthToken as AuthTokenException;
 use VuFind\Exception\ILS as ILSException;
 use VuFind\ILS\Logic\AvailabilityStatus;
+use VuFind\ILS\Logic\OnlinePaymentTrait;
 use VuFind\Service\CurrencyFormatter;
 
 use function array_key_exists;
@@ -71,6 +72,10 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     use \VuFind\Cache\CacheTrait;
     use \VuFind\ILS\Driver\OAuth2TokenTrait;
     use \VuFind\I18n\HasSorterTrait;
+    use OnlinePaymentTrait {
+        fineIsPayable as fineIsPayableBase;
+        fineBlocksPayment as fineBlocksPaymentBase;
+    }
 
     /**
      * Library prefix
@@ -159,20 +164,6 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
         'HE' => 'Hold Expired',
         'RENT' => 'Rental',
     ];
-
-    /**
-     * Non-payable fine types
-     *
-     * @var array
-     */
-    protected $nonPayableTypes = [];
-
-    /**
-     * Non-payable fine statuses
-     *
-     * @var array
-     */
-    protected $nonPayableStatuses = [];
 
     /**
      * Mappings from renewal block reasons
@@ -364,10 +355,6 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
 
         $this->includeSuspendedHoldsInQueueLength
             = $this->config['Holdings']['includeSuspendedHoldsInQueueLength'] ?? false;
-
-        $paymentConfig = $this->config['OnlinePayment'] ?? [];
-        $this->nonPayableTypes = (array)($paymentConfig['nonPayableTypes'] ?? []);
-        $this->nonPayableStatuses = (array)($paymentConfig['nonPayableStatuses'] ?? []);
 
         // Init session cache for session-specific data
         $namespace = md5($this->config['Catalog']['host']);
@@ -1695,12 +1682,8 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
                 }
             }
             $debitType = trim($entry['debit_type']);
-            $debitStatus = trim($entry['status'] ?? '');
             $type = $this->feeTypeMappings[$debitType] ?? $debitType;
             $description = trim($entry['description']);
-            $payableOnline = $entry['amount_outstanding'] > 0
-                && !in_array($debitType, $this->nonPayableTypes)
-                && !in_array($debitStatus, $this->nonPayableStatuses);
             $fine = [
                 'fine_id' => $entry['account_line_id'],
                 'amount' => (int)round($entry['amount'] * 100),
@@ -1709,12 +1692,13 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
                 'description' => $description,
                 'createdate' => $this->convertDate($entry['date'] ?? null),
                 'checkout' => '',
-                'payable_online' => $payableOnline,
                 'organization' => $entry['library_id'] ?? '',
+                '__status' => trim($entry['status'] ?? ''),
             ];
             if (null !== $bibId) {
                 $fine['id'] = $bibId;
             }
+            $fine['payable_online'] = $this->fineIsPayable($fine);
             $fines[] = $fine;
         }
         return $fines;
@@ -3169,5 +3153,43 @@ class KohaRest extends \VuFind\ILS\Driver\AbstractBase implements
     protected function formatMoney($amount)
     {
         return $this->currencyFormatter->convertToDisplayFormat($amount);
+    }
+
+    /**
+     * Check if a fine is payable.
+     *
+     * @param array $fine Fine
+     *
+     * @return bool
+     */
+    protected function fineIsPayable(array $fine): bool
+    {
+        if (!$this->fineIsPayableBase($fine)) {
+            return false;
+        }
+        $paymentConfig = $this->config['OnlinePayment'] ?? [];
+        if (in_array($fine['__status'], $paymentConfig['nonPayableStatuses'] ?? [])) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Check if a fine should completely block payment.
+     *
+     * @param array $fine Fine
+     *
+     * @return bool
+     */
+    protected function fineBlocksPayment(array $fine): bool
+    {
+        if ($this->fineBlocksPaymentBase($fine)) {
+            return true;
+        }
+        $paymentConfig = $this->config['OnlinePayment'] ?? [];
+        if (in_array($fine['__status'], $paymentConfig['blockingNonPayableStatuses'] ?? [])) {
+            return true;
+        }
+        return false;
     }
 }
