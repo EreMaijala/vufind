@@ -25,6 +25,22 @@
 
   <?=$this->context($this)->renderInContext('librarycards/selectcard.phtml', ['user' => $this->auth()->getUserObject()]); ?>
 
+  <?php if (!empty($this->lastPayment)): ?>
+    <div class="last-payment-information">
+      <div>
+        <?=$this->transEsc('Payment::Last Paid')?>:
+        <span class="amount"><?=$this->safeMoneyFormat($this->lastPayment->getAmount() / 100.00)?></span>
+        <?=$this->lastPayment->getPaidDate()->format($this->config()->dateTimeFormat())?>
+      </div>
+      <div class="text-end">
+        <a href="?paymentReceipt=true" class="btn btn-sm btn-primary" target="_blank">
+          <?=$this->transEsc('Payment::download_receipt_pdf')?>
+          <span class="visually-hidden"><?=$this->transEscAttr('Open in a new window')?></span>
+        </a>
+      </div>
+    </div>
+  <?php endif; ?>
+
   <?php if (empty($this->fines)): ?>
     <?=$this->transEsc('You do not have any fines')?>
   <?php else: ?>
@@ -107,21 +123,6 @@
 
     <?php // Online payment information area: ?>
     <div class="fines-info-area" tabindex="0">
-      <?php if (!empty($this->lastPayment)): ?>
-        <div class="last-payment-information">
-          <div>
-            <?=$this->transEsc('Payment::Last Paid')?>:
-            <span class="amount"><?=$this->safeMoneyFormat($this->lastPayment->getAmount() / 100.00)?></span>
-            <?=$this->lastPayment->getPaidDate()->format($this->config()->dateTimeFormat())?>
-          </div>
-          <div class="text-end">
-            <a href="?paymentReceipt=true" class="btn btn-sm btn-primary" target="_blank">
-              <?=$this->transEsc('Payment::download_receipt_pdf')?>
-              <span class="visually-hidden"><?=$this->transEscAttr('Open in a new window')?></span>
-            </a>
-          </div>
-        </div>
-      <?php endif; ?>
       <div class="online-payment-total-due js-payment-total-due" data-raw="<?=$this->escapeHtmlAttr($totalDue)?>">
         <?=$this->transEsc('Total Balance Due')?> (<?=count($this->fines ?? []);?>):
         <span class="amount"><?=$this->safeMoneyFormat($totalDue / 100.00) ?></span>
