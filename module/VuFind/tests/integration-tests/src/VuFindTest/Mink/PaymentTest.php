@@ -328,6 +328,32 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
     }
 
     /**
+     * Test last payment info when there are no fines.
+     *
+     * @return void
+     *
+     * @depends      testPaymentDisabled
+     */
+    public function testLastPaymentInfo(): void
+    {
+        $demoConfig = $this->getDemoIniOverrides() + $this->getDemoIniOverridesForPayment();
+        $demoConfig['Records']['fines'] = json_encode([]);
+        $this->changeConfigs(
+            [
+                'config' => $this->getConfigIniOverrides(),
+                'Demo' => $demoConfig,
+            ]
+        );
+
+        $page = $this->goToFines(false);
+
+        $this->assertStringStartsWith(
+            'Last Paid: $15.00',
+            $this->findCssAndGetText($page, '.last-payment-information')
+        );
+    }
+
+    /**
      * Data provider for testBlockedPayment
      *
      * @return array
