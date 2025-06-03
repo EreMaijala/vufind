@@ -307,16 +307,17 @@ class Receipt implements TranslatorAwareInterface
         $pdf = (new DataPart($data['pdf'], $data['filename'], 'application/pdf'))->asInline();
 
         $message = $this->mailer->getNewMessage()
-            ->addFrom($from)
-            ->addTo(...$recipients)
-            ->subject($this->translate('Payment::breakdown_title') . ' - ' . $this->getSourceName($payment))
             ->text($messageContent)
             ->addPart($pdf);
-        if ($replyTo) {
-            $message->addReplyTo($replyTo);
-        }
 
-        $this->mailer->getTransport()->send($message);
+        $this->mailer->send(
+            $recipients,
+            $from,
+            $this->translate('Payment::breakdown_title') . ' - ' . $this->getSourceName($payment),
+            $message,
+            replyTo: $replyTo
+        );
+
         return true;
     }
 

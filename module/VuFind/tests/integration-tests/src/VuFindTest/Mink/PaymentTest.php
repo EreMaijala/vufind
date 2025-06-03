@@ -30,8 +30,17 @@
 namespace VuFindTest\Mink;
 
 use Behat\Mink\Element\DocumentElement;
+use Behat\Mink\Element\Element;
+use VuFind\Db\Entity\PaymentEntityInterface;
+use VuFind\Db\Entity\PaymentEventEntityInterface;
+use VuFind\Db\Service\PaymentEventServiceInterface;
+use VuFind\Db\Service\PaymentFeeServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
 use VuFind\Db\Type\PaymentStatus;
+use VuFindTest\Feature\DemoDriverTestTrait;
+use VuFindTest\Feature\EmailTrait;
+use VuFindTest\Feature\LiveDatabaseTrait;
+use VuFindTest\Feature\UserCreationTrait;
 
 use function assert;
 
@@ -48,9 +57,10 @@ use function assert;
  */
 final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
 {
-    use \VuFindTest\Feature\DemoDriverTestTrait;
-    use \VuFindTest\Feature\LiveDatabaseTrait;
-    use \VuFindTest\Feature\UserCreationTrait;
+    use DemoDriverTestTrait;
+    use EmailTrait;
+    use LiveDatabaseTrait;
+    use UserCreationTrait;
 
     /**
      * Standard setup method.
@@ -113,14 +123,13 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
      */
     public function testPayment(array $paymentSettings, bool $receiptEnabled): void
     {
-        if ($receiptEnabled) {
-        }
         $this->changeConfigs(
             [
                 'config' => $this->getConfigIniOverrides(),
                 'Demo' => $this->getDemoIniOverrides() + $this->getDemoIniOverridesForPayment($paymentSettings),
             ]
         );
+        $this->resetEmailLog();
 
         $page = $this->goToFines(false);
 
@@ -143,22 +152,37 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
         $this->clickCss($page, '.checkbox-select-all');
         $this->clickCss($page, '.js-pay-selected');
         $this->clickCss($page, '#modal .btn.btn-primary', null, 1);
+        $localIdentifier = $this->getLocalIdentifierFromReturnUrl($page);
         $this->clickCss($page, '.button-cancel');
         $this->assertEquals(
             'Payment canceled',
             $this->findCssAndGetText($page, '.alert.alert-success')
+        );
+        $this->assertEquals(
+            PaymentStatus::Canceled,
+            $this->getPaymentByLocalIdentifier($localIdentifier)->getStatus()
         );
 
         // Test failure from payment service:
         $this->clickCss($page, '.checkbox-select-all');
         $this->clickCss($page, '.js-pay-selected');
         $this->clickCss($page, '#modal .btn.btn-primary', null, 1);
+        $localIdentifier = $this->getLocalIdentifierFromReturnUrl($page);
         $this->clickCss($page, '.button-failure');
+        $this->assertEquals(
+            'Payment request failed',
+            $this->findCssAndGetText($page, '.alert.alert-danger')
+        );
+        $this->assertEquals(
+            PaymentStatus::PaymentFailed,
+            $this->getPaymentByLocalIdentifier($localIdentifier)->getStatus()
+        );
 
         // Test success from payment service:
         $this->clickCss($page, '.checkbox-select-all');
         $this->clickCss($page, '.js-pay-selected');
         $this->clickCss($page, '#modal .btn.btn-primary', null, 1);
+        $localIdentifier = $this->getLocalIdentifierFromReturnUrl($page);
         $this->clickCss($page, '.button-success');
         $this->assertEquals(
             'Payment successful',
@@ -180,6 +204,67 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
         } else {
             $this->unFindCss($page, '.last-payment-information');
         }
+        $payment = $this->getPaymentByLocalIdentifier($localIdentifier);
+        $this->assertEquals(
+            PaymentStatus::Completed,
+            $payment->getStatus()
+        );
+
+        // Check receipt email:
+        if ($receiptEnabled) {
+            $email = $this->getLoggedEmail();
+            $this->assertStringContainsString(
+                'A receipt for your payment is attached as a PDF file',
+                $email->getBody()->getParts()[0]->getBody()
+            );
+        }
+
+        // Verify database contents:
+        $this->assertEquals(
+            1500,
+            $payment->getAmount()
+        );
+        $paymentFeeService = $this->getDbService(PaymentFeeServiceInterface::class);
+        assert($paymentFeeService instanceof PaymentFeeServiceInterface);
+        $this->assertEquals(
+            [
+                'demo1',
+                'demo2',
+            ],
+            $paymentFeeService->getFineIdsForPayment($payment)
+        );
+        $paymentService = $this->getDbService(PaymentServiceInterface::class);
+        assert($paymentService instanceof PaymentServiceInterface);
+        $this->assertSame(
+            $payment,
+            $paymentService->getLastPaidPaymentForPatron('catuser')
+        );
+        $paymentEventService = $this->getDbService(PaymentEventServiceInterface::class);
+        assert($paymentEventService instanceof PaymentEventServiceInterface);
+        $events = array_map(
+            function (PaymentEventEntityInterface $event) {
+                return $event->getMessage();
+            },
+            $paymentEventService->getEventsForPayment($payment)
+        );
+        $expectedEvents = [
+            'Successfully registered with the ILS',
+            'Started registration with the ILS',
+            'Registration requested',
+            'Response handler called',
+            'Receipt sent',
+            'Payment marked as paid',
+            'Notify handler called',
+            'Redirected to payment service',
+            'Payment created',
+        ];
+        if (!$receiptEnabled) {
+            $receiptKey = array_search('Receipt sent', $expectedEvents);
+            unset($expectedEvents[$receiptKey]);
+            $expectedEvents = array_values($expectedEvents);
+        }
+
+        $this->assertEquals($expectedEvents, $events);
     }
 
     /**
@@ -213,18 +298,13 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
         $this->waitForPageLoad($page);
 
         // Check payment status:
-        $returnUrl = $this->findCss($page, 'input[name="returnUrl"]')->getValue();
-        parse_str(parse_url($returnUrl, PHP_URL_QUERY), $queryParams);
-        $this->assertArrayHasKey('local_payment_id', $queryParams);
-
-        $paymentService = $this->getDbService(PaymentServiceInterface::class);
-        assert($paymentService instanceof PaymentServiceInterface);
-        $payment = $paymentService->getPaymentByLocalIdentifier($queryParams['local_payment_id']);
+        $payment = $this->getPaymentFromReturnUrl($page);
         $this->assertEquals(
             $payment->getStatus(),
             PaymentStatus::InProgress
         );
 
+        // Send notify event:
         $this->clickCss($page, '.button-notify');
         $this->assertEqualsWithTimeout(
             'Notify done',
@@ -233,6 +313,9 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
             }
         );
 
+        // Check payment status again:
+        $paymentService = $this->getDbService(PaymentServiceInterface::class);
+        assert($paymentService instanceof PaymentServiceInterface);
         $paymentService->refreshEntity($payment);
         $this->assertEquals(
             $payment->getStatus(),
@@ -362,6 +445,11 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
                 'driver' => 'Demo',
                 'holds_mode' => 'driver',   // needed to display login link
             ],
+            'Mail' => [
+                'testOnly' => true,
+                'message_log' => $this->getEmailLogPath(),
+                'message_log_format' => $this->getEmailLogFormat(),
+            ],
             'Demo' => $demoOverrides,
         ];
     }
@@ -442,5 +530,46 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
                 'payable_online' => false,
             ],
         ]);
+    }
+
+    /**
+     * Get the local identifier from the returl URL of the payment service
+     *
+     * @param Element $page Page
+     *
+     * @return string
+     */
+    protected function getLocalIdentifierFromReturnUrl(Element $page): string
+    {
+        $returnUrl = $this->findCss($page, 'input[name="returnUrl"]')->getValue();
+        parse_str(parse_url($returnUrl, PHP_URL_QUERY), $queryParams);
+        $this->assertArrayHasKey('local_payment_id', $queryParams);
+        return $queryParams['local_payment_id'];
+    }
+
+    /**
+     * Get a payment entity by the local identifier in the returl URL of the payment service
+     *
+     * @param string $localIdentifier Local identifier
+     *
+     * @return PaymentEntityInterface
+     */
+    protected function getPaymentByLocalIdentifier(string $localIdentifier): PaymentEntityInterface
+    {
+        $paymentService = $this->getDbService(PaymentServiceInterface::class);
+        assert($paymentService instanceof PaymentServiceInterface);
+        return $paymentService->getPaymentByLocalIdentifier($localIdentifier);
+    }
+
+    /**
+     * Get a payment entity by the local identifier in the returl URL of the payment service
+     *
+     * @param Element $page Page
+     *
+     * @return PaymentEntityInterface
+     */
+    protected function getPaymentFromReturnUrl(Element $page): PaymentEntityInterface
+    {
+        return $this->getPaymentByLocalIdentifier($this->getLocalIdentifierFromReturnUrl($page));
     }
 }
