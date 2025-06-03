@@ -73,20 +73,36 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
     }
 
     /**
+     * Data provider for testPaymentDisabled
+     *
+     * @return array
+     */
+    public static function paymentDisabledProvider(): array
+    {
+        return [
+            [
+                false,
+            ],
+            [
+                true,
+            ],
+        ];
+    }
+
+    /**
      * Test disabled payment.
      *
+     * @param bool $multibackend Use MultiBackend driver?
+     *
      * @return void
+     *
+     * @dataProvider paymentDisabledProvider
      */
-    public function testPaymentDisabled(): void
+    public function testPaymentDisabled(bool $multibackend): void
     {
-        $this->changeConfigs(
-            [
-                'config' => $this->getConfigIniOverrides(),
-                'Demo' => $this->getDemoIniOverrides(),
-            ]
-        );
+        $this->changeConfigs($this->getConfigs($multibackend, null));
 
-        $page = $this->goToFines(true);
+        $page = $this->goToFines(true, $multibackend);
 
         $this->unFindCss($page, '.online-payment');
     }
@@ -102,10 +118,22 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
             [
                 [],
                 true,
+                false,
             ],
             [
                 ['receipt' => false],
                 false,
+                false,
+            ],
+            [
+                [],
+                true,
+                true,
+            ],
+            [
+                ['receipt' => false],
+                false,
+                true,
             ],
         ];
     }
@@ -115,23 +143,19 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
      *
      * @param array $paymentSettings Additional online payment settings
      * @param bool  $receiptEnabled  Receipt enabled?
+     * @param bool  $multibackend    Use MultiBackend driver?
      *
      * @return void
      *
      * @dataProvider paymentProvider
      * @depends      testPaymentDisabled
      */
-    public function testPayment(array $paymentSettings, bool $receiptEnabled): void
+    public function testPayment(array $paymentSettings, bool $receiptEnabled, bool $multibackend): void
     {
-        $this->changeConfigs(
-            [
-                'config' => $this->getConfigIniOverrides(),
-                'Demo' => $this->getDemoIniOverrides() + $this->getDemoIniOverridesForPayment($paymentSettings),
-            ]
-        );
+        $this->changeConfigs($this->getConfigs($multibackend, $paymentSettings));
         $this->resetEmailLog();
 
-        $page = $this->goToFines(false);
+        $page = $this->goToFines(false, $multibackend);
 
         $this->findCss($page, '.online-payment');
         $this->clickCss($page, '.checkbox-select-all');
@@ -237,7 +261,7 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
         assert($paymentService instanceof PaymentServiceInterface);
         $this->assertSame(
             $payment,
-            $paymentService->getLastPaidPaymentForPatron('catuser')
+            $paymentService->getLastPaidPaymentForPatron($multibackend ? 'pay.catuser' : 'catuser')
         );
         $paymentEventService = $this->getDbService(PaymentEventServiceInterface::class);
         assert($paymentEventService instanceof PaymentEventServiceInterface);
@@ -276,14 +300,9 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
      */
     public function testNotify(): void
     {
-        $this->changeConfigs(
-            [
-                'config' => $this->getConfigIniOverrides(),
-                'Demo' => $this->getDemoIniOverrides() + $this->getDemoIniOverridesForPayment(),
-            ]
-        );
+        $this->changeConfigs($this->getConfigs(false, []));
 
-        $page = $this->goToFines(false);
+        $page = $this->goToFines(false, false);
 
         $this->findCss($page, '.online-payment');
         $this->clickCss($page, '.checkbox-select-all');
@@ -340,12 +359,12 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
         $demoConfig['Records']['fines'] = json_encode([]);
         $this->changeConfigs(
             [
-                'config' => $this->getConfigIniOverrides(),
+                'config' => $this->getConfigIniOverrides(false),
                 'Demo' => $demoConfig,
             ]
         );
 
-        $page = $this->goToFines(false);
+        $page = $this->goToFines(false, false);
 
         $this->assertStringStartsWith(
             'Last Paid: $15.00',
@@ -404,12 +423,12 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
     {
         $this->changeConfigs(
             [
-                'config' => $this->getConfigIniOverrides(),
+                'config' => $this->getConfigIniOverrides(false),
                 'Demo' => $this->getDemoIniOverrides() + $this->getDemoIniOverridesForPayment($paymentSettings),
             ]
         );
 
-        $page = $this->goToFines(false);
+        $page = $this->goToFines(false, false);
         $this->assertEquals(
             $expectedMsg,
             $this->findCssAndGetText($page, '.fines-info-area__blocked')
@@ -423,17 +442,18 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
      */
     public static function tearDownAfterClass(): void
     {
-        static::removeUsers(['username1']);
+        static::removeUsers(['username1', 'username2']);
     }
 
     /**
      * Log in and display fines
      *
      * @param bool $createAccount Do we need a new user account?
+     * @param bool $multibackend  Is MultiBackend driver enabled?
      *
      * @return DocumentElement
      */
-    protected function goToFines(bool $createAccount): DocumentElement
+    protected function goToFines(bool $createAccount, bool $multibackend): DocumentElement
     {
         // Go to user profile screen:
         $session = $this->getMinkSession();
@@ -443,13 +463,21 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
         // Set up user account if necessary:
         if ($createAccount) {
             $this->clickCss($page, '.createAccountLink');
-            $this->fillInAccountForm($page);
+            $this->fillInAccountForm(
+                $page,
+                $multibackend
+                    ? [
+                        'email' => 'username2@ignore.com',
+                        'username' => 'username2',
+                    ]
+                    : []
+            );
             $this->clickCss($page, 'input.btn.btn-primary');
 
             // Link ILS profile:
             $this->submitCatalogLoginForm($page, 'catuser', 'catpass');
         } else {
-            $this->fillInLoginForm($page, 'username1', 'test', false);
+            $this->fillInLoginForm($page, $multibackend ? 'username2' : 'username1', 'test', false);
             $this->clickCss($page, 'input.btn.btn-primary');
         }
 
@@ -458,17 +486,55 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
     }
 
     /**
-     * Get config.ini override settings for testing ILS functions.
+     * Get config file overrides for testing payment functions.
      *
-     * @param array $demoOverrides Additional Demo driver overrides
+     * @param bool   $multibackend    Use MultiBackend driver?
+     * @param ?array $paymentSettings Payment settings, or null to disable
      *
      * @return array
      */
-    protected function getConfigIniOverrides(array $demoOverrides = []): array
+    protected function getConfigs(bool $multibackend, ?array $paymentSettings = null): array
     {
-        return [
+        $configs = [
+            'config' => $this->getConfigIniOverrides($multibackend),
+        ];
+        $paymentOverrides = null !== $paymentSettings
+            ? $this->getDemoIniOverridesForPayment($paymentSettings)
+            : [];
+        if ($multibackend) {
+            $configs['MultiBackend'] = [
+                'Drivers' => [
+                    'pay' => 'Demo',
+                    'nopay' => 'Demo',
+                ],
+                'Login' => [
+                    'default_driver' => 'pay',
+                    'drivers' => [
+                        'pay',
+                        'nopay',
+                    ],
+                ],
+            ];
+            $configs['Demo:pay'] = $this->getDemoIniOverrides() + $paymentOverrides;
+            $configs['Demo:nopay'] = $this->getDemoIniOverrides();
+        } else {
+            $configs['Demo'] = $this->getDemoIniOverrides() + $paymentOverrides;
+        }
+        return $configs;
+    }
+
+    /**
+     * Get config.ini override settings for testing payment functions.
+     *
+     * @param bool $multibackend Use MultiBackend driver?
+     *
+     * @return array
+     */
+    protected function getConfigIniOverrides(bool $multibackend): array
+    {
+        $config = [
             'Catalog' => [
-                'driver' => 'Demo',
+                'driver' => $multibackend ? 'MultiBackend' : 'Demo',
                 'holds_mode' => 'driver',   // needed to display login link
             ],
             'Mail' => [
@@ -476,8 +542,8 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
                 'message_log' => $this->getEmailLogPath(),
                 'message_log_format' => $this->getEmailLogFormat(),
             ],
-            'Demo' => $demoOverrides,
         ];
+        return $config;
     }
 
     /**
