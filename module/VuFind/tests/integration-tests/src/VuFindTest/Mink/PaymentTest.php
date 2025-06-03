@@ -332,7 +332,7 @@ final class PaymentTest extends \VuFindTest\Integration\MinkTestCase
      *
      * @return void
      *
-     * @depends      testPaymentDisabled
+     * @depends testPaymentDisabled
      */
     public function testLastPaymentInfo(): void
     {
