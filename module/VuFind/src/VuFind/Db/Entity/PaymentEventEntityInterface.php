@@ -43,6 +43,13 @@ use DateTime;
 interface PaymentEventEntityInterface extends EntityInterface
 {
     /**
+     * Get payment.
+     *
+     * @return PaymentEntityInterface
+     */
+    public function getPayment(): PaymentEntityInterface;
+
+    /**
      * Set payment.
      *
      * @param PaymentEntityInterface $payment Payment
@@ -52,11 +59,11 @@ interface PaymentEventEntityInterface extends EntityInterface
     public function setPayment(PaymentEntityInterface $payment): static;
 
     /**
-     * Get payment.
+     * Get date.
      *
-     * @return PaymentEntityInterface
+     * @return DateTime
      */
-    public function getPayment(): PaymentEntityInterface;
+    public function getDate(): Datetime;
 
     /**
      * Set date.
@@ -68,11 +75,11 @@ interface PaymentEventEntityInterface extends EntityInterface
     public function setDate(DateTime $dateTime): static;
 
     /**
-     * Get date.
+     * Get server IP address.
      *
-     * @return DateTime
+     * @return ?string
      */
-    public function getDate(): Datetime;
+    public function getServerIp(): ?string;
 
     /**
      * Set server IP address.
@@ -84,14 +91,14 @@ interface PaymentEventEntityInterface extends EntityInterface
     public function setServerIp(?string $serverIp): static;
 
     /**
-     * Get server IP address.
+     * Get server name.
      *
      * @return ?string
      */
-    public function getServerIp(): ?string;
+    public function getServerName(): ?string;
 
     /**
-     * Get server name.
+     * Set server name.
      *
      * @param ?string $serverName Server name
      *
@@ -100,11 +107,11 @@ interface PaymentEventEntityInterface extends EntityInterface
     public function setServerName(?string $serverName): static;
 
     /**
-     * Set server name.
+     * Get request URI.
      *
      * @return ?string
      */
-    public function getServerName(): ?string;
+    public function getRequestUri(): ?string;
 
     /**
      * Set request URI.
@@ -116,11 +123,11 @@ interface PaymentEventEntityInterface extends EntityInterface
     public function setRequestUri(?string $requestUri): static;
 
     /**
-     * Get request URI.
+     * Get message.
      *
      * @return ?string
      */
-    public function getRequestUri(): ?string;
+    public function getMessage(): ?string;
 
     /**
      * Set message.
@@ -132,11 +139,11 @@ interface PaymentEventEntityInterface extends EntityInterface
     public function setMessage(?string $message): static;
 
     /**
-     * Get message.
+     * Get additional data.
      *
      * @return ?string
      */
-    public function getMessage(): ?string;
+    public function getData(): ?string;
 
     /**
      * Set additional data.
@@ -146,11 +153,4 @@ interface PaymentEventEntityInterface extends EntityInterface
      * @return static
      */
     public function setData(?string $data): static;
-
-    /**
-     * Get additional data.
-     *
-     * @return ?string
-     */
-    public function getData(): ?string;
 }

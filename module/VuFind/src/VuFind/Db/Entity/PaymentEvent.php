@@ -148,6 +148,16 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
+     * Get date.
+     *
+     * @return DateTime
+     */
+    public function getDate(): Datetime
+    {
+        return $this->date;
+    }
+
+    /**
      * Set date.
      *
      * @param DateTime $dateTime Date
@@ -161,13 +171,13 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Get date.
+     * Get server IP address.
      *
-     * @return DateTime
+     * @return ?string
      */
-    public function getDate(): Datetime
+    public function getServerIp(): ?string
     {
-        return $this->date;
+        return $this->serverIp;
     }
 
     /**
@@ -184,17 +194,17 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Get server IP address.
+     * Get server name.
      *
      * @return ?string
      */
-    public function getServerIp(): ?string
+    public function getServerName(): ?string
     {
-        return $this->serverIp;
+        return $this->serverName;
     }
 
     /**
-     * Get server name.
+     * Set server name.
      *
      * @param ?string $serverName Server name
      *
@@ -207,13 +217,13 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Set server name.
+     * Get request URI.
      *
      * @return ?string
      */
-    public function getServerName(): ?string
+    public function getRequestUri(): ?string
     {
-        return $this->serverName;
+        return $this->requestUri;
     }
 
     /**
@@ -230,13 +240,13 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Get request URI.
+     * Get message.
      *
      * @return ?string
      */
-    public function getRequestUri(): ?string
+    public function getMessage(): ?string
     {
-        return $this->requestUri;
+        return $this->message;
     }
 
     /**
@@ -253,13 +263,13 @@ class PaymentEvent implements PaymentEventEntityInterface
     }
 
     /**
-     * Get message.
+     * Get additional data.
      *
      * @return ?string
      */
-    public function getMessage(): ?string
+    public function getData(): ?string
     {
-        return $this->message;
+        return $this->data;
     }
 
     /**
@@ -273,15 +283,5 @@ class PaymentEvent implements PaymentEventEntityInterface
     {
         $this->data = $data;
         return $this;
-    }
-
-    /**
-     * Get additional data.
-     *
-     * @return ?string
-     */
-    public function getData(): ?string
-    {
-        return $this->data;
     }
 }
