@@ -70,14 +70,15 @@ class ManagerFactory implements FactoryInterface
         }
         // Load dependencies:
         $config = $container->get(\VuFind\Config\PluginManager::class)->get('config');
-        $userService = $container->get(\VuFind\Db\Service\PluginManager::class)
-            ->get(\VuFind\Db\Service\UserServiceInterface::class);
+        $dbServiceManager = $container->get(\VuFind\Db\Service\PluginManager::class);
+        $userService = $dbServiceManager->get(\VuFind\Db\Service\UserServiceInterface::class);
         $sessionManager = $container->get(\Laminas\Session\SessionManager::class);
         $pm = $container->get(\VuFind\Auth\PluginManager::class);
         $cookies = $container->get(\VuFind\Cookie\CookieManager::class);
         $csrf = $container->get(\VuFind\Validator\CsrfInterface::class);
         $loginTokenManager = $container->get(\VuFind\Auth\LoginTokenManager::class);
         $ils = $container->get(\VuFind\ILS\Connection::class);
+        $auditEventService = $dbServiceManager->get(\VuFind\Db\Service\AuditEventServiceInterface::class);
 
         // Build the object and make sure account credentials haven't expired:
         $manager = new $requestedName(
@@ -89,7 +90,8 @@ class ManagerFactory implements FactoryInterface
             $cookies,
             $csrf,
             $loginTokenManager,
-            $ils
+            $ils,
+            $auditEventService
         );
         $manager->setIlsAuthenticator($container->get(\VuFind\Auth\ILSAuthenticator::class));
         $manager->checkForExpiredCredentials();
