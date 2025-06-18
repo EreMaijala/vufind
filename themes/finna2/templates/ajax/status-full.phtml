@@ -1,5 +1,13 @@
 <!-- START of: finna - ajax/status-full.phtml -->
 <?php
+// Availability string to translation mappings:
+$availabilityMappings = [
+  'available' => 'status_Available',
+  'unavailable' => 'status_Not Available',
+  'uncertain' => 'availability_uncertain',
+  'unknown' => 'status_unknown_message',
+];
+
 $id = $this->statusItems[0]['id'];
 $driver = $this->record($id)->getDriver();
 $source = $driver ? $driver->tryMethod('getDataSource') : '';
@@ -68,6 +76,7 @@ if ($groupBranches) {
     ? $locations > $collapseThreshold['location'] : null;
   $collapseBranches = isset($collapseThreshold['branch'])
     ? count($this->statusItems) > $collapseThreshold['branch'] : null;
+  $sortedByAvailability = false;
 } else {
   // Group holdings by location
   $statusItemsFiltered = [];
@@ -94,15 +103,18 @@ if ($groupBranches) {
     }
   }
   $this->statusItems = array_values($statusItemsFiltered);
+  $sortedByAvailability = false;
   if ($this->holdings()->overrideSortOrder()) {
     $items = $this->statusItems;
-    usort($items, function ($a, $b) {
+    $sorter = $this->sorter();
+    usort($items, function ($a, $b) use ($sorter) {
       if ($res = $a['availability']->compareTo($b['availability'])) {
         return $res;
       }
-      return strcasecmp($a['location'], $b['location']);
+      return $sorter->compare($a['location'], $b['location']);
     });
     $this->statusItems = $items;
+    $sortedByAvailability = true;
   }
 }
 ?>
@@ -161,12 +173,19 @@ if ($groupBranches) {
 <?php endif; ?>
 
 <?php
-$currentLocation = $prevLocation = $currentOrganisation = $prevOrganisation = null;
+$currentLocation = $prevLocation = $currentOrganisation = $prevOrganisation = $currentAvailability = null;
 $currentRow = 0;
 foreach ($this->statusItems as $item):
   ++$currentRow;
   $newLocation = false;
   $newOrganisation = false;
+  if ($sortedByAvailability && $currentAvailability?->availabilityAsString() !== $item['availability']->availabilityAsString()) {
+    $currentAvailability = $item['availability'];
+    $currentRow = 0;
+    echo '<div class="status-group-heading">'
+      . $this->transEsc($availabilityMappings[$item['availability']->availabilityAsString()] ?? 'availability_uncertain')
+    . "</div>\n";
+  }
   if ($currentLocation != $item['location']) {
     $prevLocation = $currentLocation;
     $currentLocation = $item['location'];

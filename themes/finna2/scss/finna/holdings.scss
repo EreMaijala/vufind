@@ -473,7 +473,6 @@
         display: none;
     }
     .holdings-container:not(.root) {
-        border-bottom: 1px solid $gray-lighter;
         padding: 2px 0;
         @include media-breakpoint-down(sm) {
             padding: 6px 0 17px;
@@ -496,7 +495,7 @@
         display: inline;
     }
     .header {
-        margin-bottom: 6px;
+        margin-top: 0.3rem;
         span.icon {
             vertical-align: baseline;
         }
@@ -538,6 +537,10 @@
                 width: 35%;
                 float: left;
             }
+        }
+        .status-group-heading {
+            margin-top: 0.3rem;
+            font-weight: bolder;
         }
     }
     .holdings-container {
