@@ -25,6 +25,7 @@
         "paytrail/paytrail-php-sdk": "2.5.2",
         "phpoffice/phpspreadsheet": "^2.0",
         "picqer/php-barcode-generator": "2.0.1",
+        "sabre/xml": "4.0.6",
         "swen100/geophp": "^1.0.8",
         "tecnickcom/tcpdf": "6.7.7"
     },
