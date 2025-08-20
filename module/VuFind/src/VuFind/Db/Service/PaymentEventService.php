@@ -51,8 +51,7 @@ class PaymentEventService extends AbstractDbService implements PaymentEventServi
      */
     public function createEntity(): PaymentEventEntityInterface
     {
-        $class = $this->getEntityClass(PaymentEventEntityInterface::class);
-        return new $class();
+        return $this->entityPluginManager->get(PaymentEventEntityInterface::class);
     }
 
     /**
@@ -86,7 +85,7 @@ class PaymentEventService extends AbstractDbService implements PaymentEventServi
      */
     public function getEventsForPayment(PaymentEntityInterface $payment): array
     {
-        $dql = 'SELECT pe FROM ' . $this->getEntityClass(PaymentEventEntityInterface::class)
+        $dql = 'SELECT pe FROM ' . PaymentEventEntityInterface::class
             . ' pe WHERE pe.payment = :payment ORDER BY pe.date DESC, pe.id DESC';
         $parameters = compact('payment');
         $query = $this->entityManager->createQuery($dql);

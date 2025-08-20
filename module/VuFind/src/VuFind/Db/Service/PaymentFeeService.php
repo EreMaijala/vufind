@@ -50,8 +50,7 @@ class PaymentFeeService extends AbstractDbService implements PaymentFeeServiceIn
      */
     public function createEntity(): PaymentFeeEntityInterface
     {
-        $class = $this->getEntityClass(PaymentFeeEntityInterface::class);
-        return new $class();
+        return $this->entityPluginManager->get(PaymentFeeEntityInterface::class);
     }
 
     /**
@@ -63,7 +62,7 @@ class PaymentFeeService extends AbstractDbService implements PaymentFeeServiceIn
      */
     public function getFinesForPayment(PaymentEntityInterface $payment): array
     {
-        $dql = 'SELECT pf FROM ' . $this->getEntityClass(PaymentFeeEntityInterface::class)
+        $dql = 'SELECT pf FROM ' . PaymentFeeEntityInterface::class
             . ' pf WHERE pf.payment = :payment';
         $parameters = compact('payment');
         $query = $this->entityManager->createQuery($dql);
@@ -80,7 +79,7 @@ class PaymentFeeService extends AbstractDbService implements PaymentFeeServiceIn
      */
     public function getFineIdsForPayment(PaymentEntityInterface $payment): array
     {
-        $dql = 'SELECT pf.fineId FROM ' . $this->getEntityClass(PaymentFeeEntityInterface::class)
+        $dql = 'SELECT pf.fineId FROM ' . PaymentFeeEntityInterface::class
             . " pf WHERE pf.payment = :payment AND pf.fineId != ''";
         $parameters = compact('payment');
         $query = $this->entityManager->createQuery($dql);

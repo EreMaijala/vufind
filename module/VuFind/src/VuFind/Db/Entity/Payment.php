@@ -59,7 +59,7 @@ class Payment implements PaymentEntityInterface
     #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    protected $id;
+    protected int $id;
 
     /**
      * Local identifier.
@@ -67,7 +67,7 @@ class Payment implements PaymentEntityInterface
      * @var string
      */
     #[ORM\Column(name: 'local_identifier', type: 'string', length: 255, nullable: false)]
-    protected $localIdentifier;
+    protected string $localIdentifier;
 
     /**
      * Remote identifier.
@@ -75,7 +75,7 @@ class Payment implements PaymentEntityInterface
      * @var ?string
      */
     #[ORM\Column(name: 'remote_identifier', type: 'string', length: 255, nullable: true)]
-    protected $remoteIdentifier = null;
+    protected ?string $remoteIdentifier = null;
 
     /**
      * User.
@@ -84,7 +84,7 @@ class Payment implements PaymentEntityInterface
      */
     #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
     #[ORM\ManyToOne(targetEntity: \VuFind\Db\Entity\User::class)]
-    protected $user;
+    protected User $user;
 
     /**
      * Source ILS.
@@ -92,7 +92,7 @@ class Payment implements PaymentEntityInterface
      * @var string
      */
     #[ORM\Column(name: 'source_ils', type: 'string', length: 255, nullable: false)]
-    protected $sourceIls;
+    protected string $sourceIls;
 
     /**
      * Catalog username.
@@ -100,7 +100,7 @@ class Payment implements PaymentEntityInterface
      * @var string
      */
     #[ORM\Column(name: 'cat_username', type: 'string', length: 50, nullable: false)]
-    protected $catUsername;
+    protected string $catUsername;
 
     /**
      * Amount.
@@ -108,7 +108,7 @@ class Payment implements PaymentEntityInterface
      * @var int
      */
     #[ORM\Column(name: 'amount', type: 'integer', nullable: false)]
-    protected $amount;
+    protected int $amount;
 
     /**
      * Currency.
@@ -116,7 +116,7 @@ class Payment implements PaymentEntityInterface
      * @var string
      */
     #[ORM\Column(name: 'currency', type: 'string', length: 3, nullable: false)]
-    protected $currency;
+    protected string $currency;
 
     /**
      * Service fee.
@@ -124,7 +124,7 @@ class Payment implements PaymentEntityInterface
      * @var int
      */
     #[ORM\Column(name: 'service_fee', type: 'integer', nullable: false)]
-    protected $serviceFee;
+    protected int $serviceFee;
 
     /**
      * Created date.
@@ -132,7 +132,7 @@ class Payment implements PaymentEntityInterface
      * @var DateTime
      */
     #[ORM\Column(name: 'created', type: 'datetime', nullable: false, options: ['default' => '2000-01-01 00:00:00'])]
-    protected $created;
+    protected DateTime $created;
 
     /**
      * Paid date.
@@ -140,15 +140,20 @@ class Payment implements PaymentEntityInterface
      * @var DateTime
      */
     #[ORM\Column(name: 'paid', type: 'datetime', nullable: false, options: ['default' => '2000-01-01 00:00:00'])]
-    protected $paid;
+    protected DateTime $paid;
 
     /**
      * Registration started date.
      *
      * @var DateTime
      */
-    #[ORM\Column(name: 'registration_started', type: 'datetime', nullable: false, options: ['default' => '2000-01-01 00:00:00'])]
-    protected $registrationStarted;
+    #[ORM\Column(
+        name: 'registration_started',
+        type: 'datetime',
+        nullable: false,
+        options: ['default' => '2000-01-01 00:00:00']
+    )]
+    protected DateTime $registrationStarted;
 
     /**
      * Registered date.
@@ -156,7 +161,7 @@ class Payment implements PaymentEntityInterface
      * @var DateTime
      */
     #[ORM\Column(name: 'registered', type: 'datetime', nullable: false, options: ['default' => '2000-01-01 00:00:00'])]
-    protected $registered;
+    protected DateTime $registered;
 
     /**
      * Status.
@@ -164,7 +169,7 @@ class Payment implements PaymentEntityInterface
      * @var int
      */
     #[ORM\Column(name: 'status', type: 'integer', nullable: false)]
-    protected $status;
+    protected int $status;
 
     /**
      * Status message.
@@ -172,7 +177,7 @@ class Payment implements PaymentEntityInterface
      * @var string
      */
     #[ORM\Column(name: 'status_message', type: 'string', length: 255, nullable: false)]
-    protected $statusMessage;
+    protected string $statusMessage;
 
     /**
      * Reported date.
@@ -180,14 +185,14 @@ class Payment implements PaymentEntityInterface
      * @var DateTime
      */
     #[ORM\Column(name: 'reported', type: 'datetime', nullable: false, options: ['default' => '2000-01-01 00:00:00'])]
-    protected $reported;
+    protected DateTime $reported;
 
     /**
      * Constructor.
      */
     public function __construct()
     {
-        // Set the default values as a DateTime objects
+        // Set the default values as DateTime objects
         $this->created = $this->getUnassignedDefaultDateTime();
         $this->paid = $this->getUnassignedDefaultDateTime();
         $this->registrationStarted = $this->getUnassignedDefaultDateTime();

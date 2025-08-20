@@ -286,7 +286,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      */
     public function setFineId(string $fineId): static
     {
-         // No trimming - fail intentionally if fine ID is too long
+        // No trimming - fail intentionally if fine ID is too long
         $this->fineId = $fineId;
         return $this;
     }

@@ -60,8 +60,7 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
      */
     public function createEntity(): PaymentEntityInterface
     {
-        $class = $this->getEntityClass(PaymentEntityInterface::class);
-        $entity = new $class();
+        $entity = $this->entityPluginManager->get(PaymentEntityInterface::class);
         $entity->setCreated(new DateTime());
         $entity->setStatus(PaymentStatus::InProgress);
         $entity->setStatusMessage('');
@@ -78,7 +77,7 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
     public function getPaymentById(int $id): ?PaymentEntityInterface
     {
         $dql = 'SELECT p '
-                . 'FROM ' . $this->getEntityClass(PaymentEntityInterface::class) . ' p '
+                . 'FROM ' . PaymentEntityInterface::class . ' p '
                 . 'WHERE p.id = :id';
         $parameters = compact('id');
         $query = $this->entityManager->createQuery($dql);
@@ -96,7 +95,7 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
     public function getPaymentByLocalIdentifier(string $localIdentifier): ?PaymentEntityInterface
     {
         $dql = 'SELECT p '
-                . 'FROM ' . $this->getEntityClass(PaymentEntityInterface::class) . ' p '
+                . 'FROM ' . PaymentEntityInterface::class . ' p '
                 . 'WHERE p.localIdentifier = :localIdentifier';
         $parameters = compact('localIdentifier');
         $query = $this->entityManager->createQuery($dql);
@@ -122,7 +121,7 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
             PaymentStatus::FinesUpdated->value,
         ];
 
-        $dql = 'SELECT p FROM ' . $this->getEntityClass(PaymentEntityInterface::class) . ' p'
+        $dql = 'SELECT p FROM ' . PaymentEntityInterface::class . ' p'
             . ' WHERE p.catUsername = :catUsername AND p.status IN (' . implode(',', $statuses) . ')'
             . ' ORDER BY p.paid DESC';
         $parameters = compact('catUsername');
@@ -148,7 +147,7 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
             PaymentStatus::FinesUpdated->value,
         ];
 
-        $dql = 'SELECT p FROM ' . $this->getEntityClass(PaymentEntityInterface::class) . ' p'
+        $dql = 'SELECT p FROM ' . PaymentEntityInterface::class . ' p'
             . ' WHERE p.catUsername = :catUsername AND p.status IN (' . implode(',', $statuses) . ')'
             . ' ORDER BY p.created DESC';
         $parameters = compact('catUsername');
@@ -170,7 +169,7 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
         string $catUsername,
         int $paymentMaxDuration
     ): ?PaymentEntityInterface {
-        $dql = 'SELECT p FROM ' . $this->getEntityClass(PaymentEntityInterface::class) . ' p'
+        $dql = 'SELECT p FROM ' . PaymentEntityInterface::class . ' p'
             . ' WHERE p.catUsername = :catUsername'
             . ' AND p.status = :status'
             . ' AND p.created > :createdLimit'
@@ -196,7 +195,7 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
     public function getFailedPayments(int $minimumPaidAge = 120): array
     {
         $dql = <<<DQL
-            SELECT p FROM {$this->getEntityClass(PaymentEntityInterface::class)} p
+            SELECT p FROM {PaymentEntityInterface::class} p
               WHERE p.paid > :emptyDate
                 AND (
                   p.status = :statusFailed
@@ -231,7 +230,7 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
     {
         $statuses = implode(',', [PaymentStatus::FinesUpdated->value, PaymentStatus::RegistrationExpired->value]);
         $dql = <<<DQL
-            SELECT p FROM {$this->getEntityClass(PaymentEntityInterface::class)} p
+            SELECT p FROM {PaymentEntityInterface::class} p
               WHERE p.status IN ($statuses)
                 AND p.paid > :emptyDate
                 AND p.reported < :reportedLimit
@@ -276,7 +275,7 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
         ?int $page = null,
         int $limit = 20
     ): Paginator {
-        $dql = 'SELECT p FROM ' . $this->getEntityClass(PaymentEntityInterface::class) . ' p';
+        $dql = 'SELECT p FROM ' . PaymentEntityInterface::class . ' p';
         $parameters = $dqlWhere = [];
 
         if ($statuses) {
@@ -342,7 +341,7 @@ class PaymentService extends AbstractDbService implements PaymentServiceInterfac
      */
     public function getUniqueSourceIlsList(): array
     {
-        $dql = 'SELECT DISTINCT p.sourceIls FROM ' . $this->getEntityClass(PaymentEntityInterface::class)
+        $dql = 'SELECT DISTINCT p.sourceIls FROM ' . PaymentEntityInterface::class
             . ' p ORDER BY p.sourceIls';
         $query = $this->entityManager->createQuery($dql);
         return $query->getSingleColumnResult();

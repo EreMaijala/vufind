@@ -56,7 +56,7 @@ class PaymentEvent implements PaymentEventEntityInterface
     #[ORM\Column(name: 'id', type: 'integer', nullable: false)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'IDENTITY')]
-    protected $id;
+    protected int $id;
 
     /**
      * Payment.
@@ -65,7 +65,7 @@ class PaymentEvent implements PaymentEventEntityInterface
      */
     #[ORM\JoinColumn(name: 'payment_id', referencedColumnName: 'id', nullable: false)]
     #[ORM\ManyToOne(targetEntity: \VuFind\Db\Entity\Payment::class)]
-    protected $payment;
+    protected Payment $payment;
 
     /**
      * Date.
@@ -73,7 +73,7 @@ class PaymentEvent implements PaymentEventEntityInterface
      * @var DateTime
      */
     #[ORM\Column(name: 'date', type: 'datetime', nullable: false, options: ['default' => '2000-01-01 00:00:00'])]
-    protected $date;
+    protected DateTime $date;
 
     /**
      * Server IP address.
@@ -81,7 +81,7 @@ class PaymentEvent implements PaymentEventEntityInterface
      * @var string
      */
     #[ORM\Column(name: 'server_ip', type: 'string', length: 255, nullable: true)]
-    protected $serverIp;
+    protected string $serverIp;
 
     /**
      * Server name.
@@ -89,7 +89,7 @@ class PaymentEvent implements PaymentEventEntityInterface
      * @var string
      */
     #[ORM\Column(name: 'server_name', type: 'string', length: 255, nullable: true)]
-    protected $serverName;
+    protected string $serverName;
 
     /**
      * Request URI.
@@ -97,7 +97,7 @@ class PaymentEvent implements PaymentEventEntityInterface
      * @var string
      */
     #[ORM\Column(name: 'request_uri', type: 'string', length: 1024, nullable: true)]
-    protected $requestUri;
+    protected string $requestUri;
 
     /**
      * Log message.
@@ -105,7 +105,7 @@ class PaymentEvent implements PaymentEventEntityInterface
      * @var string
      */
     #[ORM\Column(name: 'message', type: 'string', length: 255, nullable: false)]
-    protected $message;
+    protected string $message;
 
     /**
      * Additional data (JSON).
@@ -113,7 +113,7 @@ class PaymentEvent implements PaymentEventEntityInterface
      * @var ?string
      */
     #[ORM\Column(name: 'data', type: 'text', length: 16777215, nullable: true)]
-    protected $data;
+    protected ?string $data;
 
     /**
      * Constructor
