@@ -264,7 +264,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      */
     public function setCurrency(string $currency): static
     {
-        mb_substr($currency, 0, 3, 'UTF-8');
+        $this->currency = mb_substr($currency, 0, 3, 'UTF-8');
         return $this;
     }
 
