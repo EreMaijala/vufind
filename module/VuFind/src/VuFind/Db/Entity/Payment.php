@@ -46,6 +46,8 @@ use function in_array;
  * @link     http://vufind.org   Main Site
  */
 #[ORM\Table(name: 'payment')]
+#[ORM\Index(name: 'local_identifier', columns: ['local_identifier'])]
+#[ORM\Index(name: 'status_cat_username_created', columns: ['status', 'cat_username', 'created'])]
 #[ORM\Entity]
 class Payment implements PaymentEntityInterface
 {
