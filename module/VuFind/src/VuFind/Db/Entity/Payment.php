@@ -46,8 +46,10 @@ use function in_array;
  * @link     http://vufind.org   Main Site
  */
 #[ORM\Table(name: 'payment')]
+#[ORM\Index(name: 'payment_user_id_idx', columns: ['user_id'])]
 #[ORM\Index(name: 'local_identifier', columns: ['local_identifier'])]
 #[ORM\Index(name: 'status_cat_username_created', columns: ['status', 'cat_username', 'created'])]
+#[ORM\Index(name: 'paid_reported', columns: ['paid', 'reported'])]
 #[ORM\Entity]
 class Payment implements PaymentEntityInterface
 {
@@ -82,11 +84,11 @@ class Payment implements PaymentEntityInterface
     /**
      * User.
      *
-     * @var User
+     * @var UserEntityInterface
      */
-    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \VuFind\Db\Entity\User::class)]
-    protected User $user;
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: UserEntityInterface::class)]
+    protected UserEntityInterface $user;
 
     /**
      * Source ILS.
@@ -170,7 +172,7 @@ class Payment implements PaymentEntityInterface
      *
      * @var int
      */
-    #[ORM\Column(name: 'status', type: 'integer', nullable: false)]
+    #[ORM\Column(name: 'status', type: 'integer', nullable: false, options: ['default' => 0])]
     protected int $status;
 
     /**
@@ -178,7 +180,7 @@ class Payment implements PaymentEntityInterface
      *
      * @var string
      */
-    #[ORM\Column(name: 'status_message', type: 'string', length: 255, nullable: false)]
+    #[ORM\Column(name: 'status_message', type: 'string', length: 255, nullable: false, options: ['default' => ''])]
     protected string $statusMessage;
 
     /**

@@ -41,6 +41,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @link     http://vufind.org   Main Site
  */
 #[ORM\Table(name: 'payment_fee')]
+#[ORM\Index(name: 'payment_fee_payment_id_idx', columns: ['payment_id'])]
 #[ORM\Entity]
 class PaymentFee implements PaymentFeeEntityInterface
 {
@@ -59,8 +60,8 @@ class PaymentFee implements PaymentFeeEntityInterface
      *
      * @var Payment
      */
-    #[ORM\JoinColumn(name: 'payment_id', referencedColumnName: 'id')]
-    #[ORM\ManyToOne(targetEntity: \VuFind\Db\Entity\Payment::class)]
+    #[ORM\JoinColumn(name: 'payment_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: PaymentEntityInterface::class)]
     protected $payment;
 
     /**
@@ -68,7 +69,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      *
      * @var string
      */
-    #[ORM\Column(name: 'title', type: 'string', length: 255, nullable: false)]
+    #[ORM\Column(name: 'title', type: 'string', length: 255, nullable: false, options: ['default' => ''])]
     protected $title;
 
     /**
@@ -76,7 +77,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      *
      * @var string
      */
-    #[ORM\Column(name: 'type', type: 'string', length: 255, nullable: false)]
+    #[ORM\Column(name: 'type', type: 'string', length: 255, nullable: false, options: ['default' => ''])]
     protected $type;
 
     /**
@@ -84,7 +85,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      *
      * @var string
      */
-    #[ORM\Column(name: 'description', type: 'string', length: 255, nullable: false)]
+    #[ORM\Column(name: 'description', type: 'string', length: 255, nullable: false, options: ['default' => ''])]
     protected $description;
 
     /**
@@ -92,7 +93,7 @@ class PaymentFee implements PaymentFeeEntityInterface
      *
      * @var int
      */
-    #[ORM\Column(name: 'amount', type: 'integer', nullable: false)]
+    #[ORM\Column(name: 'amount', type: 'integer', nullable: false, options: ['default' => 0])]
     protected $amount;
 
     /**

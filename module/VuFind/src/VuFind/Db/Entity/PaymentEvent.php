@@ -43,6 +43,7 @@ use VuFind\Db\Feature\DateTimeTrait;
  * @link     http://vufind.org   Main Site
  */
 #[ORM\Table(name: 'payment_event')]
+#[ORM\Index(name: 'payment_event_payment_id_idx', columns: ['payment_id'])]
 #[ORM\Entity]
 class PaymentEvent implements PaymentEventEntityInterface
 {
@@ -63,8 +64,8 @@ class PaymentEvent implements PaymentEventEntityInterface
      *
      * @var Payment
      */
-    #[ORM\JoinColumn(name: 'payment_id', referencedColumnName: 'id', nullable: false)]
-    #[ORM\ManyToOne(targetEntity: \VuFind\Db\Entity\Payment::class)]
+    #[ORM\JoinColumn(name: 'payment_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: PaymentEntityInterface::class)]
     protected Payment $payment;
 
     /**

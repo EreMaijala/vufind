@@ -12,14 +12,15 @@ CREATE TABLE payment (
   paid timestamp NOT NULL DEFAULT '2000-01-01 00:00:00',
   registration_started timestamp NOT NULL DEFAULT '2000-01-01 00:00:00',
   registered timestamp NOT NULL DEFAULT '2000-01-01 00:00:00',
-  status smallint NOT NULL DEFAULT 0,
-  status_message varchar(255) DEFAULT '',
+  status int NOT NULL DEFAULT 0,
+  status_message varchar(255) NOT NULL DEFAULT '',
   reported timestamp NOT NULL DEFAULT '2000-01-01 00:00:00',
   PRIMARY KEY (id)
 );
 CREATE INDEX payment_local_identifier ON payment (local_identifier);
 CREATE INDEX payment_status_cat_username_created ON payment (status, cat_username, created);
 CREATE INDEX payment_paid_reported ON payment (paid,reported);
+CREATE INDEX payment_user_id_idx ON payment (user_id);
 
 CREATE TABLE payment_fee (
   id SERIAL,
@@ -33,6 +34,7 @@ CREATE TABLE payment_fee (
   organization varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (id)
 );
+CREATE INDEX payment_fee_payment_id_idx ON payment_fee (payment_id);
 
 CREATE TABLE payment_event (
   id SERIAL,
@@ -45,6 +47,7 @@ CREATE TABLE payment_event (
   data text DEFAULT NULL,
   PRIMARY KEY (id)
 );
+CREATE INDEX payment_event_payment_id_idx ON payment_event (payment_id);
 
 ALTER TABLE payment
 ADD CONSTRAINT payment_ibfk_1 FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE;
