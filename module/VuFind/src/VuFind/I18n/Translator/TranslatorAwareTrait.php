@@ -257,7 +257,12 @@ trait TranslatorAwareTrait
         // Do we need to perform substitutions?
         if (!empty($tokens)) {
             if ($useIcuFormatter) {
-                return \MessageFormatter::formatMessage($this->getTranslatorLocale(), $msg, $tokens);
+                try {
+                    $formatter = new \MessageFormatter($this->getTranslatorLocale(), $msg);
+                    $msg = $formatter->format($tokens);
+                } catch (\Exception $e) {
+                    throw new \Exception("Failed to format message '$msg' with ICU: " . (string)$e);
+                }
             }
             $in = $out = [];
             foreach ($tokens as $key => $value) {
