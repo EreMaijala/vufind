@@ -161,11 +161,11 @@
         "qa": "phing qa-console -Ddefaultconfigs=true",
         "show-outdated": "composer show -oD --ignore-platform-req=ext-oci8",
         "update-npm-deps": [
-            "npm update",
-            "cd themes/bootstrap5 && npm run updateDeps"
+            "npm update --ignore-scripts",
+            "cd themes/bootstrap5 && npm run updateDeps --ignore-scripts"
         ],
         "install-build-deps": [
-            "cd themes/bootstrap5 && npm run installBuildDeps"
+            "cd themes/bootstrap5 && npm run installBuildDeps --ignore-scripts"
         ]
     }
 }
