@@ -29,7 +29,6 @@
 
 namespace VuFindTest\UrlHighlight;
 
-use PHPUnit\Framework\MockObject\MockObject;
 use VStelmakh\UrlHighlight\Replacer\ReplacerFactory;
 use VuFind\UrlHighlight\VuFindHighlighter;
 use VuFind\View\Helper\Root\ProxyUrl;
@@ -46,41 +45,6 @@ use VuFind\View\Helper\Root\ProxyUrl;
 class VuFindHighlighterTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * Mock proxy object.
-     *
-     * @var ProxyUrl&MockObject
-     */
-    protected $proxyUrl;
-
-    /**
-     * VuFind highlighter object.
-     *
-     * @var VuFindHighlighter
-     */
-    protected $vuFindHighlighter;
-
-    /**
-     * Generic setup method.
-     *
-     * @return void
-     */
-    public function setUp(): void
-    {
-        $this->proxyUrl = $this->createMock(ProxyUrl::class);
-        $this->vuFindHighlighter = new VuFindHighlighter($this->proxyUrl);
-    }
-
-    /**
-     * Generic teardown method.
-     *
-     * @return void
-     */
-    public function tearDown(): void
-    {
-        unset($this->proxyUrl, $this->vuFindHighlighter);
-    }
-
-    /**
      * Test the highlight method.
      *
      * @param string $url      URL
@@ -91,13 +55,15 @@ class VuFindHighlighterTest extends \PHPUnit\Framework\TestCase
     #[\PHPUnit\Framework\Attributes\DataProvider('getHighlightDataProvider')]
     public function testGetHighlight(string $url, string $expected): void
     {
-        $this->proxyUrl
+        $proxyUrl = $this->createMock(ProxyUrl::class);
+        $proxyUrl
             ->expects($this->atLeastOnce())
             ->method('__invoke')
             ->willReturn('URL_WITH_PROXY');
+        $vuFindHighlighter = new VuFindHighlighter($proxyUrl);
 
         $replacer = ReplacerFactory::createReplacer();
-        $actual = $this->vuFindHighlighter->highlight($url, $replacer);
+        $actual = $vuFindHighlighter->highlight($url, $replacer);
         $this->assertSame($expected, $actual);
     }
 

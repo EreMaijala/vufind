@@ -15,3 +15,6 @@ parameters:
     level: 1
     parallel:
         processTimeout: 600.0
+
+includes:
+    - phpstan-ignore-by-php-version.neon.php

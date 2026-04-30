@@ -1,0 +1,22 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Access to constant ATTR_SSL_VERIFY_SERVER_CERT on an unknown class Pdo\\\\Mysql\\.$#"
+			count: 1
+			path: ../module/VuFind/src/VuFind/Db/ConnectionFactory.php
+		-
+			message: "#^Access to constant ATTR_SSL_KEY on an unknown class Pdo\\\\Mysql\\.$#"
+			count: 1
+			path: ../module/VuFind/src/VuFind/Db/ConnectionFactory.php
+		-
+			message: "#^Access to constant ATTR_SSL_CERT on an unknown class Pdo\\\\Mysql\\.$#"
+			count: 1
+			path: ../module/VuFind/src/VuFind/Db/ConnectionFactory.php
+		-
+			message: "#^Access to constant ATTR_SSL_CA on an unknown class Pdo\\\\Mysql\\.$#"
+			count: 1
+			path: ../module/VuFind/src/VuFind/Db/ConnectionFactory.php
+		-
+			message: "#^Access to constant ATTR_SSL_CAPATH on an unknown class Pdo\\\\Mysql\\.$#"
+			count: 1
+			path: ../module/VuFind/src/VuFind/Db/ConnectionFactory.php
