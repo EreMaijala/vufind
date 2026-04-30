@@ -30,7 +30,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: intl, xsl
+          extensions: intl, xsl, pdo_mysql
           tools: composer:2.8.1
           ini-values: error_reporting=E_ALL
 
