@@ -167,9 +167,7 @@ $config = [
     ],
     'controllers' => [
         'factories' => [
-            'VuFind\Controller\AlmaController' => 'VuFind\Controller\AbstractBaseFactory',
             'VuFind\Controller\DeveloperSettingsController' => 'VuFind\Controller\AbstractBaseFactory',
-            'VuFind\Controller\BrowZineController' => 'VuFind\Controller\AbstractBaseFactory',
             'VuFind\Controller\CartController' => 'VuFind\Controller\CartControllerFactory',
             'VuFind\Controller\CheckoutsController' => 'VuFind\Controller\CheckoutsControllerFactory',
             'VuFind\Controller\CollectionsController' => 'VuFind\Controller\AbstractBaseWithConfigFactory',
@@ -230,12 +228,8 @@ $config = [
             'VuFind\ServiceManager\ServiceInitializer',
         ],
         'aliases' => [
-            'Alma' => 'VuFind\Controller\AlmaController',
-            'alma' => 'VuFind\Controller\AlmaController',
             'DeveloperSettings' => 'VuFind\Controller\DeveloperSettingsController',
             'developersettings' => 'VuFind\Controller\DeveloperSettingsController',
-            'BrowZine' => 'VuFind\Controller\BrowZineController',
-            'browzine' => 'VuFind\Controller\BrowZineController',
             'Cart' => 'VuFind\Controller\CartController',
             'cart' => 'VuFind\Controller\CartController',
             'Collections' => 'VuFind\Controller\CollectionsController',
