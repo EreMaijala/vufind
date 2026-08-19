@@ -57,9 +57,8 @@ class JsonAction extends AbstractAjaxAction
     ): ResponseInterface {
         $method = $this->getQueryParam('method');
         if (!$method) {
-            return $this->getAjaxResponse(
+            return $this->getJsonResponse(
                 $response,
-                'application/json',
                 ['error' => 'Parameter "method" missing'],
                 400
             );

@@ -36,6 +36,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use VuFind\AjaxHandler\AjaxHandlerInterface;
 use VuFind\AjaxHandler\PluginManager;
 
+use function is_callable;
+
 /**
  * Trait to allow AJAX response generation.
  *
@@ -62,22 +64,22 @@ trait AjaxResponseTrait
     /**
      * Format the content of the AJAX response based on the response type.
      *
-     * @param string $type     Content-type of output
-     * @param mixed  $data     The response data
-     * @param int    $httpCode A custom HTTP Status Code
+     * @param string $type        Content-type of output
+     * @param mixed  $data        The response data
+     * @param ?int   $httpCode    A custom HTTP Status Code
+     * @param bool   $jsonWrapper Use a data wrapper with JSON responses (default is true)?
      *
      * @return string
      * @throws \Exception
      */
-    protected function formatContent($type, $data, $httpCode)
+    protected function formatContent(string $type, mixed $data, ?int $httpCode, bool $jsonWrapper = true): string
     {
         switch ($type) {
             case 'application/javascript':
             case 'application/json':
-                return json_encode(compact('data'));
+                return json_encode($jsonWrapper ? compact('data') : $data);
             case 'text/plain':
-                return ((null !== $httpCode && $httpCode >= 400) ? 'ERROR ' : 'OK ')
-                    . $data;
+                return ((null !== $httpCode && $httpCode >= 400) ? 'ERROR ' : 'OK ') . $data;
             case 'text/html':
                 return $data ?: '';
             default:
@@ -88,10 +90,12 @@ trait AjaxResponseTrait
     /**
      * Get a response with the AJAX output data.
      *
-     * @param ResponseInterface $response Response
-     * @param string            $type     Content type to output
-     * @param mixed             $data     The response data
-     * @param ?int              $httpCode A custom HTTP Status Code or null for default (200)
+     * @param ResponseInterface $response     Response
+     * @param string            $type         Content type to output
+     * @param mixed             $data         The response data
+     * @param ?int              $httpCode     A custom HTTP Status Code or null for default (200)
+     * @param bool              $allowCaching Allow the response to be cached (defaults to false)?
+     * @param bool              $jsonWrapper  Use a data wrapper with JSON responses (default is true)?
      *
      * @return ResponseInterface
      * @throws \Exception
@@ -100,16 +104,42 @@ trait AjaxResponseTrait
         ResponseInterface $response,
         string $type,
         mixed $data,
-        ?int $httpCode = null
+        ?int $httpCode = null,
+        bool $allowCaching = false,
+        bool $jsonWrapper = true
     ): ResponseInterface {
-        $response = $response->withHeader('Content-Type', $type)
-            ->withHeader('Cache-Control', 'no-cache, must-revalidate')
-            ->withHeader('Expires', 'Mon, 26 Jul 1997 05:00:00 GMT');
+        $response = $response->withHeader('Content-Type', $type);
+        if (!$allowCaching) {
+            $response = $response->withHeader('Cache-Control', 'no-cache, must-revalidate')
+                ->withHeader('Expires', 'Mon, 26 Jul 1997 05:00:00 GMT');
+        }
         if ($httpCode !== null) {
             $response = $response->withStatus($httpCode);
         }
-        $response->getBody()->write($this->formatContent($type, $data, $httpCode));
+        $response->getBody()->write($this->formatContent($type, $data, $httpCode, $jsonWrapper));
         return $response;
+    }
+
+    /**
+     * Get a response with JSON output data.
+     *
+     * @param ResponseInterface $response     Response
+     * @param mixed             $data         The response data
+     * @param ?int              $httpCode     A custom HTTP Status Code or null for default (200)
+     * @param bool              $allowCaching Allow the response to be cached (defaults to false)?
+     * @param bool              $jsonWrapper  Use a data wrapper with JSON responses (default is true)?
+     *
+     * @return ResponseInterface
+     * @throws \Exception
+     */
+    protected function getJsonResponse(
+        ResponseInterface $response,
+        mixed $data,
+        ?int $httpCode = null,
+        bool $allowCaching = false,
+        bool $jsonWrapper = true
+    ): ResponseInterface {
+        return $this->getAjaxResponse($response, 'application/json', $data, $httpCode, $allowCaching, $jsonWrapper);
     }
 
     /**
@@ -123,12 +153,14 @@ trait AjaxResponseTrait
      */
     protected function getExceptionResponse(ResponseInterface $response, string $type, \Exception $e): ResponseInterface
     {
-        $debugMsg = ('development' == APPLICATION_ENV)
-            ? ': ' . (string)$e : '';
+        $errorMsg = is_callable([$this, 'translate'])
+            ? $this->translate('An error has occurred')
+            : 'An error has occurred';
+        $debugMsg = ('development' == APPLICATION_ENV) ? ': ' . (string)$e : '';
         return $this->getAjaxResponse(
             $response,
             $type,
-            $this->translate('An error has occurred') . $debugMsg,
+            $errorMsg . $debugMsg,
             AjaxHandlerInterface::STATUS_HTTP_ERROR
         );
     }
@@ -167,10 +199,13 @@ trait AjaxResponseTrait
         }
 
         // If we got this far, we can't handle the requested method:
+        $errorMsg = is_callable([$this, 'translate'])
+            ? $this->translate('Invalid Method')
+            : 'Invalid Method';
         return $this->getAjaxResponse(
             $response,
             $type,
-            $this->translate('Invalid Method'),
+            $errorMsg,
             AjaxHandlerInterface::STATUS_HTTP_BAD_REQUEST
         );
     }

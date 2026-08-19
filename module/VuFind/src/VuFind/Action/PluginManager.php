@@ -24,7 +24,7 @@
  * @package  Action
  * @author   Demian Katz <demian.katz@villanova.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org/wiki/development:plugins:hierarchy_components Wiki
+ * @link     https://vufind.org/wiki/development:architecture:actions Wiki
  */
 
 namespace VuFind\Action;
@@ -44,7 +44,7 @@ use function count;
  * @package  Action
  * @author   Demian Katz <demian.katz@villanova.edu>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
- * @link     https://vufind.org/wiki/development:plugins:hierarchy_components Wiki
+ * @link     https://vufind.org/wiki/development:architecture:actions Wiki
  */
 class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
 {
@@ -73,6 +73,9 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         'developersettings/displaysettings' => DeveloperSettings\DisplaySettingsAction::class,
         'developersettings/generateapikey' => DeveloperSettings\GenerateApiKeyAction::class,
         'externalauth/ezproxylogin' => ExternalAuth\EzproxyLoginAction::class,
+        'hierarchy/getrecord' => Hierarchy\GetRecordAction::class,
+        'hierarchy/gettree' => Hierarchy\GetTreeAction::class,
+        'hierarchy/searchtree' => Hierarchy\SearchTreeAction::class,
         'myresearch/cataloglogin' => MyResearch\CatalogLoginAction::class,
         'ratings/deleteratings' => Ratings\DeleteRatingsAction::class,
         'ratings/userlist' => Ratings\UserListAction::class,
