@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Abstract base class for Blender actions.
+ * Search home action.
  *
  * PHP version 8
  *
@@ -27,12 +27,13 @@
  * @link     https://vufind.org Main Site
  */
 
-namespace VuFind\Action\Blender;
+namespace VuFind\Action\Search;
 
-use VuFind\Action\Search\AbstractSearchAndResultsAction;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Abstract base class for Blender actions.
+ * Search home action.
  *
  * @category VuFind
  * @package  Action
@@ -40,16 +41,20 @@ use VuFind\Action\Search\AbstractSearchAndResultsAction;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org Main Site
  */
-abstract class AbstractBlenderSearchAndResultsAction extends AbstractSearchAndResultsAction
+class HomeAction extends AbstractSearchAndResultsAction
 {
     /**
-     * Initialize the action.
+     * Display home page.
      *
-     * @return void
+     * @param ServerRequestInterface $request  Server request
+     * @param ResponseInterface      $response Response
+     *
+     * @return ResponseInterface
      */
-    protected function init(): void
-    {
-        parent::init();
-        $this->searchClassId = 'Blender';
+    public function action(
+        ServerRequestInterface $request,
+        ResponseInterface $response,
+    ): ResponseInterface {
+        return $this->renderHomePage();
     }
 }

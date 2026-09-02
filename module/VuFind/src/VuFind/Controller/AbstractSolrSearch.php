@@ -76,36 +76,6 @@ class AbstractSolrSearch extends AbstractSearch
     }
 
     /**
-     * Handle an advanced search.
-     *
-     * @return mixed
-     */
-    public function advancedAction()
-    {
-        // Standard setup from base class:
-        $view = parent::advancedAction();
-
-        // Set up facet information:
-        $this->addFacetDetailsToView($view);
-        $specialFacets = $this->parseSpecialFacetsSetting(
-            $view->options->getSpecialAdvancedFacets()
-        );
-        if (isset($specialFacets['illustrated'])) {
-            $view->illustratedLimit
-                = $this->getIllustrationSettings($view->saved);
-        }
-        if (isset($specialFacets['checkboxes'])) {
-            $view->checkboxFacets = $this->processAdvancedCheckboxes(
-                $specialFacets['checkboxes'],
-                $view->saved
-            );
-        }
-        $view->ranges = $this->getAllRangeSettings($specialFacets, $view->saved);
-
-        return $view;
-    }
-
-    /**
      * Get the possible legal values for the illustration limit radio buttons.
      *
      * @param object $savedSearch Saved search object (false if none)

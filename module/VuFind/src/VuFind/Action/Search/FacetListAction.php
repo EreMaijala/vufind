@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Blender results action.
+ * Search facet list action.
  *
  * PHP version 8
  *
@@ -27,13 +27,13 @@
  * @link     https://vufind.org Main Site
  */
 
-namespace VuFind\Action\Blender;
+namespace VuFind\Action\Search;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Blender results action.
+ * Search facet list action.
  *
  * @category VuFind
  * @package  Action
@@ -41,10 +41,10 @@ use Psr\Http\Message\ServerRequestInterface;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org Main Site
  */
-class ResultsAction extends AbstractBlenderSearchAndResultsAction
+class FacetListAction extends AbstractSearchAndResultsAction
 {
     /**
-     * Display search results.
+     * Display facet list.
      *
      * @param ServerRequestInterface $request  Server request
      * @param ResponseInterface      $response Response
@@ -55,6 +55,6 @@ class ResultsAction extends AbstractBlenderSearchAndResultsAction
         ServerRequestInterface $request,
         ResponseInterface $response,
     ): ResponseInterface {
-        return $this->renderSearchResults($request, $response);
+        return $this->renderFacetList();
     }
 }

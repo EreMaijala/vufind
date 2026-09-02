@@ -61,7 +61,20 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         'ajax/onlinepaymentnotify' => Ajax\OnlinePaymentNotifyAction::class,
         'ajax/systemstatus' => Ajax\SystemStatusAction::class,
 
-        'author/facetlist' => Author\FacetListAction::class,
+        'author/facetlist' => Search\FacetListAction::class,
+
+        'authority/search' => Search\ResultsAction::class,
+
+        'blender/advanced' => Search\AdvancedAction::class,
+        'blender/home' => Search\HomeAction::class,
+        'blender/results' => Search\ResultsAction::class,
+
+        'blender2/advanced' => Search\AdvancedAction::class,
+        'blender2/home' => Search\HomeAction::class,
+        'blender2/results' => Search\ResultsAction::class,
+
+        'browzine/home' => Search\HomeAction::class,
+        'browzine/search' => Search\ResultsAction::class,
 
         'cart/doexport' => Cart\DoExportAction::class,
         'cart/myresearchbulk' => Cart\MyResearchBulkAction::class,
@@ -81,6 +94,9 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         'developersettings/deleteapikey' => DeveloperSettings\DeleteApiKeyAction::class,
         'developersettings/displaysettings' => DeveloperSettings\DisplaySettingsAction::class,
         'developersettings/generateapikey' => DeveloperSettings\GenerateApiKeyAction::class,
+
+        'eds/home' => Search\HomeAction::class,
+        'eds/search' => Search\ResultsAction::class,
 
         'edsrecord/addtag' => Record\AddTagAction::class,
         'edsrecord/deletetag' => Record\DeleteTagAction::class,
@@ -121,6 +137,8 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
 
         'oai/authserver' => Oai\AuthServerAction::class,
 
+        'search/opensearch' => Search\OpenSearchAction::class,
+
         'primorecord/addtag' => Record\AddTagAction::class,
         'primorecord/deletetag' => Record\DeleteTagAction::class,
         'primorecord/ajaxtab' => Record\AjaxTabAction::class,
@@ -159,6 +177,8 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         'record/illrequest' => Record\IllRequestAction::class,
         'record/storageretrievalrequest' => Record\StorageRetrievalRequestAction::class,
 
+        'search/collectionfacetlist' => Search\FacetListAction::class,
+
         // At least hierarchy tree links use the collection AjaxTab route:
         'search2collection/ajaxtab' => Record\AjaxTabAction::class,
 
@@ -189,6 +209,8 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         'summonrecord/rdf' => Record\RdfAction::class,
         'summonrecord/save' => Record\SaveAction::class,
         'summonrecord/sms' => Record\SmsAction::class,
+
+        'tags/home' => Search\ResultsAction::class,
 
         // Legacy WorldcatRecord actions:
         'worldcatrecord/addtag' => Record\AddTagAction::class,
