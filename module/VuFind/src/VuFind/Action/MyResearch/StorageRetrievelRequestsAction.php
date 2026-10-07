@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Delete favorites action.
+ * Storage retrieval requests list action.
  *
  * PHP version 8
  *
@@ -31,33 +31,30 @@
 
 namespace VuFind\Action\MyResearch;
 
+use Laminas\Http\Response;
 use Laminas\Session\SessionManager;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use VuFind\ActionHelper\BulkActionHelper;
-use VuFind\ActionHelper\FlashMessagesHelper;
-use VuFind\ActionHelper\FormHelper;
 use VuFind\ActionHelper\LoginHelper;
-use VuFind\ActionHelper\RedirectHelper;
+use VuFind\ActionHelper\StorageRetrievalRequestsHelper;
 use VuFind\Auth\EmailAuthenticator;
 use VuFind\Auth\Manager as AuthManager;
 use VuFind\Auth\UserSessionPersistenceInterface;
 use VuFind\Db\Service\AuditEventServiceInterface;
 use VuFind\Db\Service\PluginManager as DbServicePluginManager;
-use VuFind\Db\Service\UserListServiceInterface;
-use VuFind\Favorites\FavoritesService;
+use VuFind\Db\Type\AuditEventSubtype;
+use VuFind\Db\Type\AuditEventType;
 use VuFind\Http\ServerUrlHelper;
 use VuFind\ILS\Connection;
+use VuFind\ILS\Logic\RecordsHelper;
 use VuFind\Mailer\Mailer;
-use VuFind\Record\Loader as RecordLoader;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\Session\Helper\FollowupHelper;
 
-use function count;
 use function is_array;
 
 /**
- * Delete favorites action.
+ * Storage retrieval requests list action.
  *
  * @category VuFind
  * @package  Action
@@ -66,7 +63,7 @@ use function is_array;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org Main Site
  */
-class DeleteAction extends AbstractMyResearchAction
+class StorageRetrievelRequestsAction extends AbstractMyResearchAction
 {
     /**
      * Constructor.
@@ -74,16 +71,14 @@ class DeleteAction extends AbstractMyResearchAction
      * @param AuthManager                     $authManager        Authentication manager
      * @param FollowupHelper                  $followupHelper     Followup helper
      * @param EmailAuthenticator              $emailAuthenticator Email authenticator
-     * @param UserSessionPersistenceInterface $userSessionService User session service
+     * @param UserSessionPersistenceInterface $userSessionService User session database service
      * @param AuditEventServiceInterface      $auditEventService  Audit event service
      * @param ServerUrlHelper                 $serverUrlHelper    Server URL helper
      * @param Mailer                          $mailer             Mailer
      * @param SessionManager                  $sessionManager     Session manager
      * @param Connection                      $ilsConnection      ILS connection
      * @param array                           $config             VuFind configuration
-     * @param UserListServiceInterface        $userListService    User list database service
-     * @param FavoritesService                $favoritesService   Favorites service
-     * @param RecordLoader                    $recordLoader       Record loader
+     * @param RecordsHelper                   $ilsRecordsHelper   ILS records helper
      */
     public function __construct(
         AuthManager $authManager,
@@ -99,10 +94,7 @@ class DeleteAction extends AbstractMyResearchAction
         Connection $ilsConnection,
         #[Autowire(config: 'config')]
         array $config,
-        #[Autowire(container: DbServicePluginManager::class)]
-        protected UserListServiceInterface $userListService,
-        protected FavoritesService $favoritesService,
-        protected RecordLoader $recordLoader,
+        protected RecordsHelper $ilsRecordsHelper,
     ) {
         parent::__construct(
             $authManager,
@@ -119,7 +111,7 @@ class DeleteAction extends AbstractMyResearchAction
     }
 
     /**
-     * Delete favorites.
+     * Display storage retrieval requests.
      *
      * @param ServerRequestInterface $request  Server request
      * @param ResponseInterface      $response Response
@@ -130,52 +122,82 @@ class DeleteAction extends AbstractMyResearchAction
         ServerRequestInterface $request,
         ResponseInterface $response,
     ): ResponseInterface {
-        // Force login:
-        if (!($user = $this->authManager->getUserObject())) {
-            return $this->getHelper(LoginHelper::class)->forceLogin($request, $response);
+        // Stop now if the user does not have valid catalog credentials available:
+        if (!is_array($patron = $this->getHelper(LoginHelper::class)->catalogLogin($request, $response))) {
+            if (!($patron instanceof ResponseInterface)) {
+                throw new \Exception('Unexpected response from LoginHelper::catalogLogin');
+            }
+            return $patron;
         }
 
-        // Get target URL for after deletion:
-        $listID = $this->getPostParam('listID');
-
-        // Fail if we have nothing to delete:
-        $bulkActionHelper = $this->getHelper(BulkActionHelper::class);
-        $ids = $bulkActionHelper->getSelectedIds($request);
-
-        $actionLimit = $bulkActionHelper->getBulkActionLimit('delete');
-        if (!is_array($ids) || empty($ids)) {
-            if ($redirect = $bulkActionHelper->redirectToSource($request, $response, 'error', 'bulk_noitems_advice')) {
-                return $redirect;
-            }
-        } elseif (count($ids) > $actionLimit) {
-            $errorMsg = [
-                'msg' => 'bulk_limit_exceeded',
-                'tokens' => ['%%count%%' => count($ids), '%%limit%%' => $actionLimit],
-            ];
-            if ($redirect = $bulkActionHelper->redirectToSource($request, $response, 'error', $errorMsg)) {
-                return $redirect;
-            }
-        } elseif ($this->getHelper(FormHelper::class)->formWasSubmitted($request)) {
-            $this->favoritesService->deleteFavorites($ids, $listID === null ? null : (int)$listID, $user);
-            $this->getHelper(FlashMessagesHelper::class)->addSuccessMessage('fav_delete_success');
-            $redirectHelper = $this->getHelper(RedirectHelper::class);
-            return $listID
-                ? $redirectHelper->redirectToRoute($response, 'userList', ['id' => $listID])
-                : $redirectHelper->redirectToRoute($response, 'myresearch-favorites');
+        // Process cancel requests if necessary:
+        $storageRetrievalRequestsHelper = $this->getHelper(StorageRetrievalRequestsHelper::class);
+        $cancelStatus = $this->ilsConnection->checkFunction('cancelStorageRetrievalRequests', compact('patron'));
+        $cancelResults = $cancelStatus
+            ? $storageRetrievalRequestsHelper->cancelStorageRetrievalRequests(
+                $request,
+                $response,
+                $this->ilsConnection,
+                $patron
+            )
+            : [];
+        // Check if we need to confirm cancellation:
+        if ($cancelResults instanceof ResponseInterface) {
+            return $cancelResults;
+        }
+        if ($cancelResults) {
+            $this->auditEventService->addEvent(
+                AuditEventType::ILS,
+                AuditEventSubtype::CancelStorageRetrievalRequests,
+                $this->authManager->getUserObject(),
+                data: [
+                    'username' => $patron['cat_username'],
+                    'results' => $cancelResults,
+                ]
+            );
         }
 
-        // If we got this far, the operation has not been confirmed yet; show the necessary dialog box:
-        $list = empty($listID)
-            ? false
-            : $this->userListService->getUserListById($listID);
-        return $this->renderTemplate(
-            $request,
-            $response,
-            [
-                'list' => $list,
-                'deleteIDS' => $ids,
-                'records' => $this->recordLoader->loadBatch($ids),
-            ]
-        );
+        $templateParams = [
+            'cancelResults' => $cancelResults,
+            // By default, assume we will not need to display a cancel form:
+            'cancelForm' => false,
+        ];
+
+        // Get request details:
+        $result = $this->ilsConnection->getMyStorageRetrievalRequests($patron);
+        $driversNeeded = [];
+        $storageRetrievalRequestsHelper->resetValidation();
+        foreach ($result as $current) {
+            // Add cancel details if appropriate:
+            $current = $storageRetrievalRequestsHelper->addCancelDetails(
+                $this->ilsConnection,
+                $current,
+                $cancelStatus,
+                $patron
+            );
+            if (
+                $cancelStatus
+                && $cancelStatus['function'] !== 'getCancelStorageRetrievalRequestLink'
+                && isset($current['cancel_details'])
+            ) {
+                // Enable cancel form if necessary:
+                $templateParams['cancelForm'] = true;
+            }
+
+            $driversNeeded[] = $current;
+        }
+
+        // Get List of PickUp Libraries based on patron's home library
+        try {
+            $templateParams['pickup'] = $this->ilsConnection->getPickUpLocations($patron);
+        } catch (\Exception $e) {
+            // Do nothing; if we're unable to load information about pickup
+            // locations, they are not supported and we should ignore them.
+        }
+
+        $templateParams['recordList'] = $this->ilsRecordsHelper->getDrivers($driversNeeded);
+        $templateParams['accountStatus'] = $this->ilsRecordsHelper->collectRequestStats($templateParams['recordList']);
+
+        return $this->renderTemplate($request, $response, $templateParams);
     }
 }

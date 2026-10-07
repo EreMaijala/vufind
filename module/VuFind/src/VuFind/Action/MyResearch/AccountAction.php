@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Delete favorites action.
+ * MyResearch "Create account" action.
  *
  * PHP version 8
  *
@@ -31,33 +31,32 @@
 
 namespace VuFind\Action\MyResearch;
 
+use Laminas\Http\Response;
+use Laminas\Psr7Bridge\Psr7ServerRequest;
 use Laminas\Session\SessionManager;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use VuFind\ActionHelper\BulkActionHelper;
 use VuFind\ActionHelper\FlashMessagesHelper;
 use VuFind\ActionHelper\FormHelper;
+use VuFind\ActionHelper\ForwardHelper;
 use VuFind\ActionHelper\LoginHelper;
 use VuFind\ActionHelper\RedirectHelper;
 use VuFind\Auth\EmailAuthenticator;
 use VuFind\Auth\Manager as AuthManager;
 use VuFind\Auth\UserSessionPersistenceInterface;
+use VuFind\Captcha\Service\CaptchaService;
 use VuFind\Db\Service\AuditEventServiceInterface;
 use VuFind\Db\Service\PluginManager as DbServicePluginManager;
-use VuFind\Db\Service\UserListServiceInterface;
-use VuFind\Favorites\FavoritesService;
+use VuFind\Exception\Auth as AuthException;
+use VuFind\Exception\AuthEmailNotVerified as AuthEmailNotVerifiedException;
 use VuFind\Http\ServerUrlHelper;
 use VuFind\ILS\Connection;
 use VuFind\Mailer\Mailer;
-use VuFind\Record\Loader as RecordLoader;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\Session\Helper\FollowupHelper;
 
-use function count;
-use function is_array;
-
 /**
- * Delete favorites action.
+ * MyResearch "Create account" action.
  *
  * @category VuFind
  * @package  Action
@@ -66,7 +65,7 @@ use function is_array;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org Main Site
  */
-class DeleteAction extends AbstractMyResearchAction
+class AccountAction extends AbstractMyResearchAction
 {
     /**
      * Constructor.
@@ -74,16 +73,14 @@ class DeleteAction extends AbstractMyResearchAction
      * @param AuthManager                     $authManager        Authentication manager
      * @param FollowupHelper                  $followupHelper     Followup helper
      * @param EmailAuthenticator              $emailAuthenticator Email authenticator
-     * @param UserSessionPersistenceInterface $userSessionService User session service
+     * @param UserSessionPersistenceInterface $userSessionService User session database service
      * @param AuditEventServiceInterface      $auditEventService  Audit event service
      * @param ServerUrlHelper                 $serverUrlHelper    Server URL helper
      * @param Mailer                          $mailer             Mailer
      * @param SessionManager                  $sessionManager     Session manager
      * @param Connection                      $ilsConnection      ILS connection
      * @param array                           $config             VuFind configuration
-     * @param UserListServiceInterface        $userListService    User list database service
-     * @param FavoritesService                $favoritesService   Favorites service
-     * @param RecordLoader                    $recordLoader       Record loader
+     * @param CaptchaService                  $captcha            Captcha service
      */
     public function __construct(
         AuthManager $authManager,
@@ -99,10 +96,7 @@ class DeleteAction extends AbstractMyResearchAction
         Connection $ilsConnection,
         #[Autowire(config: 'config')]
         array $config,
-        #[Autowire(container: DbServicePluginManager::class)]
-        protected UserListServiceInterface $userListService,
-        protected FavoritesService $favoritesService,
-        protected RecordLoader $recordLoader,
+        protected CaptchaService $captcha,
     ) {
         parent::__construct(
             $authManager,
@@ -119,7 +113,19 @@ class DeleteAction extends AbstractMyResearchAction
     }
 
     /**
-     * Delete favorites.
+     * Initialize the action.
+     *
+     * @return void
+     */
+    protected function init(): void
+    {
+        // Default to false rather than null because we don't want a default setting to override the action's
+        // accessibility and break the login process!
+        $this->accessPermission = false;
+    }
+
+    /**
+     * Create a user account.
      *
      * @param ServerRequestInterface $request  Server request
      * @param ResponseInterface      $response Response
@@ -130,52 +136,49 @@ class DeleteAction extends AbstractMyResearchAction
         ServerRequestInterface $request,
         ResponseInterface $response,
     ): ResponseInterface {
-        // Force login:
-        if (!($user = $this->authManager->getUserObject())) {
-            return $this->getHelper(LoginHelper::class)->forceLogin($request, $response);
+        // Don't let the user create an account if already logged in or not supported by the authentication mechanism:
+        $method = trim($this->getQueryParam('auth_method'));
+        if (
+            $this->authManager->getIdentity()
+            || !$this->authManager->supportsCreation($method)
+        ) {
+            return $this->getHelper(RedirectHelper::class)->redirectToRoute($response, 'myresearch-home');
         }
 
-        // Get target URL for after deletion:
-        $listID = $this->getPostParam('listID');
-
-        // Fail if we have nothing to delete:
-        $bulkActionHelper = $this->getHelper(BulkActionHelper::class);
-        $ids = $bulkActionHelper->getSelectedIds($request);
-
-        $actionLimit = $bulkActionHelper->getBulkActionLimit('delete');
-        if (!is_array($ids) || empty($ids)) {
-            if ($redirect = $bulkActionHelper->redirectToSource($request, $response, 'error', 'bulk_noitems_advice')) {
-                return $redirect;
-            }
-        } elseif (count($ids) > $actionLimit) {
-            $errorMsg = [
-                'msg' => 'bulk_limit_exceeded',
-                'tokens' => ['%%count%%' => count($ids), '%%limit%%' => $actionLimit],
-            ];
-            if ($redirect = $bulkActionHelper->redirectToSource($request, $response, 'error', $errorMsg)) {
-                return $redirect;
-            }
-        } elseif ($this->getHelper(FormHelper::class)->formWasSubmitted($request)) {
-            $this->favoritesService->deleteFavorites($ids, $listID === null ? null : (int)$listID, $user);
-            $this->getHelper(FlashMessagesHelper::class)->addSuccessMessage('fav_delete_success');
-            $redirectHelper = $this->getHelper(RedirectHelper::class);
-            return $listID
-                ? $redirectHelper->redirectToRoute($response, 'userList', ['id' => $listID])
-                : $redirectHelper->redirectToRoute($response, 'myresearch-favorites');
+        // If there's already a followup url, keep it; otherwise set one.
+        if (!$this->hasFollowupUrl()) {
+            $this->getHelper(LoginHelper::class)->setFollowupUrlToReferrer($request);
         }
 
-        // If we got this far, the operation has not been confirmed yet; show the necessary dialog box:
-        $list = empty($listID)
-            ? false
-            : $this->userListService->getUserListById($listID);
-        return $this->renderTemplate(
-            $request,
-            $response,
-            [
-                'list' => $list,
-                'deleteIDS' => $ids,
-                'records' => $this->recordLoader->loadBatch($ids),
-            ]
-        );
+        $templateParams = [
+            'usernamePolicy' => $this->authManager->getUsernamePolicy($method),
+            'passwordPolicy' => $this->authManager->getPasswordPolicy($method),
+            'useCaptcha' => $this->captcha->active('newAccount'),
+            // Pass request to view so we can repopulate user parameters in form:
+            'request' => $request->getParsedBody(),
+        ];
+        // Process request, if necessary:
+        if (
+            $this->getHelper(FormHelper::class)->formWasSubmitted($request, useCaptcha: $templateParams['useCaptcha'])
+        ) {
+            try {
+                $this->authManager->create(Psr7ServerRequest::toLaminas($request));
+                return $this->getHelper(ForwardHelper::class)->forwardTo($request, $response, 'myresearch/home');
+            } catch (AuthEmailNotVerifiedException $e) {
+                $this->sendFirstVerificationEmail($e->getUser());
+                return $this->getHelper(RedirectHelper::class)
+                    ->redirectToRoute($response, 'myresearch-emailnotverified');
+            } catch (AuthException $e) {
+                $this->getHelper(FlashMessagesHelper::class)->addErrorMessage($e->getMessage());
+            }
+        } else {
+            // If we are not processing a submission, we need to simply display
+            // an empty form. In case ChoiceAuth is being used, we may need to
+            // override the active authentication method based on request
+            // parameters to ensure display of the appropriate template.
+            $this->setUpAuthenticationFromRequest();
+        }
+
+        return $this->renderTemplate($request, $response, $templateParams);
     }
 }

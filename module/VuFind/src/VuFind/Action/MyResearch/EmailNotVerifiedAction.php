@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Delete favorites action.
+ * MyResearch "email not verified" action.
  *
  * PHP version 8
  *
@@ -31,33 +31,26 @@
 
 namespace VuFind\Action\MyResearch;
 
+use Laminas\Http\Response;
 use Laminas\Session\SessionManager;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use VuFind\ActionHelper\BulkActionHelper;
 use VuFind\ActionHelper\FlashMessagesHelper;
-use VuFind\ActionHelper\FormHelper;
-use VuFind\ActionHelper\LoginHelper;
 use VuFind\ActionHelper\RedirectHelper;
 use VuFind\Auth\EmailAuthenticator;
 use VuFind\Auth\Manager as AuthManager;
 use VuFind\Auth\UserSessionPersistenceInterface;
 use VuFind\Db\Service\AuditEventServiceInterface;
 use VuFind\Db\Service\PluginManager as DbServicePluginManager;
-use VuFind\Db\Service\UserListServiceInterface;
-use VuFind\Favorites\FavoritesService;
+use VuFind\Db\Service\UserServiceInterface;
 use VuFind\Http\ServerUrlHelper;
 use VuFind\ILS\Connection;
 use VuFind\Mailer\Mailer;
-use VuFind\Record\Loader as RecordLoader;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\Session\Helper\FollowupHelper;
 
-use function count;
-use function is_array;
-
 /**
- * Delete favorites action.
+ * MyResearch "email not verified" action.
  *
  * @category VuFind
  * @package  Action
@@ -66,7 +59,7 @@ use function is_array;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org Main Site
  */
-class DeleteAction extends AbstractMyResearchAction
+class EmailNotVerifiedAction extends AbstractMyResearchAction
 {
     /**
      * Constructor.
@@ -74,16 +67,14 @@ class DeleteAction extends AbstractMyResearchAction
      * @param AuthManager                     $authManager        Authentication manager
      * @param FollowupHelper                  $followupHelper     Followup helper
      * @param EmailAuthenticator              $emailAuthenticator Email authenticator
-     * @param UserSessionPersistenceInterface $userSessionService User session service
+     * @param UserSessionPersistenceInterface $userSessionService User session database service
      * @param AuditEventServiceInterface      $auditEventService  Audit event service
      * @param ServerUrlHelper                 $serverUrlHelper    Server URL helper
      * @param Mailer                          $mailer             Mailer
      * @param SessionManager                  $sessionManager     Session manager
      * @param Connection                      $ilsConnection      ILS connection
      * @param array                           $config             VuFind configuration
-     * @param UserListServiceInterface        $userListService    User list database service
-     * @param FavoritesService                $favoritesService   Favorites service
-     * @param RecordLoader                    $recordLoader       Record loader
+     * @param UserServiceInterface            $userService        User database service
      */
     public function __construct(
         AuthManager $authManager,
@@ -100,9 +91,7 @@ class DeleteAction extends AbstractMyResearchAction
         #[Autowire(config: 'config')]
         array $config,
         #[Autowire(container: DbServicePluginManager::class)]
-        protected UserListServiceInterface $userListService,
-        protected FavoritesService $favoritesService,
-        protected RecordLoader $recordLoader,
+        protected UserServiceInterface $userService,
     ) {
         parent::__construct(
             $authManager,
@@ -119,7 +108,7 @@ class DeleteAction extends AbstractMyResearchAction
     }
 
     /**
-     * Delete favorites.
+     * Display user profile.
      *
      * @param ServerRequestInterface $request  Server request
      * @param ResponseInterface      $response Response
@@ -130,52 +119,22 @@ class DeleteAction extends AbstractMyResearchAction
         ServerRequestInterface $request,
         ResponseInterface $response,
     ): ResponseInterface {
-        // Force login:
-        if (!($user = $this->authManager->getUserObject())) {
-            return $this->getHelper(LoginHelper::class)->forceLogin($request, $response);
-        }
-
-        // Get target URL for after deletion:
-        $listID = $this->getPostParam('listID');
-
-        // Fail if we have nothing to delete:
-        $bulkActionHelper = $this->getHelper(BulkActionHelper::class);
-        $ids = $bulkActionHelper->getSelectedIds($request);
-
-        $actionLimit = $bulkActionHelper->getBulkActionLimit('delete');
-        if (!is_array($ids) || empty($ids)) {
-            if ($redirect = $bulkActionHelper->redirectToSource($request, $response, 'error', 'bulk_noitems_advice')) {
-                return $redirect;
+        if ($this->getQueryParam('reverify')) {
+            $change = false;
+            // Case 1: new user:
+            $username = $this->getUserVerificationContainer()->user;
+            $user = $username ? $this->userService->getUserByUsername($username) : null;
+            // Case 2: pending email change:
+            if (!$user) {
+                $user = $this->authManager->getUserObject();
+                if ($user && $user->getPendingEmail()) {
+                    $change = true;
+                }
             }
-        } elseif (count($ids) > $actionLimit) {
-            $errorMsg = [
-                'msg' => 'bulk_limit_exceeded',
-                'tokens' => ['%%count%%' => count($ids), '%%limit%%' => $actionLimit],
-            ];
-            if ($redirect = $bulkActionHelper->redirectToSource($request, $response, 'error', $errorMsg)) {
-                return $redirect;
-            }
-        } elseif ($this->getHelper(FormHelper::class)->formWasSubmitted($request)) {
-            $this->favoritesService->deleteFavorites($ids, $listID === null ? null : (int)$listID, $user);
-            $this->getHelper(FlashMessagesHelper::class)->addSuccessMessage('fav_delete_success');
-            $redirectHelper = $this->getHelper(RedirectHelper::class);
-            return $listID
-                ? $redirectHelper->redirectToRoute($response, 'userList', ['id' => $listID])
-                : $redirectHelper->redirectToRoute($response, 'myresearch-favorites');
+            $this->sendVerificationEmail($user, $change);
+        } else {
+            $this->getHelper(FlashMessagesHelper::class)->addInfoMessage('verification_email_sent');
         }
-
-        // If we got this far, the operation has not been confirmed yet; show the necessary dialog box:
-        $list = empty($listID)
-            ? false
-            : $this->userListService->getUserListById($listID);
-        return $this->renderTemplate(
-            $request,
-            $response,
-            [
-                'list' => $list,
-                'deleteIDS' => $ids,
-                'records' => $this->recordLoader->loadBatch($ids),
-            ]
-        );
+        return $this->getHelper(RedirectHelper::class)->redirectToRoute($response, 'myresearch-verifyemail');
     }
 }
