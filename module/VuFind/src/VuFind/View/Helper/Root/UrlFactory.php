@@ -35,6 +35,7 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
+use VuFind\Application;
 
 /**
  * Url helper factory.
@@ -70,17 +71,12 @@ class UrlFactory implements FactoryInterface
             throw new \Exception('Unexpected options passed to factory.');
         }
 
-        $request = $container->get('Request');
-        if (!($request instanceof \Laminas\Http\PhpEnvironment\Request)) {
-            $request = null;
-        }
+        $application = $container->get(Application::class);
+        $request = $application->getRequest();
         $helper = new $requestedName($request);
         $helper->setRouter($container->get('HttpRouter'));
 
-        $match = $container->get('Application')
-            ->getMvcEvent()
-            ?->getRouteMatch();
-
+        $match = $request?->getAttribute('route-match');
         if ($match instanceof RouteMatch) {
             $helper->setRouteMatch($match);
         }

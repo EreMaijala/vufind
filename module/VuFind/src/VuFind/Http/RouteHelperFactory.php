@@ -72,8 +72,8 @@ class RouteHelperFactory implements FactoryInterface
         }
 
         return new $requestedName(
-            // Defer fetching of the plugin until it's actually needed to allow for Laminas MvcEvent to be dispatched
-            // first:
+            // Defer fetching of the plugin until it's actually needed to allow for view helper manager to be
+            // initialized first:
             Closure::fromCallable(fn () => $container->get('ViewHelperManager')->get(Url::class))
         );
     }

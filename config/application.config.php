@@ -88,9 +88,25 @@ return [
     'service_manager' => [
         'use_defaults' => true,
         'factories'    => [
+            \VuFind\ModuleManager\ModuleManager::class => \VuFind\ModuleManager\ModuleManagerFactory::class,
+            // Laminas MVC back-compatibility:
+            \Laminas\View\Renderer\PhpRenderer::class => \Laminas\Mvc\Service\ViewPhpRendererFactory::class,
+            \Laminas\EventManager\EventManager::class => \VuFind\EventManager\EventManagerFactory::class,
+            \Laminas\EventManager\SharedEventManager::class => \Laminas\ServiceManager\Factory\InvokableFactory::class,
+        ],
+        'aliases' => [
+            // Laminas MVC back-compatibility:
+            'ViewRenderer' => \Laminas\View\Renderer\PhpRenderer::class,
+            'EventManager' => \Laminas\EventManager\EventManagerInterface::class,
+            \Laminas\EventManager\EventManagerInterface::class => \Laminas\EventManager\EventManager::class,
+            'SharedEventManager' => \Laminas\EventManager\SharedEventManagerInterface::class,
+            \Laminas\EventManager\SharedEventManagerInterface::class => \Laminas\EventManager\SharedEventManager::class,
+        ],
+        'shared' => [
+            // Laminas MVC back-compatibility:
+            'EventManager' => false,
         ],
     ],
     'listeners' => [
-        \VuFind\Action\ActionDispatchListener::class,
     ],
 ];

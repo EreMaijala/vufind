@@ -30,6 +30,7 @@
 namespace VuFind\View\Helper\Root;
 
 use Laminas\Http\PhpEnvironment\Request;
+use Psr\Http\Message\ServerRequestInterface;
 
 use function func_get_args;
 use function func_num_args;
@@ -46,20 +47,12 @@ use function func_num_args;
 class Url extends \Laminas\View\Helper\Url
 {
     /**
-     * Request (or null if unavailable).
-     *
-     * @var Request
-     */
-    protected $request = null;
-
-    /**
      * Constructor.
      *
-     * @param ?Request $request Request object for GET parameters
+     * @param ?ServerRequestInterface $request Request object for GET parameters
      */
-    public function __construct(?Request $request = null)
+    public function __construct(protected ?ServerRequestInterface $request = null)
     {
-        $this->request = $request;
     }
 
     /**
@@ -102,8 +95,7 @@ class Url extends \Laminas\View\Helper\Url
      */
     public function addQueryParameters($params, $reuseMatchedParams = true)
     {
-        $requestQuery = (null !== $this->request)
-            ? $this->request->getQuery()->toArray() : [];
+        $requestQuery = $this->request?->getQueryParams() ?? [];
         $options = [
             'query' => array_merge($requestQuery, $params),
             'normalize_path' => false, // fix for VUFIND-1392

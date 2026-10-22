@@ -235,6 +235,7 @@ $config = [
             'VuFind\ContentTOCPluginManager' => 'VuFind\Content\TOC\PluginManager',
             'VuFind\CookieManager' => 'VuFind\Cookie\CookieManager',
             'VuFind\DateConverter' => 'VuFind\Date\Converter',
+            //\VuFind\EventManager\EventManagerInterface::class => \VuFind\EventManager\EventManager::class,
             'VuFind\HierarchicalFacetHelper' => 'VuFind\Search\Solr\HierarchicalFacetHelper',
             'VuFind\HierarchyDriverPluginManager' => 'VuFind\Hierarchy\Driver\PluginManager',
             'VuFind\HierarchyTreeDataFormatterPluginManager' => 'VuFind\Hierarchy\TreeDataFormatter\PluginManager',

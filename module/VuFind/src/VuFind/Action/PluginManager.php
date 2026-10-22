@@ -170,6 +170,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         'epfrecord/save' => Record\SaveAction::class,
         'epfrecord/sms' => Record\SmsAction::class,
 
+        'error/notfound' => Error\NotFoundAction::class,
         'error/permissiondenied' => Error\PermissionDeniedAction::class,
 
         'externalauth/ezproxylogin' => ExternalAuth\EzproxyLoginAction::class,

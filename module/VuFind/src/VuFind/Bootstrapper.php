@@ -31,11 +31,14 @@ namespace VuFind;
 
 use Laminas\Http\Header\Location;
 use Laminas\Http\Response;
-use Laminas\Mvc\MvcEvent;
 use Laminas\Psr7Bridge\Psr7ServerRequest;
 use Laminas\Router\Http\RouteMatch;
 use Psr\Container\ContainerInterface;
 use VuFind\Cookie\CookieManager;
+use VuFind\EventManager\Event;
+use Laminas\EventManager\EventInterface;
+use Laminas\EventManager\EventManagerInterface;
+use VuFind\Http\ServerUrlHelper;
 use VuFind\I18n\Locale\LocaleSettings;
 use VuFind\RateLimiter\RateLimiterManager;
 use VuFind\View\GlobalsContainer;
@@ -52,45 +55,19 @@ use VuFind\View\GlobalsContainer;
 class Bootstrapper
 {
     /**
-     * Main VuFind configuration.
-     *
-     * @var array
-     */
-    protected $config;
-
-    /**
-     * Service manager.
-     *
-     * @var ContainerInterface
-     */
-    protected $container;
-
-    /**
-     * Current MVC event.
-     *
-     * @var MvcEvent
-     */
-    protected $event;
-
-    /**
-     * Event manager.
-     *
-     * @var \Laminas\EventManager\EventManagerInterface
-     */
-    protected $events;
-
-    /**
      * Constructor.
      *
-     * @param MvcEvent $event Laminas MVC Event object
+     * @param EventInterface $event Event
+     * @param ContainerInterface $container Service manager
+     * @param EventManagerInterface $eventManager Event manager
+     * @param array $config VuFind configuration
      */
-    public function __construct(MvcEvent $event)
-    {
-        $this->event = $event;
-        $app = $event->getApplication();
-        $this->events = $app->getEventManager();
-        $this->container = $app->getServiceManager();
-        $this->config = $this->container->get(\VuFind\Config\ConfigManagerInterface::class)->getConfigArray('config');
+    public function __construct(
+        protected EventInterface $event,
+        protected ContainerInterface $container,
+        protected EventManagerInterface $eventManager,
+        protected array $config,
+    ) {
     }
 
     /**
@@ -158,7 +135,7 @@ class Bootstrapper
                 $routeMatch->setMatchedRouteName('error-unavailable');
                 $e->setRouteMatch($routeMatch);
             };
-            $this->events->attach('route', $callback);
+            $this->eventManager->attach('route', $callback);
         }
     }
 
@@ -194,7 +171,7 @@ class Bootstrapper
                 }
             }
         };
-        $this->events->attach('dispatch', $callback);
+        $this->eventManager->attach('dispatch', $callback);
     }
 
     /**
@@ -209,7 +186,7 @@ class Bootstrapper
             // Detect language:
             $settings = $this->container->get(LocaleSettings::class);
             $language = $settings->detectLocale(
-                PHP_SAPI !== 'cli' ? Psr7ServerRequest::fromLaminas($event->getRequest()) : null
+                PHP_SAPI !== 'cli' ? $event->getRequest() : null
             );
             // Update cookie:
             $cookies = $this->container->get(CookieManager::class);
@@ -231,8 +208,8 @@ class Bootstrapper
             $globals['allLangs'] = $settings->getEnabledLocales();
             $globals['rtl'] = $settings->isRightToLeftLocale($language);
         };
-        $this->events->attach('dispatch.error', $callback, 15000);
-        $this->events->attach('dispatch', $callback, 15000);
+        $this->eventManager->attach('dispatch.error', $callback, 15000);
+        $this->eventManager->attach('dispatch', $callback, 15000);
     }
 
     /**
@@ -244,22 +221,22 @@ class Bootstrapper
     {
         // Attach remaining theme configuration to the dispatch event at high priority:
         $siteConfig = $this->config['Site'];
-        $callback = function (MvcEvent $event) use ($siteConfig): void {
-            $theme = new \VuFindTheme\Initializer($siteConfig, $event);
+        $callback = function (Event $event) use ($siteConfig): void {
+            $theme = new \VuFindTheme\Initializer($siteConfig, $this->container, $event);
             try {
                 $theme->init();
             } catch (\Exception $e) {
                 // Try to display an error page if the theme fails to initialize:
                 $appConfig = $this->container->get('config');
-                $model = $event->getViewModel();
+                $model = $event->getRequest()->getAttribute('view-model');
                 $model->setTemplate('error/index');
                 // Note: display_exceptions is also used by Laminas, so we need to use the view model for it!
                 $model->setVariable('display_exceptions', $appConfig['view_manager']['display_exceptions'] ?? false);
                 $model->exception = $e;
             }
         };
-        $this->events->attach('dispatch.error', $callback, 9000);
-        $this->events->attach('dispatch', $callback, 9000);
+        $this->eventManager->attach('dispatch.error', $callback, 9000);
+        $this->eventManager->attach('dispatch', $callback, 9000);
     }
 
     /**
@@ -276,9 +253,9 @@ class Bootstrapper
         $finishCallback = function (): void {
             $this->container->get(\VuFind\Auth\LoginTokenManager::class)->requestIsFinished();
         };
-        $this->events->attach('dispatch.error', $dispatchCallback, 8000);
-        $this->events->attach('dispatch', $dispatchCallback, 8000);
-        $this->events->attach('finish', $finishCallback, 8000);
+        $this->eventManager->attach('dispatch.error', $dispatchCallback, 8000);
+        $this->eventManager->attach('dispatch', $dispatchCallback, 8000);
+        $this->eventManager->attach('finish', $finishCallback, 8000);
     }
 
     /**
@@ -304,7 +281,7 @@ class Bootstrapper
                 $response->setStatusCode($exception->getHttpStatus());
             }
         };
-        $this->events->attach('dispatch.error', $callback);
+        $this->eventManager->attach('dispatch.error', $callback);
     }
 
     /**
@@ -346,8 +323,8 @@ class Bootstrapper
                 }
             }
         };
-        $this->events->attach('dispatch.error', $callback);
-        $this->events->attach('render.error', $callback);
+        $this->eventManager->attach('dispatch.error', $callback);
+        $this->eventManager->attach('render.error', $callback);
     }
 
     /**
@@ -364,7 +341,7 @@ class Bootstrapper
         $callback = function (/*$event*/): void {
             $this->container->get(GlobalsContainer::class)['renderingError'] = true;
         };
-        $this->events->attach('render.error', $callback, 10000);
+        $this->eventManager->attach('render.error', $callback, 10000);
     }
 
     /**
@@ -388,7 +365,7 @@ class Bootstrapper
                 }
             }
         };
-        $this->events->attach('render', $callback, 10000);
+        $this->eventManager->attach('render', $callback, 10000);
     }
 
     /**
@@ -401,12 +378,17 @@ class Bootstrapper
         if (PHP_SAPI === 'cli') {
             return;
         }
-        $headers = $this->event->getResponse()->getHeaders();
-        $cspHeaderGenerator = $this->container
-            ->get(\VuFind\Security\CspHeaderGenerator::class);
-        foreach ($cspHeaderGenerator->getHeaders() as $cspHeader) {
-            $headers->addHeader($cspHeader);
-        }
+
+        $callback = function ($event): void {
+            $response = $event->getResponse();
+            $cspHeaderGenerator = $this->container->get(\VuFind\Security\CspHeaderGenerator::class);
+            foreach ($cspHeaderGenerator->getHeaders() as $cspHeader) {
+                $response = $response->withHeader($cspHeader->getFieldName(), $cspHeader->getFieldValue());
+            }
+            $event->setResponse($cspHeaderGenerator->addHeaders($response));
+        };
+        $this->eventManager->attach(Event::EVENT_DISPATCH, $callback);
+        $this->eventManager->attach(Event::EVENT_DISPATCH_ERROR, $callback);
     }
 
     /**
@@ -438,21 +420,21 @@ class Bootstrapper
                 return $response;
             }
         };
-        $this->events->attach('dispatch', $callback, 11000);
+        $this->eventManager->attach('dispatch', $callback, 11000);
     }
 
     /**
      * Present a Cloudflare Turnstile challenge to the user.
      *
      * @param RateLimiterManager               $rateLimiterManager The RateLimiterManager
-     * @param MvcEvent                         $event              The current Laminas event
+     * @param Event                            $event              The current event
      * @param Laminas\Stdlib\ResponseInterface $response           Response object to modify to present the challenge
      *
      * @return void
      */
     protected function presentTurnstileChallenge(
         RateLimiterManager $rateLimiterManager,
-        MvcEvent $event,
+        Event $event,
         \Laminas\Stdlib\ResponseInterface $response
     ): void {
         // Although the challenge could be displayed at the current URL, redirecting
@@ -463,11 +445,12 @@ class Bootstrapper
         // base64_encoding the destination URL is just further obfuscation
         $context = base64_encode(json_encode([
             'policyId' => $policyId,
-            'destination' => $event->getRequest()->getRequestUri(),
+            'destination' => (string)$event->getRequest()->getUri(),
         ]));
+        $serverUrlHelper = $this->container->get(ServerUrlHelper::class);
         $response->getHeaders()->addHeaderLine(
             'Location',
-            $event->getRequest()->getBaseUrl() . '/Turnstile/Challenge?context=' . $context
+            $serverUrlHelper->getBaseUrl() . '/Turnstile/Challenge?context=' . $context
         );
     }
 }

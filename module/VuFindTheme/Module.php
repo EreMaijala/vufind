@@ -30,6 +30,8 @@
 namespace VuFindTheme;
 
 use Laminas\Mvc\View\Http\InjectTemplateListener as ParentInjectTemplateListener;
+use Psr\Container\ContainerInterface;
+use VuFind\ModuleManager\ModuleInterface;
 
 /**
  * Module definition for the VuFind theme system.
@@ -40,14 +42,14 @@ use Laminas\Mvc\View\Http\InjectTemplateListener as ParentInjectTemplateListener
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development
  */
-class Module
+class Module implements ModuleInterface
 {
     /**
      * Return generic configuration.
      *
      * @return array
      */
-    public function getConfig()
+    public function getConfig(): array
     {
         return [
             'vufind' => [
@@ -74,12 +76,24 @@ class Module
         ];
     }
 
+
+    /**
+     * Initialize the module.
+     *
+     * @param ContainerInterface $container Service manager
+     *
+     * @return void
+     */
+    public function initialize(ContainerInterface $container): void
+    {
+    }
+
     /**
      * Return service configuration.
      *
      * @return array
      */
-    public function getServiceConfig()
+    public function getServiceConfig(): array
     {
         return [
             'aliases' => [
@@ -93,7 +107,7 @@ class Module
      *
      * @return array
      */
-    public function getViewHelperConfig()
+    public function getViewHelperConfig(): array
     {
         return [
             'abstract_factories' => [

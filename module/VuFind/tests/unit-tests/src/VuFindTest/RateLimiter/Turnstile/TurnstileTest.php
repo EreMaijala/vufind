@@ -30,8 +30,8 @@
 namespace VuFindTest\RateLimiter\Turnstile;
 
 use Laminas\Http\Response;
-use Laminas\Mvc\MvcEvent;
 use Laminas\Router\Http\RouteMatch;
+use VuFind\EventManager\Event;
 use VuFind\RateLimiter\Turnstile\Turnstile;
 use VuFindHttp\HttpService;
 
@@ -54,7 +54,7 @@ class TurnstileTest extends \PHPUnit\Framework\TestCase
      */
     public function testIsChallengeAllowed()
     {
-        $event = new MvcEvent();
+        $event = new Event();
         $turnstile = $this->buildTurnstile();
 
         // Configured to skip the challenge in the default config

@@ -89,10 +89,10 @@ class AbstractPluginManagerFactory implements FactoryInterface
             $error = 'Problem determining config key for ' . $requestedName;
             throw new \Exception($error);
         }
-        $config = $container->get('Config');
+        $config = $container->get('config');
         return new $requestedName(
             $container,
-            $config['vufind']['plugin_managers'][$configKey]
+            $config['vufind']['plugin_managers'][$configKey] ?? []
         );
     }
 }
