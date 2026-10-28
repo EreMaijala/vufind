@@ -58,6 +58,8 @@ class EventManagerFactory implements FactoryInterface
     {
         $shared = $container->has('SharedEventManager') ? $container->get('SharedEventManager') : null;
 
-        return new \Laminas\EventManager\EventManager($shared);
+        $result = new \Laminas\EventManager\EventManager($shared);
+        $result->setEventPrototype(new Event());
+        return $result;
     }
 }

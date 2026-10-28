@@ -42,7 +42,7 @@ use Psr\Http\Message\ServerRequestInterface;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development Wiki
  */
-interface EventInterface
+interface EventInterface extends \Laminas\EventManager\EventInterface
 {
     /**
      * Get event name.
@@ -58,23 +58,7 @@ interface EventInterface
      *
      * @return static
      */
-    public function setName(string $name): static;
-
-    /**
-     * Get propagation stopped flag.
-     *
-     * @return bool
-     */
-    public function getPropagationStopped(): bool;
-
-    /**
-     * Set propagation stopped flag.
-     *
-     * @param bool $value New value
-     *
-     * @return static
-     */
-    public function setPropagationStopped(bool $value): static;
+    public function setName($name);
 
     /**
      * Get request.
@@ -138,5 +122,5 @@ interface EventInterface
      *
      * @return static
      */
-    public function setParams(array $params): static;
+    public function setParams($params);
 }

@@ -93,6 +93,8 @@ return [
             \Laminas\View\Renderer\PhpRenderer::class => \Laminas\Mvc\Service\ViewPhpRendererFactory::class,
             \Laminas\EventManager\EventManager::class => \VuFind\EventManager\EventManagerFactory::class,
             \Laminas\EventManager\SharedEventManager::class => \Laminas\ServiceManager\Factory\InvokableFactory::class,
+            'ViewHelperManager' => \Laminas\Mvc\Service\ViewHelperManagerFactory::class,
+            'ViewResolver' => \Laminas\Mvc\Service\ViewResolverFactory::class,
         ],
         'aliases' => [
             // Laminas MVC back-compatibility:

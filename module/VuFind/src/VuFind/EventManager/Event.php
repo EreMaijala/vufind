@@ -29,6 +29,7 @@
 
 namespace VuFind\EventManager;
 
+use ArrayAccess;
 use Laminas\Router\RouteMatch;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -115,6 +116,13 @@ class Event implements EventInterface
     protected array $params = [];
 
     /**
+     * Event target.
+     *
+     * @var object|string|null
+     */
+    protected object|string|null $target = null;
+
+    /**
      * Get event name.
      *
      * @return string
@@ -131,7 +139,7 @@ class Event implements EventInterface
      *
      * @return static
      */
-    public function setName(string $name): static
+    public function setName($name)
     {
         $this->name = $name;
         return $this;
@@ -142,7 +150,7 @@ class Event implements EventInterface
      *
      * @return bool
      */
-    public function getPropagationStopped(): bool
+    public function propagationIsStopped(): bool
     {
         return $this->propagationStopped;
     }
@@ -150,13 +158,13 @@ class Event implements EventInterface
     /**
      * Set propagation stopped flag.
      *
-     * @param bool $value New value
+     * @param bool $flag New value
      *
      * @return static
      */
-    public function setPropagationStopped(bool $value): static
+    public function stopPropagation($flag = true)
     {
-        $this->propagationStopped = $value;
+        $this->propagationStopped = $flag;
         return $this;
     }
 
@@ -246,9 +254,56 @@ class Event implements EventInterface
      *
      * @return static
      */
-    public function setParams(array $params): static
+    public function setParams($params)
     {
         $this->params = $params;
         return $this;
+    }
+
+    /**
+     * Get a single parameter by name.
+     *
+     * @param  string|int $name
+     * @param  mixed $default Default value to return if parameter does not exist
+     * @return mixed
+     */
+    public function getParam($name, $default = null)
+    {
+        return $this->params[$name] ?? $default;
+    }
+
+    /**
+     * Set a single parameter by key.
+     *
+     * @param  string|int $name
+     * @param  mixed $value
+     * @return void
+     */
+    public function setParam($name, $value)
+    {
+        $this->params[$name] = $value;
+    }
+
+    /**
+     * Get target/context from which event was triggered
+     *
+     * @return object|string|null
+     */
+    public function getTarget()
+    {
+        return $this->target;
+    }
+
+    /**
+     * Set the event target/context
+     *
+     * @param object|string|null $target
+     * @template NewTTarget of object|string|null
+     * @return void
+     */
+    public function setTarget($target)
+    {
+        /** @psalm-suppress InvalidPropertyAssignmentValue Pretty sure this is correct after this-out. */
+        $this->target = $target;
     }
 }

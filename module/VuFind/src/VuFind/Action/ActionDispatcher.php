@@ -30,7 +30,7 @@
 namespace VuFind\Action;
 
 use GuzzleHttp\Psr7\Response;
-use VuFind\EventManager\EventManagerInterface;
+use Laminas\EventManager\EventManagerInterface;
 use Laminas\Http\Request;
 use Laminas\Http\Response as LaminasResponse;
 use Laminas\Http\Response\Stream as LaminasResponseStream;

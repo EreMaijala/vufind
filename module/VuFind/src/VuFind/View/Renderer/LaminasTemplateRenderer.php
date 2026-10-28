@@ -35,6 +35,7 @@ use Laminas\Uri\Http;
 use Laminas\View\Model\ModelInterface;
 use Laminas\View\Model\ViewModel;
 use Laminas\View\Renderer\PhpRenderer;
+use Laminas\View\View;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use VuFind\Http\ServerUrlHelper;
@@ -71,8 +72,8 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
         protected ServerUrlHelper $serverUrlHelper,
         #[Autowire(service: 'ViewRenderer')]
         protected PhpRenderer $viewRenderer,
-        #[Autowire(service: 'ViewManager')]
-        protected ViewManager $viewManager,
+        #[Autowire(service: 'View')]
+        protected View $view,
         protected InjectTemplateListener $injectTemplateListener,
         #[Autowire(service: 'config', path: 'view_manager/display_exceptions', default: false)]
         protected bool $displayExceptions,

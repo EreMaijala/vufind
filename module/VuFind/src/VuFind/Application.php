@@ -98,10 +98,10 @@ class Application
 
         // Trigger bootstrap event:
         $event = (new Event())
-            ->setName(Event::EVENT_BOOTSTRAP)
             ->setRequest($this->request)
             ->setResponse($this->response);
-        $this->eventManager->trigger($event);
+        $this->eventManager->setEventPrototype($event);
+        $this->eventManager->trigger(Event::EVENT_BOOTSTRAP);
         // Update with any changes from event listeners:
         $this->request = $event->getRequest();
         $this->response = $event->getResponse();
@@ -112,12 +112,10 @@ class Application
             ->withAttribute('view-model', $this->createViewModel());
 
         // Trigger dispatch or dispatch error event:
-        $event = (new Event())
-            ->setName($routeMatch ? Event::EVENT_DISPATCH : Event::EVENT_DISPATCH_ERROR)
-            ->setRequest($this->request)
-            ->setResponse($this->response)
+        $event = $event
             ->setRouteMatch($routeMatch);
-        $this->eventManager->trigger($event);
+        $this->eventManager->setEventPrototype($event);
+        $this->eventManager->trigger($routeMatch ? Event::EVENT_DISPATCH : Event::EVENT_DISPATCH_ERROR);
         // Update with any changes from event listeners:
         $this->request = $event->getRequest();
         $this->response = $event->getResponse();
@@ -127,12 +125,7 @@ class Application
         $this->response = $this->actionDispatcher->dispatch($this->request, $this->response);
 
         // Trigger finish event:
-        $event = (new Event())
-            ->setName(Event::EVENT_FINISH)
-            ->setRequest($this->request)
-            ->setResponse($this->response)
-            ->setRouteMatch($routeMatch);
-        $this->eventManager->trigger($event);
+        $this->eventManager->trigger(Event::EVENT_FINISH);
         // Update with any changes from event listeners:
         $response = $event->getResponse();
 
