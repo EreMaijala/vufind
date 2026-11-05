@@ -92,9 +92,9 @@ class LibGuidesBackendFactory extends AbstractBackendFactory
      */
     public function __invoke(
         ContainerInterface $container,
-        $requestedName,
+        string $requestedName,
         ?array $options = null
-    ) {
+    ): mixed {
         $this->setup($container);
         $this->libGuidesConfig = $this->getService(\VuFind\Config\ConfigManagerInterface::class)
             ->getConfigArray($this->getServiceName());

@@ -29,7 +29,7 @@
 
 namespace VuFind\EventManager;
 
-use Interop\Container\ContainerInterface;
+use Psr\Container\ContainerInterface;
 use Laminas\EventManager\EventManager;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 
@@ -51,10 +51,11 @@ class EventManagerFactory implements FactoryInterface
      *
      * @param  ContainerInterface $container
      * @param  string $name
-     * @param  null|array $options
-     * @return EventManager
+     * @param  ?array $options
+     *
+     * @return object
      */
-    public function __invoke(ContainerInterface $container, $name, ?array $options = null)
+    public function __invoke(ContainerInterface $container, string $name, ?array $options = null): mixed
     {
         $shared = $container->has('SharedEventManager') ? $container->get('SharedEventManager') : null;
 

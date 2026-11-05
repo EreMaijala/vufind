@@ -90,7 +90,7 @@ class ExtendedIni implements FileLoaderInterface
      *
      * @var array
      */
-    protected $aliases = [];
+    protected array $aliases = [];
 
     /**
      * List of loaded alias configuration files.

@@ -71,10 +71,10 @@ class TranslatorFactory implements DelegatorFactoryInterface
      */
     public function __invoke(
         ContainerInterface $container,
-        $name,
+        string $name,
         callable $callback,
         ?array $options = null
-    ) {
+    ): mixed {
         $this->setPathResolver($container->get(PathResolver::class));
         $translator = $callback();
         if (!extension_loaded('intl')) {

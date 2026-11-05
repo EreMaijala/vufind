@@ -61,9 +61,9 @@ class VoyagerFactory extends DriverWithDateConverterFactory
      */
     public function __invoke(
         ContainerInterface $container,
-        $requestedName,
+        string $requestedName,
         ?array $options = null
-    ) {
+    ): mixed {
         $driver = parent::__invoke(
             $container,
             $requestedName,

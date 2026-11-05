@@ -64,9 +64,9 @@ class NotifyCommandFactory implements FactoryInterface
      */
     public function __invoke(
         ContainerInterface $container,
-        $requestedName,
+        string $requestedName,
         ?array $options = null
-    ) {
+    ): mixed {
         $scheduleOptions = $container
             ->get(\VuFind\Search\History::class)
             ->getScheduleOptions();

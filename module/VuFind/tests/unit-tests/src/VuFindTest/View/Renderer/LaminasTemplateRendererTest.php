@@ -33,15 +33,17 @@ use Generator;
 use InvalidArgumentException;
 use Laminas\Diactoros\Response;
 use Laminas\Diactoros\ServerRequest;
-use Laminas\Mvc\View\Http\ViewManager;
 use Laminas\View\Model\ViewModel;
 use Laminas\View\Renderer\PhpRenderer;
 use Laminas\View\View;
+use Laminas\View\ViewInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use VuFind\View\Renderer\LaminasTemplateRenderer;
 use VuFindTest\Feature\AutowireTrait;
-use VuFindTheme\InjectTemplateListener;
+use VuFindTest\Feature\ReflectionTrait;
+use PHPUnit\Framework\MockObject\MockObject;
+use VuFind\ModuleManager\ModuleManager;
 
 /**
  * LaminasTemplateRenderer test class.
@@ -55,6 +57,7 @@ use VuFindTheme\InjectTemplateListener;
 class LaminasTemplateRendererTest extends TestCase
 {
     use AutowireTrait;
+    use ReflectionTrait;
 
     /**
      * Data provider for testRenderTemplate.
@@ -204,6 +207,45 @@ class LaminasTemplateRendererTest extends TestCase
     }
 
     /**
+     * Test template name prefix processing
+     *
+     * @return void
+     */
+    public function testTemplateNamePrefixProcessing(): void
+    {
+        $testConfig = [
+            'vufind' => [
+                'extra_theme_prefixes' => ['Extra/'],
+                'excluded_theme_prefixes' => ['Laminas'],
+            ],
+        ];
+        $modules = ['Laminas\Foo', 'LaminasBar', 'VuFind\Foo', 'VuFind'];
+        $mockModuleManager = $this->createMock(ModuleManager::class);
+        $mockModuleManager->expects($this->once())->method('getModules')
+            ->willReturn($modules);
+        $renderer = $this->getRenderer(null, null, $testConfig, [ModuleManager::class => $mockModuleManager]);
+
+        $this->assertSame(
+            ['Extra/', 'VuFind/Foo/', 'VuFind/'],
+            $this->callMethod($renderer, 'getTemplatePrefixes')
+        );
+    }
+
+    /**
+     * Test template name camelCase handling.
+     *
+     * @return void
+     */
+    public function testTemplateNameInflectionCamelCaseToLowerCase(): void
+    {
+        $renderer = $this->getRenderer(null, null);
+        $this->assertEquals(
+            'testcase',
+            $this->callMethod($renderer, 'inflectName', ['VuFind/testCase'])
+        );
+    }
+
+    /**
      * Get mock layout ViewModel.
      *
      * @param bool   $inLightbox       Are we in lightbox?
@@ -235,14 +277,20 @@ class LaminasTemplateRendererTest extends TestCase
     /**
      * Get LaminasTemplateRenderer.
      *
-     * @param ?ViewModel $layout  Layout
-     * @param ?string    $content Page content, null to not expect a call to render() method or true to return rendering
-     * context
+     * @param ?ViewModel $layout       Layout
+     * @param ?string    $content      Page content, null to not expect a call to render() method or true to return
+     * rendering context
+     * @param array      $appConfig    Application configuration
+     * @param array      $dependencies Additional dependencies
      *
      * @return LaminasTemplateRenderer
      */
-    protected function getRenderer(?ViewModel $layout, string|true|null $content): LaminasTemplateRenderer
-    {
+    protected function getRenderer(
+        ?ViewModel $layout,
+        string|true|null $content,
+        array $appConfig = [],
+        array $dependencies = []
+    ): LaminasTemplateRenderer {
         $view = $this->createMock(View::class);
         $render = $view->expects(null !== $content ? $this->once() : $this->never())
             ->method('render');
@@ -260,20 +308,13 @@ class LaminasTemplateRendererTest extends TestCase
             $render->willReturn($content);
         }
 
-        $viewManager = $this->createMock(ViewManager::class);
-        $viewManager->method('getView')
-            ->willReturn($view);
-
-        $injectTemplateListener = new InjectTemplateListener(['Custom/']);
-
         return $this->getAutowiredObject(
             LaminasTemplateRenderer::class,
             [
-                'config' => [],
+                'config' => $appConfig,
                 'ViewRenderer' => $this->createMock(PhpRenderer::class),
-                'ViewManager' => $viewManager,
-                InjectTemplateListener::class => $injectTemplateListener,
-            ]
+                ViewInterface::class => $view,
+            ] + $dependencies
         );
     }
 }

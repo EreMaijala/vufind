@@ -52,7 +52,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      *
      * @var array
      */
-    protected $aliases = [
+    protected array $aliases = [
         'accountMenu' => AccountMenu::class,
         'adminMenu' => AdminMenu::class,
         'footerMenu' => FooterMenu::class,
@@ -80,8 +80,8 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         // we are building a brand new object.
         $this->sharedByDefault = false;
 
-        $this->addAbstractFactory(AbstractPluginFactory::class);
         parent::__construct($configOrContainerInstance, $v3config);
+        $this->addAbstractFactory(AbstractPluginFactory::class);
     }
 
     /**

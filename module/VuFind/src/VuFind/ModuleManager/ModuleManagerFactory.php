@@ -66,14 +66,15 @@ class ModuleManagerFactory implements \Laminas\ServiceManager\Factory\FactoryInt
      */
     public function __invoke(
         ContainerInterface $container,
-        $requestedName,
+        string $requestedName,
         ?array $options = null
-    ) {
+    ): mixed {
         $configuration = $container->get('ApplicationConfig');
         return new $requestedName(
             $container,
             $container->get(EventManagerInterface::class),
-            $configuration['modules'] ?? []
+            $configuration['modules'] ?? [],
+            $configuration['config_providers'] ?? []
         );
     }
 }

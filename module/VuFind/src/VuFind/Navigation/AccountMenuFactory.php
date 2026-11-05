@@ -61,9 +61,9 @@ class AccountMenuFactory
      */
     public function __invoke(
         ContainerInterface $container,
-        $requestedName,
+        string $requestedName,
         ?array $options = null
-    ) {
+    ): mixed {
         $configManager = $container->get(\VuFind\Config\ConfigManagerInterface::class);
 
         // Only load the connector if we need to show

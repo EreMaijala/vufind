@@ -47,7 +47,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      *
      * @var array
      */
-    protected $aliases = [
+    protected array $aliases = [
         'date' => Date::class,
         'date_time' => DateTime::class,
         'env' => Env::class,
@@ -72,8 +72,8 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         $configOrContainerInstance = null,
         array $v3config = []
     ) {
-        $this->addAbstractFactory(AbstractAutowiringFactory::class);
         parent::__construct($configOrContainerInstance, $v3config);
+        $this->addAbstractFactory(AbstractAutowiringFactory::class);
     }
 
     /**

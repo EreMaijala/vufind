@@ -65,9 +65,9 @@ class SorterFactory implements \Laminas\ServiceManager\Factory\FactoryInterface
      */
     public function __invoke(
         ContainerInterface $container,
-        $requestedName,
+        string $requestedName,
         ?array $options = null
-    ) {
+    ): mixed {
         $helper = new $requestedName();
         $helper->setSorter($container->get(\VuFind\I18n\Sorter::class));
         return $helper;

@@ -45,7 +45,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      *
      * @var array
      */
-    protected $aliases = [
+    protected array $aliases = [
         'channels' => Channels::class,
         'bookplate' => Bookplate::class,
         'editions' => Deprecated::class,
@@ -71,8 +71,8 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         // These objects are not meant to be shared -- every time we retrieve one,
         // we are building a brand new object.
         $this->sharedByDefault = false;
-        $this->addAbstractFactory(PluginFactory::class);
         parent::__construct($configOrContainerInstance, $v3config);
+        $this->addAbstractFactory(PluginFactory::class);
     }
 
     /**

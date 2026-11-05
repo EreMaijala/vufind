@@ -56,7 +56,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      *
      * @var array
      */
-    protected $aliases = [
+    protected array $aliases = [
         'account/cataloglogin' => Account\CatalogLoginAction::class,
         'account/changeemail' => Account\ChangeEmailAction::class,
         'account/changepassword' => Account\ChangePasswordAction::class,
@@ -411,7 +411,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      *
      * @var array
      */
-    protected $factories = [
+    protected array $factories = [
     ];
 
     /**
@@ -421,7 +421,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      *
      * @var array
      */
-    protected $autoDiscoveryNamespaces = [
+    protected array $autoDiscoveryNamespaces = [
         __NAMESPACE__ => true,
     ];
 
@@ -441,9 +441,10 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         // These objects are not meant to be shared -- every time we retrieve one, we are building a brand new object.
         $this->sharedByDefault = false;
 
+        parent::__construct($configOrContainerInstance, $v3config);
+
         $this->addAbstractFactory(AbstractAutowiringFactory::class);
         $this->addInitializer(ActionInitializer::class);
-        parent::__construct($configOrContainerInstance, $v3config);
     }
 
     /**
@@ -457,7 +458,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      *     override flag has been toggled off, and a service instance
      *     exists for a given service.
      */
-    public function configure(array $config)
+    public function configure(array $config): static
     {
         parent::configure($config);
         $this->categoryAliases = ($config['category_aliases'] ?? []) + $this->categoryAliases;
@@ -485,7 +486,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      * and the service is not auto-invokable.
      * @throws InvalidServiceException  If the plugin created is invalid for the plugin context.
      */
-    public function get($name, ?array $options = null)
+    public function get(string $name, ?array $options = null): mixed
     {
         return parent::get($this->resolveAlias($name), $options);
     }
@@ -497,7 +498,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      *
      * @return bool
      */
-    public function has($name)
+    public function has(string $name): bool
     {
         return parent::has($this->resolveAlias($name));
     }

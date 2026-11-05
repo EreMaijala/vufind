@@ -65,9 +65,9 @@ class MergedConfigFactory implements \Laminas\ServiceManager\Factory\FactoryInte
      */
     public function __invoke(
         ContainerInterface $container,
-        $requestedName,
+        string $requestedName,
         ?array $options = null
-    ) {
+    ): mixed {
         $moduleManager = $container->get(ModuleManager::class);
         $moduleManager->initialize();
         return $moduleManager->getMergedConfig();

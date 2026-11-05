@@ -45,7 +45,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      *
      * @var array
      */
-    protected $aliases = [
+    protected array $aliases = [
         'none' => None::class,
         'eds' => Eds::class,
         'oclcidentities' => None::class,
@@ -80,8 +80,8 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         $configOrContainerInstance = null,
         array $v3config = []
     ) {
-        $this->addAbstractFactory(PluginFactory::class);
         parent::__construct($configOrContainerInstance, $v3config);
+        $this->addAbstractFactory(PluginFactory::class);
     }
 
     /**

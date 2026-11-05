@@ -114,7 +114,7 @@ class SessionCsrf implements CsrfInterface
      *
      * @return bool
      */
-    public function isValid($value)
+    public function isValid(mixed $value): bool
     {
         return $this->csrf->isValid($value);
     }

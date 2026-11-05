@@ -63,16 +63,25 @@ class ModuleManager implements ModuleManagerInterface
     protected array $allConfigs = [];
 
     /**
+     * Have modules been initialized?
+     *
+     * @var bool
+     */
+    protected bool $initialized = false;
+
+    /**
      * Constructor.
      *
      * @param ServiceManager $serviceManager Service manager
      * @param EventManagerInterface $eventManager Event manager
      * @param array          $modules        List of modules
+     * @param array $configProviders List of additional configuration providers
      */
     public function __construct(
         protected ServiceManager $serviceManager,
         protected EventManagerInterface $eventManager,
-        protected array $modules
+        protected array $modules,
+        protected array $configProviders,
     ) {
         $this->setEventManager($eventManager);
     }
@@ -84,7 +93,7 @@ class ModuleManager implements ModuleManagerInterface
      */
     public function initialize(): void
     {
-        if (!$this->modules || $this->loadedModules) {
+        if ($this->initialized || (!$this->modules && !$this->configProviders)) {
             return;
         }
         $this->loadedModules = [];
@@ -163,16 +172,32 @@ class ModuleManager implements ModuleManagerInterface
      * Load a specific module by name.
      *
      * @param  string $moduleName
-     * @return mixed Module's Module class
+     *
+     * @return mixed Module's Module class or ConfigProvider
      */
     public function loadModule($moduleName)
     {
         $module = null;
+        // Check for a VuFind module first:
         $moduleClass = "$moduleName\Module";
         if (class_exists($moduleClass)) {
             $module = new $moduleClass();
             $this->allConfigs[$moduleName] = $module->getConfig();
             $this->loadedModules[$moduleName] = $module;
+        } else {
+            // Not a VuFind module; check for ConfigProvider:
+            $configProviderClass = "$moduleName\ConfigProvider";
+            if (class_exists($configProviderClass)) {
+                $configProvider = new $configProviderClass();
+                $config = $configProvider();
+                // Map configuration from ConfigProvider to Laminas Service Manager:
+                if ($dependencies = $config['dependencies'] ?? null) {
+                    $config['service_manager'] = $dependencies;
+                    unset($config['dependencies']);
+                }
+                $this->allConfigs[$moduleName] = $config;
+                $this->loadedModules[$moduleName] = $configProvider;
+            }
         }
         return $module;
     }

@@ -218,6 +218,9 @@ $config = [
             'doctrine.connection.orm_vufind' => 'VuFind\Db\Connection',
             'doctrine.entitymanager.orm_vufind' => 'Doctrine\ORM\EntityManager',
 
+            // Application config for back-compatibility:
+            'config' => 'Config',
+
             'Doctrine\ORM\EntityManagerInterface' => 'Doctrine\ORM\EntityManager',
             'VuFind\AccountCapabilities' => 'VuFind\Config\AccountCapabilities',
             'VuFind\AuthManager' => 'VuFind\Auth\Manager',

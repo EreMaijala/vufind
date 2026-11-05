@@ -35,13 +35,14 @@ use Laminas\Uri\Http;
 use Laminas\View\Model\ModelInterface;
 use Laminas\View\Model\ViewModel;
 use Laminas\View\Renderer\PhpRenderer;
-use Laminas\View\View;
+use Laminas\View\Resolver\ResolverInterface;
+use Laminas\View\ViewInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use VuFind\Http\ServerUrlHelper;
+use VuFind\ModuleManager\ModuleManager;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\View\GlobalsContainer;
-use VuFindTheme\InjectTemplateListener;
 
 use function strlen;
 
@@ -57,12 +58,19 @@ use function strlen;
 class LaminasTemplateRenderer implements TemplateRendererInterface
 {
     /**
+     * Parsed theme prefixes.
+     *
+     * @var ?array
+     */
+    protected ?array $parsedThemePrefixes = null;
+
+    /**
      * Constructor.
      *
      * @param ServerUrlHelper        $serverUrlHelper        Server URL helper
      * @param PhpRenderer            $viewRenderer           View renderer
-     * @param ViewManager            $viewManager            View manager
-     * @param InjectTemplateListener $injectTemplateListener Template injection listener (for prefixes)
+     * @param ViewInterface          $view                   View
+     * @param ResolverInterface      $templateResolver       Template resolver
      * @param bool                   $displayExceptions      Display exceptions?
      * @param string                 $notFoundTemplate       Template for 404 errors
      * @param string                 $errorTemplate          Template for errors
@@ -72,16 +80,20 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
         protected ServerUrlHelper $serverUrlHelper,
         #[Autowire(service: 'ViewRenderer')]
         protected PhpRenderer $viewRenderer,
-        #[Autowire(service: 'View')]
-        protected View $view,
-        protected InjectTemplateListener $injectTemplateListener,
+        protected ViewInterface $view,
+        protected ResolverInterface $templateResolver,
         #[Autowire(service: 'config', path: 'view_manager/display_exceptions', default: false)]
         protected bool $displayExceptions,
         #[Autowire(service: 'config', path: 'view_manager/not_found_template', default: 'error/404')]
         protected string $notFoundTemplate,
         #[Autowire(service: 'config', path: 'view_manager/exception_template', default: 'error/index')]
         protected string $errorTemplate,
+        #[Autowire(service: 'config', path: 'vufind/extra_theme_prefixes', default: [])]
+        protected array $extraThemePrefixes,
+        #[Autowire(service: 'config', path: 'vufind/excluded_theme_prefixes', default: [])]
+        protected array $excludedThemePrefixes,
         protected GlobalsContainer $globalsContainer,
+        protected ModuleManager $moduleManager,
     ) {
     }
 
@@ -172,15 +184,12 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
         array $childTemplates = [],
         bool $useLayout = false,
     ): string {
-        $view = $this->viewManager->getView();
         $viewModel = $this->createViewModel($request, $params, $template);
         foreach ($childTemplates as $current) {
             $viewModel->addChild($this->createViewModel($request, $current['params'] ?? [], $current['template']));
         }
         if (!$useLayout) {
-            // Force renderer to return the result:
-            $viewModel->setOption('has_parent', true);
-            return $view->render($viewModel);
+            return $this->view->render($viewModel, enableLayout: false);
         }
 
         // Prepare layout and render:
@@ -199,9 +208,7 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
             $layout->clearChildren();
         }
         $layout->addChild($viewModel);
-        // Force renderer to return the result:
-        $layout->setOption('has_parent', true);
-        return $view->render($layout);
+        return $this->view->render($layout);
     }
 
     /**
@@ -213,7 +220,7 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
      */
     public function resolveTemplateFilename(string $template): ?string
     {
-        return $this->viewRenderer->resolver($template);
+        return $this->templateResolver->resolve($template) ?: null;
     }
 
     /**
@@ -295,14 +302,49 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
      *
      * @return string
      */
-    protected function inflectName($name)
+    protected function inflectName(string $name): string
     {
-        foreach ($this->injectTemplateListener->getPrefixes() as $prefix) {
+        foreach ($this->getThemePrefixes() as $prefix) {
             if (str_starts_with($name, $prefix)) {
                 return strtolower(substr($name, strlen($prefix)));
             }
         }
         return strtolower($name);
+    }
+
+    /**
+     * Get template prefixes.
+     *
+     * @return array
+     */
+    protected function getThemePrefixes(): array
+    {
+        if (null === $this->parsedThemePrefixes) {
+            // We assume that - by default - modules try loading templates from their own namespace, thus all loaded
+            // modules are included for inflection:
+            $modules = array_map(
+                function ($module) {
+                    return str_replace('\\', '/', $module) . '/';
+                },
+                $this->moduleManager->getModules()
+            );
+            $this->parsedThemePrefixes = array_values(
+                array_unique(
+                    array_filter(
+                        [...$this->extraThemePrefixes, ...$modules],
+                        function ($prefix) {
+                            foreach ($this->excludedThemePrefixes as $current) {
+                                if (str_starts_with($prefix, $current)) {
+                                    return false;
+                                }
+                            }
+                            return true;
+                        }
+                    )
+                )
+            );
+        }
+        return $this->parsedThemePrefixes;
     }
 
     /**

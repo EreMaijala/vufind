@@ -38,6 +38,7 @@ use Laminas\Router\RouterFactory;
 use Laminas\Router\RouteStackInterface;
 use Laminas\View\Model\ModelInterface;
 use Laminas\View\Model\ViewModel;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use VuFind\Action\ActionDispatcher;
@@ -76,13 +77,13 @@ class Application
     /**
      * Constructor.
      *
-     * @param RouteStackInterface $router Router
+     * @param ContainerInterface $container Service container
      * @param EventManagerInterface $eventManager Event manager
      * @param ActionDispatcher $actionDispatcher Action dispatcher
      */
+    #[Autowire]
     public function __construct(
-        #[Autowire(service: 'HttpRouter')]
-        protected RouteStackInterface $router,
+        protected ContainerInterface $container,
         protected EventManagerInterface $eventManager,
         protected ActionDispatcher $actionDispatcher,
     ) {
@@ -106,7 +107,7 @@ class Application
         $this->request = $event->getRequest();
         $this->response = $event->getResponse();
 
-        $routeMatch = $this->router->match(Psr7ServerRequest::toLaminas($this->request));
+        $routeMatch = $this->container->get('HttpRouter')->match($this->request);
         $this->request = $this->request
             ->withAttribute('route-match', $routeMatch)
             ->withAttribute('view-model', $this->createViewModel());

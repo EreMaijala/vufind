@@ -47,7 +47,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      *
      * @var array
      */
-    protected $aliases = [
+    protected array $aliases = [
         'htmltree' => HTMLTree::class,
         // Keep jstree as an alias for legacy back-compatibility:
         'jstree' => 'htmltree',
@@ -66,8 +66,8 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         $configOrContainerInstance = null,
         array $v3config = []
     ) {
-        $this->addAbstractFactory(AbstractPluginFactory::class);
         parent::__construct($configOrContainerInstance, $v3config);
+        $this->addAbstractFactory(AbstractPluginFactory::class);
     }
 
     /**

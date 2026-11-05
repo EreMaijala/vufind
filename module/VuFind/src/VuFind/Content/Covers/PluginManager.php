@@ -48,7 +48,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      *
      * @var array
      */
-    protected $aliases = [
+    protected array $aliases = [
         Amazon::class => Deprecated::class,
         Booksite::class => Deprecated::class,
         'amazon' => Deprecated::class,
@@ -74,7 +74,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      *
      * @var array
      */
-    protected $factories = [
+    protected array $factories = [
         ObalkyKnih::class => ObalkyKnihContentFactory::class,
     ];
 
@@ -91,8 +91,8 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         $configOrContainerInstance = null,
         array $v3config = []
     ) {
-        $this->addAbstractFactory(AbstractPluginFactory::class);
         parent::__construct($configOrContainerInstance, $v3config);
+        $this->addAbstractFactory(AbstractPluginFactory::class);
     }
 
     /**

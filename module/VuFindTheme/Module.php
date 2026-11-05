@@ -29,7 +29,6 @@
 
 namespace VuFindTheme;
 
-use Laminas\Mvc\View\Http\InjectTemplateListener as ParentInjectTemplateListener;
 use Psr\Container\ContainerInterface;
 use VuFind\ModuleManager\ModuleInterface;
 
@@ -95,11 +94,7 @@ class Module implements ModuleInterface
      */
     public function getServiceConfig(): array
     {
-        return [
-            'aliases' => [
-                ParentInjectTemplateListener::class => InjectTemplateListener::class,
-            ],
-        ];
+        return [];
     }
 
     /**

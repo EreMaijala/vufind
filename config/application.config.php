@@ -10,6 +10,7 @@ $modules = [
     'Laminas\Cache\Storage\Adapter\Memcached',
     'Laminas\Cache\Storage\Adapter\Memory',
     'Laminas\Router',
+    'Laminas\View',
     'Lmc\Rbac',
     'Laminas\I18n',
     'VuFindTheme',
@@ -95,6 +96,7 @@ return [
             \Laminas\EventManager\SharedEventManager::class => \Laminas\ServiceManager\Factory\InvokableFactory::class,
             'ViewHelperManager' => \Laminas\Mvc\Service\ViewHelperManagerFactory::class,
             'ViewResolver' => \Laminas\Mvc\Service\ViewResolverFactory::class,
+            //\Laminas\Router\Http\TreeRouteStack::class => \Laminas\Router\Http\HttpRouterFactory::class,
         ],
         'aliases' => [
             // Laminas MVC back-compatibility:
@@ -103,6 +105,7 @@ return [
             \Laminas\EventManager\EventManagerInterface::class => \Laminas\EventManager\EventManager::class,
             'SharedEventManager' => \Laminas\EventManager\SharedEventManagerInterface::class,
             \Laminas\EventManager\SharedEventManagerInterface::class => \Laminas\EventManager\SharedEventManager::class,
+            'HttpRouter' => \Laminas\Router\Http\TreeRouteStack::class,
         ],
         'shared' => [
             // Laminas MVC back-compatibility:

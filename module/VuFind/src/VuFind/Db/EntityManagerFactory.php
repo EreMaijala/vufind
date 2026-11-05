@@ -85,7 +85,7 @@ class EntityManagerFactory implements \Laminas\ServiceManager\Factory\FactoryInt
      *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function __invoke(ContainerInterface $container, $requestedName, array|null $options = null)
+    public function __invoke(ContainerInterface $container, string $requestedName, array|null $options = null): mixed
     {
         $connection = $container->get(Connection::class);
         $paths = [
@@ -131,6 +131,7 @@ class EntityManagerFactory implements \Laminas\ServiceManager\Factory\FactoryInt
      */
     public function cacheCapabilitiesHandler(PostEvent $event): void
     {
+        return;
         if ($event->getStorage() !== $this->cacheStorage) {
             return;
         }
