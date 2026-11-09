@@ -85,8 +85,8 @@
         <?php endif; ?>
       <?php endif; ?>
       <?php if ($recordTotal > 0): ?>
-        <?=$this->render('search/controls/limit.phtml')?>
-        <?=$this->render('search/controls/sort.phtml')?>
+        <?=$this->partial('search/controls/limit.phtml', iterator_to_array($this))?>
+        <?=$this->partial('search/controls/sort.phtml', iterator_to_array($this))?>
       <?php endif; ?>
     </div>
   </nav>

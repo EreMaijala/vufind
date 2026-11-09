@@ -4,7 +4,7 @@
 ?>
 <?php if (!$account->hasSessionInitiator()): // display default login form if no login URL provided ?>
   <form method="post" action="<?=$this->url('account-home')?>" name="loginForm" class="form-login">
-    <?=$this->auth()->getLoginFields()?>
+    <?=$this->auth()->getLoginFields(iterator_to_array($this))?>
     <?php if ($account->supportsPersistentLogin()) : ?>
       <div class="form-group">
         <label>

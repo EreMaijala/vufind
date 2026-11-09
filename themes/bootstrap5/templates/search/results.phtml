@@ -29,9 +29,9 @@
   // Set up search controls (avoiding unnecessary rendering):
   if (!$this->slot('search-controls')->isset()) {
       $this->slot('search-controls')->set(
-          $this->render('search/controls/limit.phtml')
-          . ' ' . $this->render('search/controls/sort.phtml')
-          . ' ' . $this->render('search/controls/view.phtml')
+          $this->render('search/controls/limit.phtml', iterator_to_array($this))
+          . ' ' . $this->render('search/controls/sort.phtml', iterator_to_array($this))
+          . ' ' . $this->render('search/controls/view.phtml', iterator_to_array($this))
       );
   }
 
@@ -118,7 +118,7 @@
     <form id="search-cart-form" method="post" name="bulkActionForm" action="<?=$this->url('cart-searchresultsbulk')?>" data-lightbox data-lightbox-onsubmit="bulkFormHandler">
       <?=$this->context($this)->renderInContext('search/bulk-action-buttons.phtml', ['idPrefix' => ''])?>
     </form>
-    <?=$this->render('search/results-list.phtml')?>
+    <?=$this->partial('search/results-list.phtml', iterator_to_array($this))?>
     <?=$this->context($this)->renderInContext('search/bulk-action-buttons.phtml', ['isBottom' => true, 'formAttr' => 'search-cart-form'])?>
     <?=$this->paginationControl($this->results->getPaginator(), 'Sliding', 'Helpers/pagination.phtml', ['params' => ['results' => $this->results], 'options' => $this->paginationOptions ?? []])?>
     <?=$this->context($this)->renderInContext('search/controls/results-tools.phtml', ['results' => $this->results])?>

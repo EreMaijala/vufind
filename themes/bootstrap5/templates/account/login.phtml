@@ -22,5 +22,5 @@
 <?php if ($hideLogin): ?>
   <div class="alert alert-danger"><?=$this->transEsc('login_disabled')?></div>
 <?php else: ?>
-  <?=$this->auth()->getLogin()?>
+  <?=$this->auth()->getLogin(iterator_to_array($this))?>
 <?php endif; ?>

@@ -7,7 +7,7 @@
 <?=$this->flashmessages()?>
 
 <form method="post" name="accountForm" id="accountForm" class="form-user-create">
-  <?=$this->auth()->getCreateFields()?>
+  <?=$this->auth()->getCreateFields(iterator_to_array($this))?>
   <?=$this->captcha()->html($this->useCaptcha) ?>
   <div class="form-group">
     <a class="back-to-login btn btn-link" href="<?=$this->url('account-userlogin') ?>">
