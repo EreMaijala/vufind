@@ -30,7 +30,6 @@
 namespace VuFind\View\Renderer;
 
 use InvalidArgumentException;
-use Laminas\Mvc\View\Http\ViewManager;
 use Laminas\Uri\Http;
 use Laminas\View\Model\ModelInterface;
 use Laminas\View\Model\ViewModel;
@@ -196,19 +195,19 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
         if (null === $request) {
             throw new InvalidArgumentException('Request is required for rendering with layout');
         }
-        $layout = $this->getLayout($request);
+        //$layout = $this->getLayout($request);
 
         $templateParts = explode('/', $viewModel->getTemplate());
         $this->globalsContainer['templateDir'] = $templateParts[0];
         $this->globalsContainer['templateName'] = $templateParts[1] ?? null;
-        $this->setupRenderingInLightbox($request, $layout);
+        $this->setupRenderingInLightbox($request, $viewModel);
 
         // Clear any previous children (e.g. when rendering an error):
-        if ($layout instanceof ViewModel) {
+       /* if ($layout instanceof ViewModel) {
             $layout->clearChildren();
         }
-        $layout->addChild($viewModel);
-        return $this->view->render($layout);
+        $layout->addChild($viewModel);*/
+        return $this->view->render($viewModel);
     }
 
     /**

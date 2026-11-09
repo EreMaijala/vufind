@@ -29,7 +29,6 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\Router\RouteMatch;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
@@ -73,13 +72,11 @@ class UrlFactory implements FactoryInterface
 
         $application = $container->get(Application::class);
         $request = $application->getRequest();
-        $helper = new $requestedName($request);
-        $helper->setRouter($container->get('HttpRouter'));
-
-        $match = $request?->getAttribute('route-match');
-        if ($match instanceof RouteMatch) {
-            $helper->setRouteMatch($match);
-        }
+        $helper = new $requestedName(
+            $request,
+            $container->get('HttpRouter'),
+            $request?->getAttribute('route-match')
+        );
 
         return $helper;
     }

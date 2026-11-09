@@ -32,7 +32,7 @@ namespace VuFind\View\Helper\Root;
 use Laminas\Http\PhpEnvironment\Request;
 use Laminas\Router\Http\TreeRouteStack;
 use Laminas\View\Helper\EscapeJs;
-use Laminas\View\Helper\HeadTitle;
+use VuFind\View\Helper\Root\HeadTitle;
 use Laminas\View\Helper\ViewModel;
 use Laminas\View\Renderer\PhpRenderer;
 use Laminas\View\Renderer\RendererInterface;
@@ -137,7 +137,7 @@ class Matomo
     public function __construct(
         #[Autowire(config: 'config', configType: 'array')]
         array $config,
-        #[Autowire(service: 'Router')]
+        #[Autowire(service: 'HttpRouter')]
         protected TreeRouteStack $router,
         #[Autowire(service: 'Request')]
         protected Request $request,

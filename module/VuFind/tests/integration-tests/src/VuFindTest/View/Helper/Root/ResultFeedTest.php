@@ -96,7 +96,7 @@ class ResultFeedTest extends \PHPUnit\Framework\TestCase
             ->getMock();
         $recordLinker->method('getUrl')->willReturn('test/url');
 
-        $serverUrl = $this->createMock(\Laminas\View\Helper\ServerUrl::class);
+        $serverUrl = $this->createMock(\VuFind\View\Helper\Root\ServerUrl::class);
         $serverUrl->method('__invoke')->willReturn('http://server/url');
 
         return compact('currentPath', 'record', 'recordLinker') + ['serverurl' => $serverUrl];

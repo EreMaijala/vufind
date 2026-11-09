@@ -30,7 +30,7 @@
 namespace VuFindTheme;
 
 use Exception;
-use Laminas\View\Helper\Url;
+use VuFind\View\Helper\Root\Url;
 use MatthiasMullie\Minify\Minify;
 use Psr\Log\LoggerAwareInterface;
 use VuFind\Log\LoggerAwareTrait;

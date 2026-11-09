@@ -29,7 +29,7 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\View\Helper\Url;
+use VuFind\View\Helper\Root\Url;
 use VuFind\Search\Base\Options;
 
 use function is_array;

@@ -6,7 +6,6 @@ return [
             \VuFind\ServiceManager\Factory\AbstractAutowiringFactory::class,
         ],
         'factories' => [
-            'Laminas\View\Helper\HeadTitle' => 'VuFind\View\Helper\Root\HeadTitleFactory',
             'VuFind\View\Helper\Root\AuthorNotes' => 'VuFind\View\Helper\Root\ContentLoaderFactory',
             'VuFind\View\Helper\Root\Captcha' => 'VuFind\View\Helper\Root\CaptchaFactory',
             'VuFind\View\Helper\Root\CleanHtml' => 'VuFind\View\Helper\Root\CleanHtmlFactory',
@@ -23,6 +22,7 @@ return [
             'VuFind\View\Helper\Root\ProxyUrl' => 'VuFind\View\Helper\Root\ProxyUrlFactory',
             'VuFind\View\Helper\Root\Relais' => 'VuFind\View\Helper\Root\RelaisFactory',
             'VuFind\View\Helper\Root\ResultFeed' => 'VuFind\View\Helper\Root\ResultFeedFactory',
+            'VuFind\View\Helper\Root\ServerUrl' => 'VuFind\View\Helper\Root\ServerUrlFactory',
             'VuFind\View\Helper\Root\Session' => 'VuFind\View\Helper\Root\SessionFactory',
             'VuFind\View\Helper\Root\Sorter' => 'VuFind\View\Helper\Root\SorterFactory',
             'VuFind\View\Helper\Root\Summaries' => 'VuFind\View\Helper\Root\ContentLoaderFactory',
@@ -31,7 +31,6 @@ return [
             'VuFind\View\Helper\Root\UserList' => 'VuFind\View\Helper\Root\UserListFactory',
 
             'Laminas\View\Helper\EscapeHtmlAttr' => 'VuFind\View\Helper\Root\EscapeHtmlAttrFactory',
-            'Laminas\View\Helper\ServerUrl' => 'VuFind\View\Helper\Root\ServerUrlFactory',
         ],
         'initializers' => [
             \VuFind\View\Helper\Root\HelperInitializer::class,
@@ -73,6 +72,7 @@ return [
             'globals' => 'VuFind\View\Helper\Root\Globals',
             'googleanalytics' => 'VuFind\View\Helper\Root\GoogleAnalytics',
             'googleTagManager' => 'VuFind\View\Helper\Root\GoogleTagManager',
+            'headTitle' => 'VuFind\View\Helper\Root\HeadTitle',
             'helpText' => 'VuFind\View\Helper\Root\HelpText',
             'highlight' => 'VuFind\View\Helper\Root\Highlight',
             'historylabel' => 'VuFind\View\Helper\Root\HistoryLabel',
@@ -98,6 +98,7 @@ return [
             'openUrl' => 'VuFind\View\Helper\Root\OpenUrl',
             'operatorToFieldPrefix' => 'VuFind\View\Helper\Root\OperatorToFieldPrefix',
             'overdrive' => 'VuFind\View\Helper\Root\Overdrive',
+            'paginationControl' => 'VuFind\View\Helper\Root\PaginationControl',
             'permission' => 'VuFind\View\Helper\Root\Permission',
             'printArrayHtml' => 'VuFind\View\Helper\Root\PrintArrayHtml',
             'printms' => 'VuFind\View\Helper\Root\Printms',
@@ -110,6 +111,7 @@ return [
             'recordTabs' => 'VuFind\View\Helper\Root\RecordTabs',
             'relais' => 'VuFind\View\Helper\Root\Relais',
             'related' => 'VuFind\View\Helper\Root\Related',
+            'render' => 'partial',
             'renderArray' => 'VuFind\View\Helper\Root\RenderArray',
             'resultfeed' => 'VuFind\View\Helper\Root\ResultFeed',
             'safeMoneyFormat' => 'VuFind\View\Helper\Root\SafeMoneyFormat',
@@ -121,6 +123,7 @@ return [
             'searchTabs' => 'VuFind\View\Helper\Root\SearchTabs',
             'searchbox' => 'VuFind\View\Helper\Root\SearchBox',
             'section' => 'VuFind\View\Helper\Root\Section',
+            'serverUrl' => 'VuFind\View\Helper\Root\ServerUrl',
             'session' => 'VuFind\View\Helper\Root\Session',
             'shortenUrl' => 'VuFind\View\Helper\Root\ShortenUrl',
             'sorter' => 'VuFind\View\Helper\Root\Sorter',
@@ -135,10 +138,9 @@ return [
             'translate' => 'VuFind\View\Helper\Root\Translate',
             'translationEmpty' => 'VuFind\View\Helper\Root\TranslationEmpty',
             'truncate' => 'VuFind\View\Helper\Root\Truncate',
+            'url' => 'VuFind\View\Helper\Root\Url',
             'userlist' => 'VuFind\View\Helper\Root\UserList',
             'usertags' => 'VuFind\View\Helper\Root\UserTags',
-
-            'Laminas\View\Helper\Url' => 'VuFind\View\Helper\Root\Url',
         ],
     ],
 ];

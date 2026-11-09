@@ -33,7 +33,7 @@ use Closure;
 use Generator;
 use InvalidArgumentException;
 use Laminas\Diactoros\Response;
-use Laminas\View\Helper\Url;
+use VuFind\View\Helper\Root\Url;
 use PHPUnit\Framework\TestCase;
 use VuFind\ActionHelper\RedirectHelper;
 use VuFind\Http\RouteHelper;

@@ -72,7 +72,7 @@ trait ViewTrait
             \Laminas\View\Helper\HeadLink::class => new \Laminas\View\Helper\HeadLink(),
             \Laminas\View\Helper\HeadStyle::class => new \Laminas\View\Helper\HeadStyle(),
             \Laminas\View\Helper\InlineScript::class => new \Laminas\View\Helper\InlineScript(),
-            \Laminas\View\Helper\Url::class => new \Laminas\View\Helper\Url(),
+            \VuFind\View\Helper\Root\Url::class => new \VuFind\View\Helper\Root\Url(),
         ];
         $viewHelperManager = $renderer->getHelperPluginManager();
         foreach ($services as $key => $value) {

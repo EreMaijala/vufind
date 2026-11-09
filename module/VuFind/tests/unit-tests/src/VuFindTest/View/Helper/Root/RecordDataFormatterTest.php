@@ -30,7 +30,7 @@
 namespace VuFindTest\View\Helper\Root;
 
 use Laminas\View\Helper\EscapeHtml;
-use Laminas\View\Helper\ServerUrl;
+use VuFind\View\Helper\Root\ServerUrl;
 use Laminas\View\Renderer\PhpRenderer;
 use Laminas\View\Resolver\ResolverInterface;
 use Laminas\View\Resolver\TemplatePathStack;

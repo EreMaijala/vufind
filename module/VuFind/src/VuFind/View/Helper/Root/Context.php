@@ -32,6 +32,8 @@
 namespace VuFind\View\Helper\Root;
 
 use Laminas\View\Renderer\RendererInterface;
+use Laminas\View\Renderer\Template;
+use Laminas\View\TemplateInterface;
 use VuFind\ServiceManager\Factory\Autowire;
 
 /**
@@ -48,6 +50,13 @@ use VuFind\ServiceManager\Factory\Autowire;
 class Context
 {
     /**
+     * Current template
+     *
+     * @var ?Template
+     */
+    protected ?Template $template = null;
+
+    /**
      * Constructor.
      *
      * @param RendererInterface $view View renderer
@@ -59,46 +68,21 @@ class Context
     }
 
     /**
-     * Set an array of variables in the view; return the previous values of those
-     * variables so they can be restored.
+     * Set current template.
      *
-     * @param array $vars Variables to set
+     * @param ?Template $template Template
      *
-     * @return array
+     * @return static
      */
-    public function apply($vars)
+    public function setTemplate(?Template $template): static
     {
-        $oldVars = [];
-        foreach ($vars as $k => $v) {
-            $oldVars[$k] = $this->view->$k ?? null;
-            $this->view->$k = $v;
-        }
-        return $oldVars;
+        $this->template = $template;
+        return $this;
     }
 
     /**
-     * Restore an old context returned by apply().
-     *
-     * @param array $vars Variables to set
-     *
-     * @return void
-     */
-    public function restore($vars)
-    {
-        foreach ($vars as $k => $v) {
-            if (null === $v) {
-                unset($this->view->$k);
-            } else {
-                $this->view->$k = $v;
-            }
-        }
-    }
-
-    /**
-     * Render a template using a temporary context; restore the view to its
-     * original state when done. This offers the template full access to the
-     * global scope, modified by $context, then puts the global scope back
-     * the way it was.
+     * Render a template using a temporary context; restore the view to its original state when done. This offers the
+     * template full access to the global scope, modified by $context, then puts the global scope back the way it was.
      *
      * @param string $template Template to render
      * @param array  $context  Array of context variables to set temporarily
@@ -107,23 +91,29 @@ class Context
      */
     public function renderInContext($template, $context)
     {
-        $oldContext = $this->apply($context);
-        $html = $this->view->render($template);
-        $this->restore($oldContext);
-        return $html;
+        // Use a clone to avoid modifying global rendering state:
+        $view = clone $this->view;
+
+        if (!$this->template) {
+            return $view->render($template, $context);
+        }
+
+        return $view->render($template, $context + iterator_to_array($this->template));
     }
 
     /**
      * Return this helper instance.
      *
-     * @param RendererInterface $view View Renderer
+     * @param ?Template $template Template
      *
-     * @return Context
+     * @return static
      */
-    public function __invoke(?RendererInterface $view = null)
+    public function __invoke(?Template $template = null): static
     {
-        if (null !== $view) {
-            $this->view = $view;
+        if (null !== $template) {
+            $result = clone $this;
+            $result->setTemplate($template);
+            return $result;
         }
         return $this;
     }

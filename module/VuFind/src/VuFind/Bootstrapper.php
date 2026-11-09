@@ -29,6 +29,7 @@
 
 namespace VuFind;
 
+use GuzzleHttp\Psr7\Message;
 use Laminas\Http\Header\Location;
 use Laminas\Http\Response;
 use Laminas\Psr7Bridge\Psr7ServerRequest;
@@ -150,31 +151,6 @@ class Bootstrapper
     }
 
     /**
-     * Set view variables representing the current context.
-     *
-     * @return void
-     */
-    protected function initContext(): void
-    {
-        $callback = function (/*$event*/): void {
-            if (PHP_SAPI !== 'cli') {
-                $viewModel = $this->container->get('ViewManager')->getViewModel();
-
-                // Grab the template name from the first child -- we can use this to
-                // figure out the current template context.
-                $children = $viewModel->getChildren();
-                if (!empty($children)) {
-                    $parts = explode('/', $children[0]->getTemplate());
-                    $globals = $this->container->get(GlobalsContainer::class);
-                    $globals['templateDir'] = $parts[0];
-                    $globals['templateName'] = $parts[1] ?? null;
-                }
-            }
-        };
-        $this->eventManager->attach('dispatch', $callback);
-    }
-
-    /**
      * Detect locale and update language in user account, as needed.
      *
      * @return void
@@ -208,8 +184,8 @@ class Bootstrapper
             $globals['allLangs'] = $settings->getEnabledLocales();
             $globals['rtl'] = $settings->isRightToLeftLocale($language);
         };
-        $this->eventManager->attach('dispatch.error', $callback, 15000);
         $this->eventManager->attach('dispatch', $callback, 15000);
+        $this->eventManager->attach('dispatch.error', $callback, 15000);
     }
 
     /**
@@ -316,7 +292,7 @@ class Bootstrapper
                     // so use a dummy in that case.
                     $server = (PHP_SAPI == 'cli')
                         ? ['env' => 'console']
-                        : $event->getRequest()->getServer()->toArray();
+                        : Message::toString($event->getRequest());
                     if (!empty($exception)) {
                         $log->logException($exception, $server);
                     }
@@ -382,13 +358,12 @@ class Bootstrapper
         $callback = function ($event): void {
             $response = $event->getResponse();
             $cspHeaderGenerator = $this->container->get(\VuFind\Security\CspHeaderGenerator::class);
-            foreach ($cspHeaderGenerator->getHeaders() as $cspHeader) {
-                $response = $response->withHeader($cspHeader->getFieldName(), $cspHeader->getFieldValue());
+            foreach ($cspHeaderGenerator->getHeaders() as $header) {
+                $response = $response->withHeader($header['name'], $header['value']);
             }
-            $event->setResponse($cspHeaderGenerator->addHeaders($response));
+            $event->setResponse($response);
         };
-        $this->eventManager->attach(Event::EVENT_DISPATCH, $callback);
-        $this->eventManager->attach(Event::EVENT_DISPATCH_ERROR, $callback);
+        $this->eventManager->attach(Event::EVENT_FINISH, $callback);
     }
 
     /**

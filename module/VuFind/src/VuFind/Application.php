@@ -43,6 +43,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use VuFind\Action\ActionDispatcher;
 use VuFind\EventManager\Event;
+use VuFind\Http\RouteHelper;
+use VuFind\Http\ServerUrlHelper;
 //use VuFind\EventManager\EventManager;
 //use VuFind\EventManager\EventManagerInterface;
 use VuFind\ServiceManager\Factory\Autowire;
@@ -107,14 +109,15 @@ class Application
         $this->request = $event->getRequest();
         $this->response = $event->getResponse();
 
-        $routeMatch = $this->container->get('HttpRouter')->match($this->request);
+        // Try to find a route match for the request:
+        $baseUrl = $this->detectBaseUrl($this->request);
+        $routeMatch = $this->container->get('HttpRouter')->match($this->request, strlen($baseUrl));
         $this->request = $this->request
             ->withAttribute('route-match', $routeMatch)
             ->withAttribute('view-model', $this->createViewModel());
 
         // Trigger dispatch or dispatch error event:
-        $event = $event
-            ->setRouteMatch($routeMatch);
+        $event->setRouteMatch($routeMatch);
         $this->eventManager->setEventPrototype($event);
         $this->eventManager->trigger($routeMatch ? Event::EVENT_DISPATCH : Event::EVENT_DISPATCH_ERROR);
         // Update with any changes from event listeners:
@@ -126,11 +129,12 @@ class Application
         $this->response = $this->actionDispatcher->dispatch($this->request, $this->response);
 
         // Trigger finish event:
+        $event->setResponse($this->response);
         $this->eventManager->trigger(Event::EVENT_FINISH);
         // Update with any changes from event listeners:
-        $response = $event->getResponse();
+        $this->response = $event->getResponse();
 
-        $this->outputResponse($response);
+        $this->outputResponse($this->response);
     }
 
     /**
@@ -236,5 +240,131 @@ class Application
         while (!$body->eof()) {
             echo $body->read(self::CHUNK_SIZE);
         }
+    }
+
+    /**
+     * Auto-detect the base path from the request environment.
+     *
+     * Uses a variety of criteria in order to detect the base URL of the request (i.e., anything additional to the
+     * document root).
+     *
+     * Adapted from Laminas Request class.
+     *
+     * @return string
+     */
+    protected function detectBaseUrl(ServerRequestInterface $request): string
+    {
+        $serverParams = $request->getServerParams();
+        $filename       = $serverParams['SCRIPT_FILENAME'] ?? '';
+        $scriptName     = $serverParams['SCRIPT_NAME'] ?? null;
+        $phpSelf        = $serverParams['PHP_SELF'] ?? null;
+        $origScriptName = $serverParams['ORIG_SCRIPT_NAME'] ?? null;
+
+        if ($scriptName !== null && basename($scriptName) === $filename) {
+            $baseUrl = $scriptName;
+        } elseif ($phpSelf !== null && basename($phpSelf) === $filename) {
+            $baseUrl = $phpSelf;
+        } elseif ($origScriptName !== null && basename($origScriptName) === $filename) {
+            // 1and1 shared hosting compatibility.
+            $baseUrl = $origScriptName;
+        } else {
+            // Backtrack up the SCRIPT_FILENAME to find the portion matching PHP_SELF:
+            $baseUrl  = '/';
+            $basename = basename($filename ?? '');
+            if ($basename) {
+                $path     = $phpSelf ? trim($phpSelf, '/') : '';
+                $basePos  = strpos($path, $basename) ?: 0;
+                $baseUrl .= substr($path, 0, $basePos) . $basename;
+            }
+        }
+
+        // If the baseUrl is empty, then simply return an empty string:
+        if (!$baseUrl) {
+            return '';
+        }
+
+        // Does the base URL have anything in common with the request URI?
+        $requestUri = $this->detectRequestUri($request);
+
+        // Full base URL matches.
+        if (0 === strpos($requestUri, $baseUrl)) {
+            return $baseUrl;
+        }
+
+        // Directory portion of base path matches.
+        $baseDir = str_replace('\\', '/', dirname($baseUrl));
+        if (0 === strpos($requestUri, $baseDir)) {
+            return $baseDir;
+        }
+
+        $truncatedRequestUri = $requestUri;
+
+        if (false !== ($pos = strpos($requestUri, '?'))) {
+            $truncatedRequestUri = substr($requestUri, 0, $pos);
+        }
+
+        $basename = basename($baseUrl);
+
+        // No match whatsoever
+        if (empty($basename) || false === strpos($truncatedRequestUri, $basename)) {
+            return '';
+        }
+
+        // If using mod_rewrite or ISAPI_Rewrite strip the script filename out of the base path. $pos !== 0 makes sure
+        // it is not matching a value from PATH_INFO or QUERY_STRING.
+        if (
+            strlen($requestUri) >= strlen($baseUrl)
+            && (false !== ($pos = strpos($requestUri, $baseUrl)) && $pos !== 0)
+        ) {
+            $baseUrl = substr($requestUri, 0, $pos + strlen($baseUrl));
+        }
+
+        return $baseUrl;
+    }
+
+    /**
+     * Detect the base URI for the request
+     *
+     * Looks at a variety of criteria in order to attempt to autodetect a base
+     * URI, including rewrite URIs, proxy URIs, etc.
+     *
+     * Adapted from Laminas Request class.
+     *
+     * @param ServerRequestInterface $request Request
+     *
+     * @return string
+     */
+    protected function detectRequestUri(ServerRequestInterface $request): string
+    {
+        $requestUri = null;
+        $serverParams = $request->getServerParams();
+
+        // IIS7 with URL Rewrite: make sure we get the unencoded url
+        // (double slash problem).
+        $iisUrlRewritten = $serverParams['IIS_WasUrlRewritten'] ?? null;
+        $unencodedUrl    = $serverParams['UNENCODED_URL'] ?? '';
+        if ('1' === $iisUrlRewritten && '' !== $unencodedUrl) {
+            return $unencodedUrl;
+        }
+
+        $requestUri = $serverParams['REQUEST_URI'] ?? null;
+
+        // HTTP proxy requests setup request URI with scheme and host [and port]
+        // + the URL path, only use URL path.
+        if ($requestUri !== null) {
+            return preg_replace('#^[^/:]+://[^/]+#', '', $requestUri);
+        }
+
+        // IIS 5.0, PHP as CGI.
+        $origPathInfo = $serverParams['ORIG_PATH_INFO'] ?? null;
+        if ($origPathInfo !== null) {
+            $queryString = $serverParams['QUERY_STRING'] ?? null;
+            if ($queryString !== '') {
+                $origPathInfo .= '?' . $queryString;
+            }
+            return $origPathInfo;
+        }
+
+        return '/';
     }
 }

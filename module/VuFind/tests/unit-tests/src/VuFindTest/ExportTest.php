@@ -298,11 +298,11 @@ class ExportTest extends \PHPUnit\Framework\TestCase
      */
     public function testGetBulkUrl(): void
     {
-        $url = $this->createMock(\Laminas\View\Helper\Url::class);
+        $url = $this->createMock(\VuFind\View\Helper\Root\Url::class);
         $url->expects($this->once())->method('__invoke')
             ->with('cart-doexport')
             ->willReturn('/cart/doExport');
-        $serverUrl = $this->createMock(\Laminas\View\Helper\ServerUrl::class);
+        $serverUrl = $this->createMock(\VuFind\View\Helper\Root\ServerUrl::class);
         $serverUrl->expects($this->once())->method('__invoke')
             ->with('/cart/doExport')
             ->willReturn('http://localhost/cart/doExport');

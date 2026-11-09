@@ -33,6 +33,7 @@ namespace VuFind\View\Helper\Root;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
+use Laminas\View\Resolver\ResolverInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 
@@ -80,16 +81,13 @@ class CaptchaFactory implements FactoryInterface
             $captchas[] = $container->get(\VuFind\Captcha\PluginManager::class)
                 ->get(trim($captchaType));
         }
-        $viewHelperManager = $container->get('ViewHelperManager');
-        $viewRenderer = $viewHelperManager->getRenderer();
-        $viewResolver = $viewRenderer->resolver();
 
         return new $requestedName(
             $config,
             $captchas,
-            $viewRenderer,
-            $viewResolver,
-            $viewHelperManager->get('context')
+            $container->get('ViewRenderer'),
+            $container->get(ResolverInterface::class),
+            $container->get('ViewHelperManager')->get('context')
         );
     }
 }

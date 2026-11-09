@@ -36,6 +36,7 @@ use Laminas\Http\Response as LaminasResponse;
 use Laminas\Http\Response\Stream as LaminasResponseStream;
 use Laminas\Psr7Bridge\Psr7Response;
 use Laminas\Psr7Bridge\Psr7ServerRequest;
+use Laminas\View\Model\ViewModel;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
@@ -115,7 +116,8 @@ class ActionDispatcher
 
         $request = $request
             ->withAttribute('action-id', $id)
-            ->withAttribute('route-helper', $this->routeHelper);
+            ->withAttribute('route-helper', $this->routeHelper)
+            ->withAttribute('view-model', new ViewModel());
         try {
             return $action($request, $response);
         } catch (Throwable $ex) {

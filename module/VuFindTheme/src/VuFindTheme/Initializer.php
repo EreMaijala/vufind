@@ -322,8 +322,7 @@ class Initializer
         $loader = $this->serviceManager->get('ViewHelperManager');
 
         // Register all the helpers:
-        $config = new \Laminas\ServiceManager\Config($helpers);
-        $config->configureServiceManager($loader);
+        $loader->configure($helpers);
     }
 
     /**

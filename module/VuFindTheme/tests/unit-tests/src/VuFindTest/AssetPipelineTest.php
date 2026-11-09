@@ -29,7 +29,7 @@
 
 namespace VuFindTest;
 
-use Laminas\View\Helper\Url;
+use VuFind\View\Helper\Root\Url;
 use PHPUnit\Framework\MockObject\MockObject;
 use VuFindTheme\AssetPipeline;
 use VuFindTheme\ThemeInfo;

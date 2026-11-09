@@ -30,7 +30,7 @@
 namespace VuFindTest\View\Helper\Root;
 
 use Laminas\View\Exception\RuntimeException;
-use Laminas\View\Helper\ServerUrl;
+use VuFind\View\Helper\Root\ServerUrl;
 use Laminas\View\Renderer\PhpRenderer;
 use Laminas\View\Resolver\ResolverInterface;
 use PHPUnit\Framework\MockObject\MockObject;

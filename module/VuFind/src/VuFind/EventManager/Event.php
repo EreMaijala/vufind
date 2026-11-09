@@ -29,8 +29,7 @@
 
 namespace VuFind\EventManager;
 
-use ArrayAccess;
-use Laminas\Router\RouteMatch;
+use Laminas\Router\RouteMatchInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -104,9 +103,9 @@ class Event implements EventInterface
     /**
      * Route match.
      *
-     * @var ?RouteMatch
+     * @var ?RouteMatchInterface
      */
-    protected ?RouteMatch $routeMatch = null;
+    protected ?RouteMatchInterface $routeMatch = null;
 
     /**
      * Parameters.
@@ -217,9 +216,9 @@ class Event implements EventInterface
     /**
      * Get route match.
      *
-     * @return ?RouteMatch
+     * @return ?RouteMatchInterface
      */
-    public function getRouteMatch(): ?RouteMatch
+    public function getRouteMatch(): ?RouteMatchInterface
     {
         return $this->routeMatch;
     }
@@ -227,11 +226,11 @@ class Event implements EventInterface
     /**
      * Set route match.
      *
-     * @param ?RouteMatch $routeMatch Route match
+     * @param ?RouteMatchInterface $routeMatch Route match
      *
      * @return static
      */
-    public function setRouteMatch(?RouteMatch $routeMatch): static
+    public function setRouteMatch(?RouteMatchInterface $routeMatch): static
     {
         $this->routeMatch = $routeMatch;
         return $this;

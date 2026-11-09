@@ -72,6 +72,7 @@ class Module implements ModuleInterface
                 'excluded_theme_prefixes' => ['Laminas'],
                 'extra_theme_prefixes' => [],
             ],
+            'view_helpers' => $this->getViewHelperConfig(),
         ];
     }
 
@@ -88,21 +89,11 @@ class Module implements ModuleInterface
     }
 
     /**
-     * Return service configuration.
-     *
-     * @return array
-     */
-    public function getServiceConfig(): array
-    {
-        return [];
-    }
-
-    /**
      * Get view helper configuration.
      *
      * @return array
      */
-    public function getViewHelperConfig(): array
+    protected function getViewHelperConfig(): array
     {
         return [
             'abstract_factories' => [

@@ -31,7 +31,7 @@ namespace VuFindTest\View\Helper\Root;
 
 use Laminas\Http\Headers;
 use Laminas\View\Helper\EscapeHtmlAttr;
-use Laminas\View\Helper\ServerUrl;
+use VuFind\View\Helper\Root\ServerUrl;
 use Laminas\View\Renderer\PhpRenderer;
 use Symfony\Component\Yaml\Yaml;
 use VuFind\Auth\LoginTokenManager;

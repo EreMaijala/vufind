@@ -30,7 +30,7 @@
 namespace VuFindTest\Http;
 
 use Closure;
-use Laminas\View\Helper\ServerUrl;
+use VuFind\View\Helper\Root\ServerUrl;
 use VuFind\Http\ServerUrlHelper;
 
 /**

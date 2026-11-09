@@ -29,7 +29,7 @@
 
 namespace VuFind\EventManager;
 
-use Laminas\Router\RouteMatch;
+use Laminas\Router\RouteMatchInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -95,18 +95,18 @@ interface EventInterface extends \Laminas\EventManager\EventInterface
     /**
      * Get route match.
      *
-     * @return ?RouteMatch
+     * @return ?RouteMatchInterface
      */
-    public function getRouteMatch(): ?RouteMatch;
+    public function getRouteMatch(): ?RouteMatchInterface;
 
     /**
      * Set route match.
      *
-     * @param ?RouteMatch $routeMatch Route match
+     * @param ?RouteMatchInterface $routeMatch Route match
      *
      * @return static
      */
-    public function setRouteMatch(?RouteMatch $routeMatch): static;
+    public function setRouteMatch(?RouteMatchInterface $routeMatch): static;
 
     /**
      * Get parameters.

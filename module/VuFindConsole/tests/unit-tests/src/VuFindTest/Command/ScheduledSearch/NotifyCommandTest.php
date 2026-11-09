@@ -486,7 +486,7 @@ class NotifyCommandTest extends \PHPUnit\Framework\TestCase
         $renderer = $options['renderer']
             ?? $this->container->createMock(\Laminas\View\Renderer\PhpRenderer::class);
         $container = new \VuFindTest\Container\MockViewHelperContainer($this);
-        $container->set('url', $this->container->createMock(\Laminas\View\Helper\Url::class));
+        $container->set('url', $this->container->createMock(\VuFind\View\Helper\Root\Url::class));
         $renderer->setHelperPluginManager($container);
         $command = new NotifyCommand(
             $this->container->createMock(\VuFind\Crypt\SecretCalculator::class),

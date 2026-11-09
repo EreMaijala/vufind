@@ -1,11 +1,11 @@
 <?php
 
 /**
- * HeadTitle helper factory.
+ * HTTP router factory.
  *
  * PHP version 8
  *
- * Copyright (C) Villanova University 2021.
+ * Copyright (C) The National Library of Finland 2026.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -21,31 +21,32 @@
  * <https://www.gnu.org/licenses/>.
  *
  * @category VuFind
- * @package  View_Helpers
- * @author   Demian Katz <demian.katz@villanova.edu>
+ * @package  Http
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development Wiki
  */
 
-namespace VuFind\View\Helper\Root;
+namespace VuFind\Http;
 
+use Laminas\Router\RoutePluginManager;
+use Laminas\Router\RouteStackInterface;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
-use Laminas\View\Helper\Placeholder\Container\AbstractContainer;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 
 /**
- * HeadTitle helper factory.
+ * HTTP router factory.
  *
  * @category VuFind
- * @package  View_Helpers
- * @author   Demian Katz <demian.katz@villanova.edu>
+ * @package  Http
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development Wiki
  */
-class HeadTitleFactory implements FactoryInterface
+class HttpRouterFactory implements FactoryInterface
 {
     /**
      * Create an object.
@@ -60,20 +61,27 @@ class HeadTitleFactory implements FactoryInterface
      * @throws ServiceNotCreatedException if an exception is raised when
      * creating a service.
      * @throws ContainerException&\Throwable if any other error occurs
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function __invoke(
         ContainerInterface $container,
         string $requestedName,
         ?array $options = null
     ): mixed {
-        if (!empty($options)) {
-            throw new \Exception('Unexpected options passed to factory.');
-        }
-        $helper = new $requestedName();
-        // In VuFind, we always want to set, not append, titles:
-        $helper->setDefaultAttachOrder(AbstractContainer::SET);
-        return $helper;
+        $config = $container->get('config');
+        $class              = $config['router']['router_class'];
+        $routePluginManager = $container->get($config['router']['route_plugins']);
+
+        assert($routePluginManager instanceof RoutePluginManager);
+
+        $config['route_plugins'] = $routePluginManager;
+
+        // Back-compatibility with v2 config:
+        $config['routes'] = $config['router']['routes'];
+
+        $router = $class::factory($config);
+
+        assert($router instanceof RouteStackInterface);
+
+        return $router;
     }
 }

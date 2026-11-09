@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Url view helper (extending core Laminas helper with additional functionality).
+ * Url view helper.
  *
  * PHP version 8
  *
@@ -29,14 +29,19 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\Http\PhpEnvironment\Request;
+use InvalidArgumentException;
+use Laminas\Router\RouteMatchInterface;
+use Laminas\Router\RouteStackInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use RuntimeException;
+use VuFind\ServiceManager\Factory\Autowire;
 
-use function func_get_args;
 use function func_num_args;
 
 /**
- * Url view helper (extending core Laminas helper with additional functionality).
+ * Url view helper.
+ *
+ * Partially adapted from Laminas View v2 Url helper.
  *
  * @category VuFind
  * @package  View_Helpers
@@ -44,45 +49,103 @@ use function func_num_args;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development Wiki
  */
-class Url extends \Laminas\View\Helper\Url
+class Url
 {
     /**
      * Constructor.
      *
      * @param ?ServerRequestInterface $request Request object for GET parameters
+     * @param RouteStackInterface $router Router,
+     * @param ?RouteMatchInterface $routeMatch Route match returned by the router
      */
-    public function __construct(protected ?ServerRequestInterface $request = null)
-    {
+    public function __construct(
+        protected ?ServerRequestInterface $request,
+        protected RouteStackInterface $router,
+        protected ?RouteMatchInterface $routeMatch
+    ) {
     }
 
     /**
      * Generates a url given the name of a route.
      *
-     * @param string             $name               Name of the route
-     * @param array              $params             Parameters for the link
-     * @param array|\Traversable $options            Options for the route
-     * @param bool               $reuseMatchedParams Whether to reuse matched
-     * parameters
+     * @param string $name               Name of the route
+     * @param array  $params             Parameters for the link
+     * @param array  $options            Options for the route
+     * @param bool   $reuseMatchedParams Whether to reuse matched parameters
      *
      * @see \Laminas\Router\RouteInterface::assemble()
      *
-     * @throws \Laminas\View\Exception\RuntimeException If no RouteStackInterface was provided
-     * @throws \Laminas\View\Exception\RuntimeException If no RouteMatch was provided
-     * @throws \Laminas\View\Exception\RuntimeException If RouteMatch didn't contain a matched
+     * @throws RuntimeException If no RouteStackInterface or no RouteMatch was provided, or if RouteMatch is missing the
      * route name
-     * @throws \Laminas\View\Exception\InvalidArgumentException If the params object was not an
-     * array or Traversable object.
      *
-     * @return self|string Url For the link href attribute
+     * @return static|string This if no params were passed, or URL for the link href attribute
      */
     public function __invoke(
-        $name = null,
-        $params = [],
-        $options = [],
-        $reuseMatchedParams = false
-    ) {
+        ?string $name = null,
+        array $params = [],
+        array $options = [],
+        bool $reuseMatchedParams = false
+    ): static|string {
         // If argument list is empty, return object for method access:
-        return func_num_args() == 0 ? $this : parent::__invoke(...func_get_args());
+        if (func_num_args() === 0) {
+            return $this;
+        }
+
+        if (null === $this->router) {
+            throw new RuntimeException('No RouteStackInterface instance provided');
+        }
+
+        if (3 === func_num_args() && is_bool($options)) {
+            $reuseMatchedParams = $options;
+            $options            = [];
+        }
+
+        if ($name === null) {
+            if ($this->routeMatch === null) {
+                throw new RuntimeException('No RouteMatch instance provided');
+            }
+
+            $name = (string) $this->routeMatch->getMatchedRouteName();
+
+            if ($name === '') {
+                throw new RuntimeException('RouteMatch does not contain a matched route name');
+            }
+        }
+
+        if ($reuseMatchedParams && $this->routeMatch !== null) {
+            $routeMatchParams = $this->routeMatch->getParams();
+            $params = array_merge($routeMatchParams, $params);
+        }
+
+        $options['name'] = $name;
+
+        return $this->router->assemble($params, $options)->toString();
+    }
+
+    /**
+     * Set the router to use for assembling.
+     *
+     * @param RouteStackInterface $router Router
+     *
+     * @return static
+     */
+    public function setRouter(RouteStackInterface $router): static
+    {
+        $this->router = $router;
+        return $this;
+    }
+
+    /**
+     * Set route match returned by the router.
+     *
+     * @param RouteMatchInterface $routeMatch Route match
+     *
+     * @return static
+     */
+    public function setRouteMatch(RouteMatchInterface $routeMatch): static
+    {
+        $this->routeMatch = $routeMatch;
+        return $this;
     }
 
     /**
@@ -93,7 +156,7 @@ class Url extends \Laminas\View\Helper\Url
      *
      * @return string
      */
-    public function addQueryParameters($params, $reuseMatchedParams = true)
+    public function addQueryParameters(array $params, bool $reuseMatchedParams = true): string
     {
         $requestQuery = $this->request?->getQueryParams() ?? [];
         $options = [

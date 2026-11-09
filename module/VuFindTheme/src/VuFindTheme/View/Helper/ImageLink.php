@@ -29,7 +29,7 @@
 
 namespace VuFindTheme\View\Helper;
 
-use Laminas\View\Helper\Url;
+use VuFind\View\Helper\Root\Url;
 use VuFind\ServiceManager\Factory\Autowire;
 
 /**

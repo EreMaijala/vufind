@@ -35,6 +35,7 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
+use VuFind\Http\ServerUrlHelper;
 
 /**
  * ServerUrl helper factory.
@@ -70,7 +71,7 @@ class ServerUrlFactory implements FactoryInterface
             throw new \Exception('Unexpected options passed to factory.');
         }
         $cfg = $container->get(\VuFind\Config\ConfigManagerInterface::class)->getConfigArray('config');
-        $helper = new $requestedName();
+        $helper = new $requestedName($container->get(ServerUrlHelper::class));
         if ($cfg['Site']['reverse_proxy'] ?? false) {
             $helper->setUseProxy(true);
         }

@@ -148,10 +148,10 @@ class ExtendedIni implements FileLoaderInterface
      * @return TextDomain
      * @throws InvalidArgumentException
      */
-    public function load($locale, $filename)
+    public function load(string $locale, string $filename): TextDomain
     {
         if ($locale == 'debug') {
-            return null;
+            return new TextDomain();
         }
 
         // Reset loaded aliases:

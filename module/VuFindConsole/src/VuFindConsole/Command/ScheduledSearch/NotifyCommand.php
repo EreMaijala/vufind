@@ -31,6 +31,7 @@ namespace VuFindConsole\Command\ScheduledSearch;
 
 use DateTime;
 use Exception;
+use Laminas\I18n\Translator\Translator;
 use Laminas\View\Renderer\PhpRenderer;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -86,7 +87,7 @@ class NotifyCommand extends Command implements TranslatorAwareInterface
     /**
      * URL helper.
      *
-     * @var \Laminas\View\Helper\Url
+     * @var \VuFind\View\Helper\Root\Url
      */
     protected $urlHelper;
 
@@ -115,6 +116,7 @@ class NotifyCommand extends Command implements TranslatorAwareInterface
      * @param Mailer                 $mailer           Mail service
      * @param SearchServiceInterface $searchService    Search table
      * @param LocaleSettings         $localeSettings   Locale settings object
+     * @param DynamicFileListCollector $translationCollector Translation collector
      * @param string|null            $name             The name of the command; passing
      * null means it must be set in configure()
      */
@@ -127,6 +129,7 @@ class NotifyCommand extends Command implements TranslatorAwareInterface
         protected Mailer $mailer,
         protected SearchServiceInterface $searchService,
         protected LocaleSettings $localeSettings,
+        protected DynamicFileListCollector $translationCollector,
         $name = null
     ) {
         $this->urlHelper = $renderer->plugin('url');
@@ -269,9 +272,12 @@ class NotifyCommand extends Command implements TranslatorAwareInterface
         if ($userLang != '' && in_array($userLang, $allLanguages)) {
             $language = $userLang;
         }
+        if (!($this->translator instanceof Translator)) {
+            throw new \Exception('Translator must be an instance of Laminas I18N Translator');
+        }
         $this->translator->setLocale($language);
         $this->addLanguageToTranslator(
-            $this->translator,
+            $this->translationCollector,
             $this->localeSettings,
             $language
         );

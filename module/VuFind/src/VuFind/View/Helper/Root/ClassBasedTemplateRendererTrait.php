@@ -202,8 +202,6 @@ trait ClassBasedTemplateRendererTrait
         $throw = true
     ) {
         $viewRenderer = $this->getViewRenderer();
-        $contextHelper = $this->getContextHelper();
-        $oldContext = $contextHelper($viewRenderer)->apply($context);
 
         // Find and render the template:
         $classTemplate = $this->getCachedClassTemplate($template, $className);
@@ -215,10 +213,9 @@ trait ClassBasedTemplateRendererTrait
             );
         }
 
-        $html = $classTemplate ? $viewRenderer->render($classTemplate) : '';
+        // Use a clone to avoid changing the global state:
+        $html = $classTemplate ? (clone $viewRenderer)->render($classTemplate, $context) : '';
 
-        // Restore the original context before returning the result:
-        $contextHelper($viewRenderer)->restore($oldContext);
         return $html;
     }
 

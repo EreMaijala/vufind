@@ -33,7 +33,7 @@ use Laminas\View\Helper\HeadLink;
 use Laminas\View\Helper\HeadScript;
 use Laminas\View\Helper\HeadStyle;
 use Laminas\View\Helper\InlineScript;
-use Laminas\View\Helper\Url;
+use VuFind\View\Helper\Root\Url;
 use VuFindTheme\AssetPipeline;
 use VuFindTheme\ThemeInfo;
 
@@ -70,13 +70,6 @@ class AssetManager
      * @var array
      */
     protected $stylesheets;
-
-    /**
-     * Should we allow arbitrary attributes on scripts by default?
-     *
-     * @var bool
-     */
-    protected bool $allowArbitraryScriptAttributesByDefault = false;
 
     /**
      * Constructor.
@@ -180,33 +173,12 @@ class AssetManager
     }
 
     /**
-     * Apply the appropriate arbitraryAttributesAllowed value to the provided view helper, using global
-     * default and any override options. If the value was changed, return the original value that should be
-     * restored after processing.
-     *
-     * @param HeadScript $helper  View helper to configure (note that InlineScript is a child of HeadScript)
-     * @param array      $options Options array to evaluate
-     *
-     * @return ?bool
-     */
-    protected function applyArbitraryScriptAttributesOption(HeadScript $helper, array $options): ?bool
-    {
-        $newValue = $options['allow_arbitrary_attributes'] ?? $this->allowArbitraryScriptAttributesByDefault;
-        $resetValue = null;
-        if ($helper->arbitraryAttributesAllowed() !== $newValue) {
-            $helper->setAllowArbitraryAttributes($newValue);
-            $resetValue = !$newValue;
-        }
-        return $resetValue;
-    }
-
-    /**
      * Append raw script code.
      *
      * @param string $script   Script code
      * @param array  $attrs    Additional attributes for the script tag
      * @param string $position Position to output script (header or footer)
-     * @param array  $options  Additional options (supported: allow_arbitrary_attributes, exclude_from_pipeline)
+     * @param array  $options  Additional options (supported: exclude_from_pipeline)
      *
      * @return static
      */
@@ -340,7 +312,7 @@ class AssetManager
                         $script['src'] = $themePath;
                     }
                 }
-                $output[] = $this->outputInlineScriptLink($script['src'], $script['attrs'], $options);
+                $output[] = $this->outputInlineScriptLink($script['src'], $script['attrs']);
             }
         }
         return implode("\n", $output);
@@ -362,12 +334,7 @@ class AssetManager
                 }
             }
 
-            $this->headLink->appendStylesheet(
-                $sheet['href'],
-                $sheet['media'],
-                $sheet['conditionalStylesheet'],
-                $sheet['extras']
-            );
+            $this->headLink->appendStylesheet($sheet['href'], $sheet);
         }
 
         foreach ($this->styles as $style) {
@@ -392,26 +359,18 @@ class AssetManager
      *
      * @param string $script  Script code
      * @param array  $attrs   Additional attributes for the script tag
-     * @param array  $options Additional options (supported option: allow_arbitrary_attributes)
      *
      * @return string
      */
     public function outputInlineScriptString(
         string $script,
-        array $attrs = [],
-        array $options = []
+        array $attrs = []
     ): string {
         if (!empty($this->cspNonce)) {
             $attrs['nonce'] = $this->cspNonce;
         }
-        $resetArbitraryAttributes = $this->applyArbitraryScriptAttributesOption($this->inlineScript, $options);
-        $type = $attrs['type'] ?? 'text/javascript';
-        unset($attrs['type']);
-        $this->inlineScript->setScript($script, $type, $attrs);
+        $this->inlineScript->setScript($script, $attrs);
         $result = (string)($this->inlineScript)();
-        if ($resetArbitraryAttributes !== null) {
-            $this->inlineScript->setAllowArbitraryAttributes($resetArbitraryAttributes);
-        }
         return $result;
     }
 
@@ -420,14 +379,12 @@ class AssetManager
      *
      * @param string $src     Script src
      * @param array  $attrs   Additional attributes for the script tag
-     * @param array  $options Additional options (supported option: allow_arbitrary_attributes)
      *
      * @return string
      */
     public function outputInlineScriptLink(
         string $src,
-        array $attrs = [],
-        array $options = []
+        array $attrs = []
     ): string {
         if (!empty($this->cspNonce)) {
             $attrs['nonce'] = $this->cspNonce;
@@ -435,14 +392,8 @@ class AssetManager
         if ($this->isRelativePath($src)) {
             $src = $this->applyThemeToRelativePath('js/' . $src) ?? $src;
         }
-        $resetArbitraryAttributes = $this->applyArbitraryScriptAttributesOption($this->inlineScript, $options);
-        $type = $attrs['type'] ?? 'text/javascript';
-        unset($attrs['type']);
-        $this->inlineScript->setFile($src, $type, $attrs);
+        $this->inlineScript->setFile($src, $attrs);
         $result = (string)($this->inlineScript)();
-        if ($resetArbitraryAttributes !== null) {
-            $this->inlineScript->setAllowArbitraryAttributes($resetArbitraryAttributes);
-        }
         return $result;
     }
 

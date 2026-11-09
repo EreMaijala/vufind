@@ -29,7 +29,7 @@
 
 namespace VuFind\Action;
 
-use Laminas\Router\RouteMatch;
+use Laminas\Router\RouteMatchInterface;
 use VuFind\Exception\ConfigException;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\View\GlobalsContainer;
@@ -67,14 +67,14 @@ class ActionConfigManager
      * Apply configuration to the action.
      *
      * @param ActionInterface $action           Action
-     * @param ?RouteMatch     $routeMatch       Route match
+     * @param ?RouteMatchInterface $routeMatch       Route match
      * @param ?string         $actionIdentifier Action identifier to use (alternative to one determined from RouteMatch)
      *
      * @return void
      */
     public function applyActionConfig(
         ActionInterface $action,
-        ?RouteMatch $routeMatch = null,
+        ?RouteMatchInterface $routeMatch = null,
         ?string $actionIdentifier = null,
     ): void {
         if ((!$routeMatch && !$actionIdentifier) || !($action instanceof ActionConfigInterface)) {

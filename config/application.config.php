@@ -1,5 +1,8 @@
 <?php
 
+use Laminas\View\HelperPluginManager;
+use Laminas\View\HelperPluginManagerInterface;
+
 require __DIR__ . '/constants.config.php';
 
 // Set up modules:
@@ -91,12 +94,8 @@ return [
         'factories'    => [
             \VuFind\ModuleManager\ModuleManager::class => \VuFind\ModuleManager\ModuleManagerFactory::class,
             // Laminas MVC back-compatibility:
-            \Laminas\View\Renderer\PhpRenderer::class => \Laminas\Mvc\Service\ViewPhpRendererFactory::class,
             \Laminas\EventManager\EventManager::class => \VuFind\EventManager\EventManagerFactory::class,
             \Laminas\EventManager\SharedEventManager::class => \Laminas\ServiceManager\Factory\InvokableFactory::class,
-            'ViewHelperManager' => \Laminas\Mvc\Service\ViewHelperManagerFactory::class,
-            'ViewResolver' => \Laminas\Mvc\Service\ViewResolverFactory::class,
-            //\Laminas\Router\Http\TreeRouteStack::class => \Laminas\Router\Http\HttpRouterFactory::class,
         ],
         'aliases' => [
             // Laminas MVC back-compatibility:
@@ -106,6 +105,9 @@ return [
             'SharedEventManager' => \Laminas\EventManager\SharedEventManagerInterface::class,
             \Laminas\EventManager\SharedEventManagerInterface::class => \Laminas\EventManager\SharedEventManager::class,
             'HttpRouter' => \Laminas\Router\Http\TreeRouteStack::class,
+
+            // Back-compatibility with older laminas-view:
+            'ViewHelperManager' => HelperPluginManagerInterface::class,
         ],
         'shared' => [
             // Laminas MVC back-compatibility:

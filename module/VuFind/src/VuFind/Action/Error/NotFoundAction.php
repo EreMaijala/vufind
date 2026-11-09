@@ -59,6 +59,11 @@ class NotFoundAction extends AbstractTemplateRenderingAction
         ServerRequestInterface $request,
         ResponseInterface $response,
     ): ResponseInterface {
-        return $this->renderTemplate($request, $response->withStatus(500), template: 'error/404');
+        return $this->renderTemplate(
+            $request,
+            $response->withStatus(404),
+            ['message' => 'Page not found.'],
+            template: 'error/404'
+        );
     }
 }

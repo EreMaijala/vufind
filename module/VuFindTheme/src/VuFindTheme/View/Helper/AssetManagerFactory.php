@@ -105,7 +105,7 @@ class AssetManagerFactory implements FactoryInterface
         return new $requestedName(
             $container->get(\VuFindTheme\ThemeInfo::class),
             $container->get(\VuFindTheme\AssetPipeline::class),
-            $viewHelperManager->get(\Laminas\View\Helper\Url::class),
+            $viewHelperManager->get(\VuFind\View\Helper\Root\Url::class),
             $viewHelperManager->get(\Laminas\View\Helper\HeadLink::class),
             $viewHelperManager->get(\Laminas\View\Helper\HeadStyle::class),
             $viewHelperManager->get(\Laminas\View\Helper\InlineScript::class),

@@ -201,12 +201,12 @@ $config = [
             \VuFindHttp\HttpService::class => \VuFind\Service\HttpServiceFactory::class,
             \VuFindSearch\Service::class => \VuFind\Service\SearchServiceFactory::class,
             \Laminas\Session\SessionManager::class => \VuFind\Session\ManagerFactory::class,
+            \Laminas\Router\Http\TreeRouteStack::class => \VuFind\Http\HttpRouterFactory::class,
 
-            // Add a factory definition for the current interface (see also alias below):
-            \Laminas\Translator\TranslatorInterface::class => \Laminas\I18n\Translator\TranslatorServiceFactory::class,
+            'VuFindTranslatorCache' => \VuFind\I18n\Translator\TranslatorCacheFactory::class,
         ],
         'delegators' => [
-            \Laminas\Translator\TranslatorInterface::class => [
+            \Laminas\I18n\Translator\Translator::class => [
                 \VuFind\I18n\Translator\TranslatorFactory::class,
             ],
         ],
@@ -238,7 +238,6 @@ $config = [
             'VuFind\ContentTOCPluginManager' => 'VuFind\Content\TOC\PluginManager',
             'VuFind\CookieManager' => 'VuFind\Cookie\CookieManager',
             'VuFind\DateConverter' => 'VuFind\Date\Converter',
-            //\VuFind\EventManager\EventManagerInterface::class => \VuFind\EventManager\EventManager::class,
             'VuFind\HierarchicalFacetHelper' => 'VuFind\Search\Solr\HierarchicalFacetHelper',
             'VuFind\HierarchyDriverPluginManager' => 'VuFind\Hierarchy\Driver\PluginManager',
             'VuFind\HierarchyTreeDataFormatterPluginManager' => 'VuFind\Hierarchy\TreeDataFormatter\PluginManager',
@@ -289,9 +288,6 @@ $config = [
             'Laminas\Validator\Csrf' => 'VuFind\Validator\SessionCsrf',
             'League\CommonMark\ConverterInterface' => 'League\CommonMark\MarkdownConverter',
             'Request' => 'VuFind\Http\PhpEnvironment\Request',
-
-            // Override Laminas-i18n alias pointing to a deprecated interface:
-            \Laminas\Translator\TranslatorInterface::class => null,
         ],
         'shared' => [
             'VuFind\Crypt\BlockCipher' => false,
@@ -299,7 +295,17 @@ $config = [
             'VuFind\Http\CachingDownloader' => false,
         ],
     ],
-    'translator' => [],
+    // Internationalization configuration:
+    'laminas-i18n' => [
+        'translator' => [
+            'psr6_cache' => 'VuFindTranslatorCache',
+            'aggregate_collector' => [
+                \VuFind\I18n\Translator\TranslationCollector\DynamicFileListCollector::class,
+            ],
+        ],
+        // Required for I18nDefaultsFactory to not assert:
+        'defaultCountry' => 'US',
+    ],
     'translator_plugins' => [
         'factories' => [
             'VuFind\I18n\Translator\Loader\ExtendedIni' => 'VuFind\I18n\Translator\Loader\ExtendedIniFactory',
@@ -319,6 +325,10 @@ $config = [
         'not_found_template'       => 'error/404',
         'exception_template'       => 'error/index',
         'template_path_stack'      => [],
+        'default_layout'           => 'layout/layout',
+    ],
+    'templates' => [
+        'strict_variables' => false,
     ],
     // This section contains all VuFind-specific settings (i.e. configurations
     // unrelated to specific Laminas components).
