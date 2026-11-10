@@ -8,5 +8,5 @@
     <?php endforeach; ?>
   </fieldset>
 <?php endif; ?>
-<?=$this->render('search/advanced/limit.phtml')?>
-<?=$this->render('search/advanced/ranges.phtml')?>
+<?=$this->render('search/advanced/limit.phtml', iterator_to_array($this))?>
+<?=$this->render('search/advanced/ranges.phtml', iterator_to_array($this))?>
