@@ -31,6 +31,7 @@ namespace VuFind\Auth;
 
 use Laminas\Http\PhpEnvironment\Request;
 use Laminas\Session\SessionManager;
+use Laminas\View\HelperPluginManager;
 use Laminas\View\Renderer\RendererInterface;
 use Lmc\Rbac\Identity\IdentityInterface;
 use Psr\Log\LoggerAwareInterface;
@@ -41,6 +42,8 @@ use VuFind\Db\Service\UserServiceInterface;
 use VuFind\Db\Type\AuditEventSubtype;
 use VuFind\Db\Type\AuditEventType;
 use VuFind\Exception\Auth as AuthException;
+use VuFind\Http\RouteHelper;
+use VuFind\Http\ServerUrlHelper;
 use VuFind\ILS\Connection;
 use VuFind\Validator\CsrfInterface;
 
@@ -128,7 +131,8 @@ class Manager implements LoggerAwareInterface
      * @param CsrfInterface                   $csrf              CSRF validator
      * @param LoginTokenManager               $loginTokenManager Login Token manager
      * @param Connection                      $ils               ILS connection
-     * @param RendererInterface               $viewRenderer      View renderer
+     * @param ServerUrlHelper                 $serverUrlHelper   Server URL helper
+     * @param RouteHelper                     $routeHelper       Route helper
      * @param AuditEventServiceInterface      $auditEventService Event database service
      */
     public function __construct(
@@ -141,7 +145,8 @@ class Manager implements LoggerAwareInterface
         protected CsrfInterface $csrf,
         protected LoginTokenManager $loginTokenManager,
         protected Connection $ils,
-        protected RendererInterface $viewRenderer,
+        protected ServerUrlHelper $serverUrlHelper,
+        protected RouteHelper $routeHelper,
         protected AuditEventServiceInterface $auditEventService
     ) {
         // Initialize active authentication setting (defaulting to Database
@@ -404,9 +409,8 @@ class Manager implements LoggerAwareInterface
     protected function getDefaultSessionInitiatorTarget(): string
     {
         if ($this->defaultSessionInitiatorTarget === null) {
-            $serverHelper = $this->viewRenderer->plugin('serverurl');
-            $urlHelper = $this->viewRenderer->plugin('url');
-            $this->defaultSessionInitiatorTarget = $serverHelper($urlHelper('account-home'));
+            $this->defaultSessionInitiatorTarget
+                = $this->serverUrlHelper->getUrlForPath($this->routeHelper->getUrlFromRoute('account-home'));
         }
         return $this->defaultSessionInitiatorTarget;
     }

@@ -34,6 +34,7 @@ use Laminas\Router\RouteMatchInterface;
 use Laminas\Router\RouteStackInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
+use VuFind\Application;
 use VuFind\ServiceManager\Factory\Autowire;
 
 use function func_num_args;
@@ -59,7 +60,7 @@ class Url
      * @param ?RouteMatchInterface $routeMatch Route match returned by the router
      */
     public function __construct(
-        protected ?ServerRequestInterface $request,
+        protected Application $application,
         protected RouteStackInterface $router,
         protected ?RouteMatchInterface $routeMatch
     ) {
@@ -119,7 +120,7 @@ class Url
 
         $options['name'] = $name;
 
-        return $this->router->assemble($params, $options)->toString();
+        return $this->application->getBasePath() . $this->router->assemble($params, $options)->toString();
     }
 
     /**
@@ -158,7 +159,7 @@ class Url
      */
     public function addQueryParameters(array $params, bool $reuseMatchedParams = true): string
     {
-        $requestQuery = $this->request?->getQueryParams() ?? [];
+        $requestQuery = $this->application->getRequest()?->getQueryParams() ?? [];
         $options = [
             'query' => array_merge($requestQuery, $params),
             'normalize_path' => false, // fix for VUFIND-1392

@@ -34,6 +34,8 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
+use VuFind\Http\RouteHelper;
+use VuFind\Http\ServerUrlHelper;
 
 /**
  * Authentication Manager factory.
@@ -78,7 +80,6 @@ class ManagerFactory implements FactoryInterface
         $csrf = $container->get(\VuFind\Validator\CsrfInterface::class);
         $loginTokenManager = $container->get(\VuFind\Auth\LoginTokenManager::class);
         $ils = $container->get(\VuFind\ILS\Connection::class);
-        $viewRenderer = $container->get('ViewRenderer');
         $auditEventService = $dbServiceManager->get(\VuFind\Db\Service\AuditEventServiceInterface::class);
 
         // Build the object and make sure account credentials haven't expired:
@@ -92,7 +93,8 @@ class ManagerFactory implements FactoryInterface
             $csrf,
             $loginTokenManager,
             $ils,
-            $viewRenderer,
+            $container->get(ServerUrlHelper::class),
+            $container->get(RouteHelper::class),
             $auditEventService
         );
         $manager->setIlsAuthenticator($container->get(\VuFind\Auth\ILSAuthenticator::class));

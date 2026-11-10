@@ -77,6 +77,13 @@ class Application
     protected ?ResponseInterface $response = null;
 
     /**
+     * Base path of the request.
+     *
+     * @var ?string
+     */
+    protected ?string $basePath = null;
+
+    /**
      * Constructor.
      *
      * @param ContainerInterface $container Service container
@@ -110,8 +117,10 @@ class Application
         $this->response = $event->getResponse();
 
         // Try to find a route match for the request:
-        $baseUrl = $this->detectBaseUrl($this->request);
-        $routeMatch = $this->container->get('HttpRouter')->match($this->request, strlen($baseUrl));
+        $basePath = $this->getBasePath();
+        /*$router = $this->container->get('HttpRouter');
+        $router->*/
+        $routeMatch = $this->container->get('HttpRouter')->match($this->request, strlen($basePath));
         $this->request = $this->request
             ->withAttribute('route-match', $routeMatch)
             ->withAttribute('view-model', $this->createViewModel());
@@ -155,6 +164,19 @@ class Application
     public function getResponse(): ?ResponseInterface
     {
         return $this->response;
+    }
+
+    /**
+     * Get the base path of the request.
+     *
+     * @return string
+     */
+    public function getBasePath(): string
+    {
+        if (null === $this->basePath) {
+            $this->basePath = $this->detectBasePath($this->request);
+        }
+        return $this->basePath;
     }
 
     /**
@@ -221,8 +243,10 @@ class Application
 
         header((string) $status);
 
-        foreach ($response->getHeaders() as $header => $value) {
-            header("$header: $value");
+        foreach ($response->getHeaders() as $header => $values) {
+            foreach ($values as $value) {
+                header("$header: $value");
+            }
         }
     }
 
@@ -252,7 +276,7 @@ class Application
      *
      * @return string
      */
-    protected function detectBaseUrl(ServerRequestInterface $request): string
+    protected function detectBasePath(ServerRequestInterface $request): string
     {
         $serverParams = $request->getServerParams();
         $filename       = $serverParams['SCRIPT_FILENAME'] ?? '';

@@ -29,6 +29,8 @@
 
 namespace VuFind\Validator;
 
+use InvalidArgumentException;
+use Laminas\Session\Container;
 use Laminas\Session\Validator\Csrf;
 
 use function array_slice;
@@ -53,13 +55,24 @@ class SessionCsrf implements CsrfInterface
     protected Csrf $csrf;
 
     /**
+     * Session container.
+     *
+     * @var Container
+     */
+    protected Container $sessionContainer;
+
+    /**
      * Constructor.
      *
      * @param array $options Options to pass to CSRF validator
      */
-    public function __construct(array $options = [])
+    public function __construct(protected array $options = [])
     {
+        if (!isset($options['session'])) {
+            throw new InvalidArgumentException('Options must include session');
+        }
         $this->csrf = new Csrf($options);
+        $this->sessionContainer = $options['session'];
     }
 
     /**
@@ -71,14 +84,13 @@ class SessionCsrf implements CsrfInterface
      */
     public function trimTokenList($limit)
     {
-        $session = $this->csrf->getSession();
         if ($limit < 1) {
             // Reset the array if necessary:
-            $session->tokenList = [];
+            $this->sessionContainer->tokenList = [];
         } elseif ($limit < $this->getTokenCount()) {
             // Trim the array if necessary:
-            $session->tokenList
-                = array_slice($session->tokenList, -1 * $limit, null, true);
+            $this->sessionContainer->tokenList
+                = array_slice($this->sessionContainer->tokenList, -1 * $limit, null, true);
         }
     }
 
@@ -89,7 +101,7 @@ class SessionCsrf implements CsrfInterface
      */
     public function getTokenCount()
     {
-        return count($this->csrf->getSession()->tokenList ?? []);
+        return count($this->sessionContainer->tokenList ?? []);
     }
 
     /**
@@ -104,7 +116,10 @@ class SessionCsrf implements CsrfInterface
      */
     public function getHash($regenerate = false)
     {
-        return $this->csrf->getHash($regenerate);
+        if ($regenerate) {
+            $this->csrf = new Csrf($this->options);
+        }
+        return $this->csrf->getHash();
     }
 
     /**

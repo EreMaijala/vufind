@@ -72,6 +72,7 @@ return [
             'globals' => 'VuFind\View\Helper\Root\Globals',
             'googleanalytics' => 'VuFind\View\Helper\Root\GoogleAnalytics',
             'googleTagManager' => 'VuFind\View\Helper\Root\GoogleTagManager',
+            'headLink' => 'VuFind\View\Helper\Root\HeadLink',
             'headTitle' => 'VuFind\View\Helper\Root\HeadTitle',
             'helpText' => 'VuFind\View\Helper\Root\HelpText',
             'highlight' => 'VuFind\View\Helper\Root\Highlight',

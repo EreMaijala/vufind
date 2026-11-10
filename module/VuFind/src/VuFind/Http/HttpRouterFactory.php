@@ -75,7 +75,7 @@ class HttpRouterFactory implements FactoryInterface
 
         $config['route_plugins'] = $routePluginManager;
 
-        // Back-compatibility with v2 config:
+        // Copy routes from laminas-router v2 config for back-compatibility:
         $config['routes'] = $config['router']['routes'];
 
         $router = $class::factory($config);

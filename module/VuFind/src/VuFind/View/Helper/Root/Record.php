@@ -525,10 +525,9 @@ class Record implements DbServiceAwareInterface
         $context = ['driver' => $this->driver, 'tab' => $tab];
         $classParts = explode('\\', $tab::class);
         $template = 'RecordTab/' . strtolower(array_pop($classParts)) . '.phtml';
-        $oldContext = $this->contextHelper->apply($context);
-        $html = $this->viewRenderer->render($template);
-        $this->contextHelper->restore($oldContext);
-        return $html;
+
+        // Render with a cloned renderer to avoid changing global state:
+        return (clone $this->viewRenderer)->render($template, $context);
     }
 
     /**

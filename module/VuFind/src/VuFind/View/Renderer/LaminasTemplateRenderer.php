@@ -195,19 +195,18 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
         if (null === $request) {
             throw new InvalidArgumentException('Request is required for rendering with layout');
         }
-        //$layout = $this->getLayout($request);
-
         $templateParts = explode('/', $viewModel->getTemplate());
         $this->globalsContainer['templateDir'] = $templateParts[0];
         $this->globalsContainer['templateName'] = $templateParts[1] ?? null;
-        $this->setupRenderingInLightbox($request, $viewModel);
 
-        // Clear any previous children (e.g. when rendering an error):
-       /* if ($layout instanceof ViewModel) {
-            $layout->clearChildren();
-        }
-        $layout->addChild($viewModel);*/
-        return $this->view->render($viewModel);
+        $viewModel->setCaptureTo('content');
+
+        $layoutModel = new ViewModel([]);
+        $layoutModel->setTemplate('layout/layout');
+        $this->setupRenderingInLightbox($request, $layoutModel);
+        $layoutModel->addChild($viewModel);
+
+        return $this->view->renderLayout($layoutModel);
     }
 
     /**

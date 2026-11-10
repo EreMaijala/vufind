@@ -325,7 +325,6 @@ $config = [
         'not_found_template'       => 'error/404',
         'exception_template'       => 'error/index',
         'template_path_stack'      => [],
-        'default_layout'           => 'layout/layout',
     ],
     'templates' => [
         'strict_variables' => false,

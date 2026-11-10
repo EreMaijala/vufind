@@ -73,7 +73,7 @@ class UrlFactory implements FactoryInterface
         $application = $container->get(Application::class);
         $request = $application->getRequest();
         $helper = new $requestedName(
-            $request,
+            $application,
             $container->get('HttpRouter'),
             $request?->getAttribute('route-match')
         );
