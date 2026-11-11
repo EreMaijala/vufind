@@ -29,10 +29,12 @@
 
 namespace VuFindTest\View\Helper;
 
+use Laminas\View\Helper\Doctype;
 use Laminas\View\Helper\HeadLink;
 use Laminas\View\Helper\HeadMeta;
 use Laminas\View\Helper\HeadScript;
 use PHPUnit\Framework\MockObject\MockObject;
+use VuFind\Escaper\Escaper;
 use VuFindTheme\ResourceContainer;
 use VuFindTheme\View\Helper\AssetManager;
 use VuFindTheme\View\Helper\ImageLink;
@@ -58,14 +60,27 @@ class SetupThemeResourcesTest extends \PHPUnit\Framework\TestCase
      */
     public function testHelper()
     {
+        $escaper = new Escaper();
+        $doctype = new Doctype();
+        $headMeta = new HeadMeta($escaper, $doctype);
+        $headLink = new HeadLink($escaper, $doctype);
         $helper = new SetupThemeResources(
             $this->getResourceContainer(),
-            $this->getMockHeadMeta(),
+            $headMeta,
             $this->getMockAssetManager(),
-            $this->getMockHeadLink(),
+            $headLink,
             $this->getMockImageLink(),
         );
         $helper();
+
+        $this->assertSame(
+            <<<EOT
+                <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+                <meta content="fake-generator" name="Generator">
+                EOT,
+            $headMeta->toString()
+        );
+        $this->assertSame('', $headLink->toString());
     }
 
     /**
@@ -98,52 +113,6 @@ class SetupThemeResourcesTest extends \PHPUnit\Framework\TestCase
         $rc->setEncoding('utf-8');
         $rc->setGenerator('fake-generator');
         return $rc;
-    }
-
-    /**
-     * Get a fake view object.
-     *
-     * @return \Laminas\View\Renderer\PhpRenderer
-     */
-    protected function getMockView()
-    {
-        $view = new \Laminas\View\Renderer\PhpRenderer();
-        $container = new \VuFindTest\Container\MockViewHelperContainer($this);
-        $container->set('headMeta', $this->getMockHeadMeta());
-        $container->set('headLink', $this->getMockHeadLink());
-        $container->set('headScript', $this->getMockHeadScript());
-        $view->setHelperPluginManager($container);
-        return $view;
-    }
-
-    /**
-     * Get a fake HeadMeta helper.
-     *
-     * @return MockObject&HeadMeta
-     */
-    protected function getMockHeadMeta(): MockObject&HeadMeta
-    {
-        $mock = $this->getMockBuilder(\Laminas\View\Helper\HeadMeta::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['__invoke', '__call'])
-            ->getMock();
-        $mock->method('__invoke')->willReturn($mock);
-        $mock->expects($this->exactly(2))
-            ->method('__call')
-            ->willReturnCallback(function ($method, $args) use ($mock) {
-                if ($method === 'prependHttpEquiv') {
-                    $this->assertEquals('Content-Type', $args[0]);
-                    $this->assertEquals('text/html; charset=utf-8', $args[1]);
-                    return $mock;
-                }
-                if ($method === 'appendName') {
-                    $this->assertEquals('Generator', $args[0]);
-                    $this->assertEquals('fake-generator', $args[1]);
-                    return $mock;
-                }
-                return null;
-            });
-        return $mock;
     }
 
     /**

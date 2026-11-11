@@ -30,8 +30,8 @@
 namespace VuFindTest\Http;
 
 use Closure;
-use VuFind\View\Helper\Root\Url as UrlHelper;
 use VuFind\Http\RouteHelper;
+use VuFind\View\Helper\Root\Url as UrlHelper;
 
 /**
  * RouteHelper Test Class.

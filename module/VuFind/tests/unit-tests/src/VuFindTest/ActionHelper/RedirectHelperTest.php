@@ -33,10 +33,10 @@ use Closure;
 use Generator;
 use InvalidArgumentException;
 use Laminas\Diactoros\Response;
-use VuFind\View\Helper\Root\Url;
 use PHPUnit\Framework\TestCase;
 use VuFind\ActionHelper\RedirectHelper;
 use VuFind\Http\RouteHelper;
+use VuFind\View\Helper\Root\Url;
 
 /**
  * RedirectHelper test class.
@@ -123,7 +123,7 @@ class RedirectHelperTest extends TestCase
         $urlHelper->expects($this->once())
             ->method('__invoke')
             ->willReturnCallback(
-                function ($route, $params, $options) use ($expectedRouteParams, $expectedOptions) {
+                function (?string $route, array $params, array $options) use ($expectedRouteParams, $expectedOptions) {
                     if ('some-route' !== $route) {
                         throw new InvalidArgumentException('Unknown route');
                     }

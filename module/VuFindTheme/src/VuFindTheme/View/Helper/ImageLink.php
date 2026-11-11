@@ -29,8 +29,8 @@
 
 namespace VuFindTheme\View\Helper;
 
-use VuFind\View\Helper\Root\Url;
 use VuFind\ServiceManager\Factory\Autowire;
+use VuFind\View\Helper\Root\Url;
 
 /**
  * Image link view helper (extended for VuFind's theme system).

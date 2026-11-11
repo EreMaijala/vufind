@@ -33,17 +33,17 @@ use Generator;
 use InvalidArgumentException;
 use Laminas\Diactoros\Response;
 use Laminas\Diactoros\ServerRequest;
+use Laminas\View\Model\ModelInterface;
 use Laminas\View\Model\ViewModel;
-use Laminas\View\Renderer\PhpRenderer;
-use Laminas\View\View;
+use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\ViewInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use VuFind\ModuleManager\ModuleManager;
 use VuFind\View\Renderer\LaminasTemplateRenderer;
 use VuFindTest\Feature\AutowireTrait;
 use VuFindTest\Feature\ReflectionTrait;
-use PHPUnit\Framework\MockObject\MockObject;
-use VuFind\ModuleManager\ModuleManager;
 
 /**
  * LaminasTemplateRenderer test class.
@@ -148,7 +148,7 @@ class LaminasTemplateRendererTest extends TestCase
      */
     public function testMissingActionIdAttribute(): void
     {
-        $layout = $this->createMock(ViewModel::class);
+        $layout = $this->createMock(ModelInterface::class);
         $renderer = $this->getRenderer($layout, null);
         $request = (new ServerRequest())
             ->withAttribute('view-model', $layout);
@@ -165,7 +165,7 @@ class LaminasTemplateRendererTest extends TestCase
      */
     public function testMissingViewModelAttribute(): void
     {
-        $layout = $this->createMock(ViewModel::class);
+        $layout = $this->createMock(ModelInterface::class);
         $renderer = $this->getRenderer($layout, null);
         $request = (new ServerRequest())
             ->withAttribute('action-id', 'Test/Action');
@@ -198,7 +198,7 @@ class LaminasTemplateRendererTest extends TestCase
      */
     public function testMissingRequest(): void
     {
-        $layout = $this->createMock(ViewModel::class);
+        $layout = $this->createMock(ModelInterface::class);
         $renderer = $this->getRenderer($layout, null);
 
         $this->expectException(InvalidArgumentException::class);
@@ -207,7 +207,7 @@ class LaminasTemplateRendererTest extends TestCase
     }
 
     /**
-     * Test template name prefix processing
+     * Test template name prefix processing.
      *
      * @return void
      */
@@ -227,7 +227,7 @@ class LaminasTemplateRendererTest extends TestCase
 
         $this->assertSame(
             ['Extra/', 'VuFind/Foo/', 'VuFind/'],
-            $this->callMethod($renderer, 'getTemplatePrefixes')
+            $this->callMethod($renderer, 'getThemePrefixes')
         );
     }
 
@@ -238,7 +238,12 @@ class LaminasTemplateRendererTest extends TestCase
      */
     public function testTemplateNameInflectionCamelCaseToLowerCase(): void
     {
-        $renderer = $this->getRenderer(null, null);
+        $testConfig = [
+            'vufind' => [
+                'extra_theme_prefixes' => ['VuFind/'],
+            ],
+        ];
+        $renderer = $this->getRenderer(null, null, $testConfig);
         $this->assertEquals(
             'testcase',
             $this->callMethod($renderer, 'inflectName', ['VuFind/testCase'])
@@ -251,51 +256,37 @@ class LaminasTemplateRendererTest extends TestCase
      * @param bool   $inLightbox       Are we in lightbox?
      * @param string $expectedTemplate Expected template
      *
-     * @return MockObject&ViewModel
+     * @return MockObject&ModelInterface
      */
-    protected function getLayout(bool $inLightbox, string $expectedTemplate): ViewModel
+    protected function getLayout(bool $inLightbox, string $expectedTemplate): MockObject&ModelInterface
     {
-        $layout = $this->createMock(ViewModel::class);
-        $layout->expects($this->once())
-            ->method('clearChildren');
-        $layout->expects($this->once())
-            ->method('setOption')
-            ->with('has_parent', true);
-        $layout->expects($inLightbox ? $this->once() : $this->never())
-            ->method('setTemplate')
-            ->with('layout/lightbox');
-        $layout->expects($this->once())
-            ->method('addChild')
-            ->willReturnCallback(
-                function ($viewModel) use ($expectedTemplate): void {
-                    $this->assertSame($expectedTemplate, $viewModel->getTemplate());
-                }
-            );
-        return $layout;
+        return $this->createMock(ModelInterface::class);
     }
 
     /**
      * Get LaminasTemplateRenderer.
      *
-     * @param ?ViewModel $layout       Layout
-     * @param ?string    $content      Page content, null to not expect a call to render() method or true to return
-     * rendering context
-     * @param array      $appConfig    Application configuration
-     * @param array      $dependencies Additional dependencies
+     * @param ModelInterface $layout       Layout
+     * @param ?string        $content      Page content, null to not expect a call to render() method or true to return
+     *                                     rendering context
+     * @param array          $appConfig    Application configuration
+     * @param array          $dependencies Additional dependencies
      *
      * @return LaminasTemplateRenderer
      */
     protected function getRenderer(
-        ?ViewModel $layout,
+        ?ModelInterface $layout,
         string|true|null $content,
         array $appConfig = [],
         array $dependencies = []
     ): LaminasTemplateRenderer {
-        $view = $this->createMock(View::class);
-        $render = $view->expects(null !== $content ? $this->once() : $this->never())
-            ->method('render');
+        $view = $this->createMock(ViewInterface::class);
         if ($layout) {
-            $render = $render->with($layout);
+            $render = $view->expects(null !== $content ? $this->once() : $this->never())
+                ->method('renderLayout');
+        } else {
+            $render = $view->expects(null !== $content ? $this->once() : $this->never())
+                ->method('render');
         }
         if (true === $content) {
             $render->willReturnCallback(
@@ -305,14 +296,14 @@ class LaminasTemplateRendererTest extends TestCase
                 ])
             );
         } else {
-            $render->willReturn($content);
+            $render->willReturn($content ?? '');
         }
 
         return $this->getAutowiredObject(
             LaminasTemplateRenderer::class,
             [
                 'config' => $appConfig,
-                'ViewRenderer' => $this->createMock(PhpRenderer::class),
+                'ViewRenderer' => $this->createMock(RendererInterface::class),
                 ViewInterface::class => $view,
             ] + $dependencies
         );

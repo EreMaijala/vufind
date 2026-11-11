@@ -30,8 +30,10 @@
 namespace VuFindTheme\View\Helper;
 
 use Exception;
-use Laminas\View\Resolver\TemplatePathStack;
+use Laminas\View\Resolver\ResolverInterface;
 use VuFind\ServiceManager\Factory\Autowire;
+
+use function is_callable;
 
 /**
  * Helper to get path to a parent template (for including).
@@ -47,10 +49,10 @@ class ParentTemplate
     /**
      * Constructor.
      *
-     * @param TemplatePathStack $templatePathStack Inheritance stack of template paths
+     * @param ResolverInterface $templatePathStack Inheritance stack of template paths
      */
     #[Autowire]
-    public function __construct(protected TemplatePathStack $templatePathStack)
+    public function __construct(protected ResolverInterface $templatePathStack)
     {
     }
 
@@ -65,6 +67,9 @@ class ParentTemplate
      */
     public function __invoke($template, $targetTheme = null)
     {
+        if (!is_callable([$this->templatePathStack, 'getPaths'])) {
+            throw new Exception('Template path stack must implement the getPaths method');
+        }
         $paths = $this->templatePathStack->getPaths();
 
         // rewind to fix problems with multiple invokes

@@ -30,15 +30,14 @@
 namespace VuFindTest\View\Helper\Root;
 
 use Laminas\Http\Headers;
-use Laminas\View\Helper\EscapeHtmlAttr;
-use VuFind\View\Helper\Root\ServerUrl;
-use Laminas\View\Renderer\PhpRenderer;
 use Symfony\Component\Yaml\Yaml;
 use VuFind\Auth\LoginTokenManager;
 use VuFind\Cookie\CookieManager;
 use VuFind\Http\PhpEnvironment\Request;
+use VuFind\Http\ServerUrlHelper;
 use VuFind\View\Helper\Root\CookieConsent;
 use VuFind\View\Helper\Root\Url;
+use VuFind\View\Renderer\TemplateRendererInterface;
 use VuFindTest\Feature\FixtureTrait;
 
 /**
@@ -216,46 +215,14 @@ class CookieConsentTest extends \PHPUnit\Framework\TestCase
     ): CookieConsent {
         $url = $this->createMock(Url::class);
         $url->method('__invoke')->willReturn('http://localhost/first/vufind');
-        $serverUrl = new ServerUrl();
-        $serverUrl->setHost('localhost');
 
-        // Create an anonymous class to stub out some behavior:
-        $layout = new class () {
-            public $rtl = false;
+        $serverUrlHelper = new ServerUrlHelper(false);
+        $serverUrlHelper->setHost('localhost');
 
-            /**
-             * Set layout template or retrieve "layout" view model.
-             *
-             * If no arguments are given, grabs the "root" or "layout" view model.
-             * Otherwise, attempts to set the template for that view model.
-             *
-             * @param null|string $template Template
-             *
-             * @return Model|null|self
-             */
-            public function __invoke($template = null)
-            {
-                return $this;
-            }
-        };
-
-        $plugins = [
-            'escapeHtmlAttr' => new EscapeHtmlAttr(new \VuFind\Escaper\Escaper()),
-            'layout' => $layout,
-            'serverUrl' => $serverUrl,
-            'url' => $url,
-        ];
-        $renderer = $this->createMock(PhpRenderer::class);
-        $renderer->method('plugin')
-            ->willReturnCallback(
-                function ($name) use ($plugins) {
-                    return $plugins[$name] ?? null;
-                }
-            );
-
+        $renderer = $this->createMock(TemplateRendererInterface::class);
         $renderer->expects($expectRender ? $this->once() : $this->never())
-            ->method('render')
-            ->with('CookieConsent/cookie-consent.phtml')
+            ->method('renderTemplateAsString')
+            ->with(null, 'CookieConsent/cookie-consent.phtml', [])
             ->willReturn('rendered_template');
 
         $mockLoginTokenManager = $this->createMock(LoginTokenManager::class);
@@ -274,7 +241,8 @@ class CookieConsentTest extends \PHPUnit\Framework\TestCase
             new \VuFind\Date\Converter(),
             $mockLoginTokenManager,
             $mockRequest,
-            $renderer
+            $renderer,
+            $serverUrlHelper
         );
 
         return $helper;

@@ -30,13 +30,17 @@
 namespace VuFindTest\Auth;
 
 use Laminas\Http\PhpEnvironment\Request;
+use Laminas\Session\ManagerInterface;
 use Laminas\Session\SessionManager;
+use Laminas\Session\Storage\ArrayStorage;
 use PHPUnit\Framework\MockObject\MockObject;
 use VuFind\Auth\Manager;
 use VuFind\Auth\PluginManager;
 use VuFind\Auth\UserSessionPersistenceInterface;
 use VuFind\Db\Entity\UserEntityInterface;
 use VuFind\Db\Service\UserServiceInterface;
+use VuFind\Http\RouteHelper;
+use VuFind\Http\ServerUrlHelper;
 
 use function get_class;
 
@@ -549,7 +553,7 @@ class ManagerTest extends \PHPUnit\Framework\TestCase
      *
      * @param array                            $config         Configuration
      * @param ?UserSessionPersistenceInterface $userSession    User session persistence service
-     * @param ?SessionManager                  $sessionManager Session manager
+     * @param ?ManagerInterface                $sessionManager Session manager
      * @param ?PluginManager                   $pm             Authentication plugin manager
      *
      * @return Manager
@@ -557,7 +561,7 @@ class ManagerTest extends \PHPUnit\Framework\TestCase
     protected function getManager(
         array $config = [],
         ?UserSessionPersistenceInterface $userSession = null,
-        ?SessionManager $sessionManager = null,
+        ?ManagerInterface $sessionManager = null,
         ?PluginManager $pm = null
     ): Manager {
         $cookies = new \VuFind\Cookie\CookieManager([]);
@@ -570,7 +574,6 @@ class ManagerTest extends \PHPUnit\Framework\TestCase
         $loginTokenManager = $this->createMock(\VuFind\Auth\LoginTokenManager::class);
         $ils = $this->createMock(\VuFind\ILS\Connection::class);
         $ils->method('loginIsHidden')->willReturn(false);
-        $viewRenderer = $this->createMock(\Laminas\View\Renderer\RendererInterface::class);
         return new Manager(
             $config,
             $this->createMock(UserServiceInterface::class),
@@ -581,7 +584,8 @@ class ManagerTest extends \PHPUnit\Framework\TestCase
             $csrf,
             $loginTokenManager,
             $ils,
-            $viewRenderer,
+            $this->createMock(ServerUrlHelper::class),
+            $this->createMock(RouteHelper::class),
             $this->createMock(\VuFind\Db\Service\AuditEventServiceInterface::class)
         );
     }
@@ -589,11 +593,14 @@ class ManagerTest extends \PHPUnit\Framework\TestCase
     /**
      * Get a mock session manager.
      *
-     * @return MockObject&SessionManager
+     * @return MockObject&ManagerInterface
      */
-    protected function getMockSessionManager(): MockObject&SessionManager
+    protected function getMockSessionManager(): MockObject&ManagerInterface
     {
-        return $this->createMock(\Laminas\Session\SessionManager::class);
+        $sm = $this->createMock(ManagerInterface::class);
+        $sm->method('getStorage')
+            ->willReturn(new ArrayStorage());
+        return $sm;
     }
 
     /**

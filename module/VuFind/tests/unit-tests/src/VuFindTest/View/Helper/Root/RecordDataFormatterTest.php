@@ -29,21 +29,27 @@
 
 namespace VuFindTest\View\Helper\Root;
 
+use Laminas\Router\Http\HttpRouteMatch;
 use Laminas\View\Helper\EscapeHtml;
-use VuFind\View\Helper\Root\ServerUrl;
+use Laminas\View\Helper\EscapeHtmlAttr;
+use Laminas\View\HelperPluginManager;
 use Laminas\View\Renderer\PhpRenderer;
+use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use Laminas\View\Resolver\TemplatePathStack;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 use VuFind\ActionHelper\LoginHelper;
 use VuFind\Escaper\Escaper;
+use VuFind\Http\ServerUrlHelper;
 use VuFind\RecordDataFormatter\Specs\DefaultRecord as DefaultRecordSpec;
+use VuFind\RecordDriver\AbstractBase;
 use VuFind\RecordDriver\Response\PublicationDetails;
 use VuFind\Tags\TagsService;
 use VuFind\View\GlobalsContainer;
 use VuFind\View\Helper\Root\RecordDataFormatter;
 use VuFind\View\Helper\Root\SchemaOrg;
+use VuFind\View\Helper\Root\ServerUrl;
 use VuFind\View\Helper\Root\Url;
 
 use function count;
@@ -81,23 +87,25 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
     /**
      * Get view helpers needed by test.
      *
-     * @param ContainerInterface $container       Mock service container
-     * @param SchemaOrg          $schemaOrgHelper schema.org helper
-     * @param PhpRenderer        $renderer        View renderer
-     * @param ResolverInterface  $resolver        View resolver
-     * @param Url                $url             URL helper
+     * @param ContainerInterface  $container           Mock service container
+     * @param SchemaOrg           $schemaOrgHelper     schema.org helper
+     * @param RendererInterface   $renderer            View renderer
+     * @param HelperPluginManager $helperPluginManager View helper plugin manager
+     * @param ResolverInterface   $resolver            View resolver
+     * @param Url                 $url                 URL helper
      *
      * @return array
      */
     protected function getViewHelpers(
         ContainerInterface $container,
         SchemaOrg $schemaOrgHelper,
-        PhpRenderer $renderer,
+        RendererInterface $renderer,
+        HelperPluginManager $helperPluginManager,
         ResolverInterface $resolver,
         Url $url
     ): array {
         $escapeHtml = new EscapeHtml(new Escaper());
-        $serverUrl = new ServerUrl();
+        $serverUrl = new ServerUrl($this->createMock(ServerUrlHelper::class));
 
         $context = new \VuFind\View\Helper\Root\Context($renderer);
 
@@ -109,10 +117,6 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
 
         $transEsc = new \VuFind\View\Helper\Root\TransEsc($translate, $escapeHtml);
         $truncate = new \VuFind\View\Helper\Root\Truncate();
-
-        $searchParams = new \VuFind\View\Helper\Root\SearchParams(
-            new \VuFind\Search\Params\PluginManager($container)
-        );
 
         $memory = $this->createMock(\VuFind\Search\Memory::class);
         $memory->method('getLastSearchId')->willReturn(-123);
@@ -167,24 +171,25 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
 
         $serviceManager = $this->createMock(\VuFind\Db\Service\PluginManager::class);
         $serviceManager->method('get')
-            ->willReturnCallback(function ($service) {
+            ->willReturnCallback(function (string $service) {
                 return $this->createMock($service);
             });
         $record->setDbServiceManager($serviceManager);
 
+        $escapeHtmlAttr = new EscapeHtmlAttr(new Escaper());
+
         return [
-            'assetManager' => $this->getAssetManager($renderer),
+            'assetManager' => $this->getAssetManager($helperPluginManager),
             'auth' => $auth,
             'context' => $context,
             'config' => $configHelper,
+            'escapeHtmlAttr' => $escapeHtmlAttr,
             'identifierLinker' => new \VuFind\View\Helper\Root\IdentifierLinker($context, $renderer),
-            'htmlSafeJsonEncode' => new \VuFind\View\Helper\Root\HtmlSafeJsonEncode(
-                $renderer->getHelperPluginManager()
-            ),
+            'htmlSafeJsonEncode' => new \VuFind\View\Helper\Root\HtmlSafeJsonEncode($helperPluginManager),
             'icon' => new \VuFind\View\Helper\Root\Icon(
                 [],
                 new \Laminas\Cache\Storage\Adapter\BlackHole(),
-                new \Laminas\View\Helper\EscapeHtmlAttr(new Escaper()),
+                $escapeHtmlAttr,
                 $renderer
             ),
             'openUrl' => new \VuFind\View\Helper\Root\OpenUrl(
@@ -353,7 +358,7 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
             ],
         ]);
         $schemaOrgHelper = new \VuFind\View\Helper\Root\SchemaOrg(
-            new \Laminas\View\Helper\HtmlAttributes()
+            new \Laminas\View\Helper\HtmlAttributes(new Escaper())
         );
         $specManager = $this->createMock(\VuFind\RecordDataFormatter\Specs\PluginManager::class);
         $specs = new DefaultRecordSpec($recordDataFormatterConfig, $schemaOrgHelper);
@@ -368,12 +373,9 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
         );
         $this->addConfigRelatedServicesToContainer($container);
 
-        $match = new \Laminas\Router\RouteMatch([]);
-        $match->setMatchedRouteName('foo');
+        $match = new HttpRouteMatch([], 'foo');
 
-        $url = new Url();
-        $url->setRouter($this->createMock(\Laminas\Router\RouteStackInterface::class));
-        $url->setRouteMatch($match);
+        $url = $this->createMock(Url::class);
 
         // Create resolver and view
         $resolver = new TemplatePathStack();
@@ -382,20 +384,13 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
             $this->getPathForTheme('bootstrap5'),
         ]);
 
-        $view = new PhpRenderer();
-        $view->setResolver($resolver);
+        $helperPluginManager = $this->getHelperPluginManager(container: $container);
+        $view = new PhpRenderer($helperPluginManager, $resolver, false);
+        $container->set(PhpRenderer::class, $view);
 
-        $helpers = $this->getViewHelpers($container, $schemaOrgHelper, $view, $resolver, $url);
-
-        foreach ($helpers as $helper) {
-            if (method_exists($helper, 'setView')) {
-                $helper->setView($view);
-            }
-        }
-
-        $pluginManager = $view->getHelperPluginManager();
+        $helpers = $this->getViewHelpers($container, $schemaOrgHelper, $view, $helperPluginManager, $resolver, $url);
         foreach ($helpers as $key => $value) {
-            $pluginManager->setService($key, $value);
+            $helperPluginManager->setService($key, $value);
         }
 
         $formatter = new RecordDataFormatter(
@@ -684,8 +679,9 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
             'Multi Count' => 1,
             'Subjects' => 'Naples (Kingdom) History Spanish rule, 1442-1707 Sources',
             'Online Access' => 'http://fictional.com/sample/url',
-            // Double slash at the end comes from inline javascript
-            'Tags' => 'Add Tag No Tags, Be the first to tag this record! //',
+            'Tags' => 'Add Tag No Tags, Be the first to tag this record! ' . "$('.tag-submit').on('click', function(e)"
+                . " { VuFind.record.ajaxTagUpdate(this, $(this).data('tag'), $(this).data('selected'));"
+                . ' return false; });',
             'ZeroAllowed' => 0,
             'c' => 'c',
             'd' => 'd',
@@ -880,9 +876,9 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
     /**
      * Invokes a RecordDataFormatter with a driver and returns getData results.
      *
-     * @param SolrDefault $driver        Driver to invoke with.
-     * @param array       $spec          Specifications to test with.
-     * @param array       $globalOptions Optional global options.
+     * @param AbstractBase $driver        Driver to invoke with.
+     * @param array        $spec          Specifications to test with.
+     * @param array        $globalOptions Optional global options.
      *
      * @return array Results from RecordDataFormatter::getData
      */

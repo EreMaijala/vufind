@@ -31,6 +31,7 @@ namespace VuFindTest\View\Helper\Root;
 
 use Laminas\View\Helper\EscapeHtml;
 use PHPUnit\Framework\MockObject\MockObject;
+use VuFind\Escaper\Escaper;
 use VuFind\Search\Memory;
 use VuFind\Search\Params\PluginManager;
 use VuFind\Search\Solr\Options;
@@ -113,10 +114,7 @@ class SearchMemoryTest extends \PHPUnit\Framework\TestCase
     {
         $url = $this->createMock(\VuFind\View\Helper\Root\Url::class);
         $url->method('__invoke')->with($this->searchRoute)->willReturn($this->searchBasePath);
-        $escapeHtml = $this->createMock(EscapeHtml::class);
-        $escapeHtml->method('__invoke')->willReturnCallback(function ($str) {
-            return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
-        });
+        $escapeHtml = new EscapeHtml(new Escaper());
         $searchParams = $this->createMock(PluginManager::class);
         $searchParams->method('get')->with('Solr')->willReturn($solrParams);
         return $this->getSearchMemoryViewHelper($memory, $url, $escapeHtml, $searchParams);

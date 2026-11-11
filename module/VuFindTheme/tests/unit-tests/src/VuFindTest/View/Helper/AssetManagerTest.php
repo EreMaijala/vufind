@@ -29,14 +29,18 @@
 
 namespace VuFindTest\View\Helper;
 
+use Laminas\Router\RouteStackInterface;
+use Laminas\View\Helper\Doctype;
+use Laminas\View\Helper\HeadLink;
+use Laminas\View\Helper\HeadStyle;
 use Laminas\View\Helper\InlineScript;
-use PHPUnit\Framework\MockObject\MockObject;
+use VuFind\Application;
+use VuFind\Escaper\Escaper;
+use VuFind\View\Helper\Root\Url;
 use VuFindTest\Feature\ViewTrait;
 use VuFindTheme\AssetPipeline;
 use VuFindTheme\ThemeInfo;
 use VuFindTheme\View\Helper\AssetManager;
-
-use function is_array;
 
 /**
  * AssetManager view helper Test Class.
@@ -52,115 +56,107 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
     use ViewTrait;
 
     /**
-     * Data provider for testOutputInlineScriptLink() and testOutputInlineScriptString().
+     * Data provider for testOutputInlineScriptLink().
      *
      * @return \Iterator
      */
-    public static function outputInlineScriptProvider(): \Iterator
+    public static function outputInlineScriptLinkProvider(): \Iterator
     {
-        yield 'default settings' => [[], false, 'text/javascript'];
-        yield 'arbitrary attribute' => [['data-foo' => 'bar'], true, 'text/javascript'];
-        yield 'arbitrary MIME type' => [['type' => 'mime/type'], false, 'mime/type'];
-    }
-
-    /**
-     * Mock the Laminas InlineScript helper with functional "allow arbitrary attribute" support to
-     * test behavior that could lead to subtle bugs.
-     *
-     * @return InlineScript&MockObject
-     */
-    public function getMockInlineScriptHelper(): InlineScript&MockObject
-    {
-        $inlineScriptHelper = $this->createMock(InlineScript::class);
-        $currentlyAllowed = false;
-        $inlineScriptHelper->method('arbitraryAttributesAllowed')
-            ->willReturnCallback(function () use (&$currentlyAllowed) {
-                return $currentlyAllowed;
-            });
-        $inlineScriptHelper->method('setAllowArbitraryAttributes')
-            ->willReturnCallback(function ($flag) use (&$currentlyAllowed): void {
-                $currentlyAllowed = $flag;
-            });
-        // Note that the invoke method returns the helper itself -- not a string.
-        // This matches the actual helper's behavior.
-        $inlineScriptHelper->method('__invoke')->willReturnSelf();
-        $inlineScriptHelper->method('__toString')
-            ->willReturnCallback(function () use (&$currentlyAllowed) {
-                return 'output:' . ($currentlyAllowed ? '1' : '0');
-            });
-        return $inlineScriptHelper;
+        yield 'default settings' => [
+            [],
+            '<script src="foo.js"></script>',
+        ];
+        yield 'arbitrary attribute' => [
+            ['data-foo' => 'bar'],
+            '<script data-foo="bar" src="foo.js"></script>',
+        ];
+        yield 'arbitrary MIME type' => [
+            ['type' => 'mime/type'],
+            '<script src="foo.js" type="mime/type"></script>',
+        ];
     }
 
     /**
      * Test that outputInlineScriptLink() behaves as expected.
      *
-     * @param array  $attrs        Attributes array
-     * @param bool   $arbitrary    Value for arbitrary attributes flag
-     * @param string $expectedType The type we expect to pass to the helper
+     * @param array  $attrs    Attributes array
+     * @param string $expected Expected result
      *
      * @return void
      */
-    #[\PHPUnit\Framework\Attributes\DataProvider('outputInlineScriptProvider')]
-    public function testOutputInlineScriptLink(array $attrs, bool $arbitrary, string $expectedType): void
+    #[\PHPUnit\Framework\Attributes\DataProvider('outputInlineScriptLinkProvider')]
+    public function testOutputInlineScriptLink(array $attrs, string $expected): void
     {
         $script = 'foo.js';
-        $inlineScriptHelper = $this->getMockInlineScriptHelper();
-        $inlineScriptHelper
-            ->expects($arbitrary ? $this->exactly(2) : $this->never())
-            ->method('setAllowArbitraryAttributes');
-        $expectedAttrs = isset($attrs['type']) ? array_diff($attrs, ['type' => $attrs['type']]) : $attrs;
-        $inlineScriptHelper
-            ->expects($this->once())
-            ->method('__call')
-            ->with('setFile', [$script, $expectedType, $expectedAttrs]);
-        $view = $this->getPhpRenderer(['inlineScript' => $inlineScriptHelper]);
+        $escaper = new Escaper();
+        $doctype = new Doctype();
         $assetManager = new AssetManager(
             $this->createMock(ThemeInfo::class),
             $this->createMock(AssetPipeline::class),
-            $view->plugin('url'),
-            $view->plugin('headLink'),
-            $view->plugin('headStyle'),
-            $inlineScriptHelper
+            new Url($this->createMock(Application::class), $this->createMock(RouteStackInterface::class), null),
+            new HeadLink($escaper, $doctype),
+            new HeadStyle($escaper, $doctype),
+            new InlineScript($escaper, $doctype)
         );
-        $options = ['allow_arbitrary_attributes' => $arbitrary];
-        $expected = 'output:' . ($arbitrary ? '1' : '0');
-        $this->assertSame($expected, $assetManager->outputInlineScriptLink($script, $attrs, $options));
+        $this->assertSame($expected, $assetManager->outputInlineScriptLink($script, $attrs));
+    }
+
+    /**
+     * Data provider for testOutputInlineScriptString().
+     *
+     * @return \Iterator
+     */
+    public static function outputInlineScriptStringProvider(): \Iterator
+    {
+        yield 'default settings' => [
+            [],
+            <<<EOT
+                <script>
+                foo
+                </script>
+                EOT,
+        ];
+        yield 'arbitrary attribute' => [
+            ['data-foo' => 'bar'],
+            <<<EOT
+                <script data-foo="bar">
+                foo
+                </script>
+                EOT,
+        ];
+        yield 'arbitrary MIME type' => [
+            ['type' => 'mime/type'],
+            <<<EOT
+                <script type="mime/type">
+                foo
+                </script>
+                EOT,
+        ];
     }
 
     /**
      * Test that outputInlineScriptString() behaves as expected.
      *
-     * @param array  $attrs        Attributes array
-     * @param bool   $arbitrary    Value for arbitrary attributes flag
-     * @param string $expectedType The type we expect to pass to the helper
+     * @param array  $attrs    Attributes array
+     * @param string $expected Expected output
      *
      * @return void
      */
-    #[\PHPUnit\Framework\Attributes\DataProvider('outputInlineScriptProvider')]
-    public function testOutputInlineScriptString(array $attrs, bool $arbitrary, string $expectedType): void
+    #[\PHPUnit\Framework\Attributes\DataProvider('outputInlineScriptStringProvider')]
+    public function testOutputInlineScriptString(array $attrs, string $expected): void
     {
         $script = 'foo';
-        $inlineScriptHelper = $this->getMockInlineScriptHelper();
-        $inlineScriptHelper
-            ->expects($arbitrary ? $this->exactly(2) : $this->never())
-            ->method('setAllowArbitraryAttributes');
-        $expectedAttrs = isset($attrs['type']) ? array_diff($attrs, ['type' => $attrs['type']]) : $attrs;
-        $inlineScriptHelper
-            ->expects($this->once())
-            ->method('__call')
-            ->with('setScript', [$script, $expectedType, $expectedAttrs]);
-        $view = $this->getPhpRenderer(['inlineScript' => $inlineScriptHelper]);
+        $escaper = new Escaper();
+        $doctype = new Doctype();
         $assetManager = new AssetManager(
             $this->createMock(ThemeInfo::class),
             $this->createMock(AssetPipeline::class),
-            $view->plugin('url'),
-            $view->plugin('headLink'),
-            $view->plugin('headStyle'),
-            $inlineScriptHelper
+            new Url($this->createMock(Application::class), $this->createMock(RouteStackInterface::class), null),
+            new HeadLink($escaper, $doctype),
+            new HeadStyle($escaper, $doctype),
+            new InlineScript($escaper, $doctype)
         );
-        $options = ['allow_arbitrary_attributes' => $arbitrary];
-        $expected = 'output:' . ($arbitrary ? '1' : '0');
-        $this->assertSame($expected, $assetManager->outputInlineScriptString($script, $attrs, $options));
+        $this->assertSame($expected, $assetManager->outputInlineScriptString($script, $attrs));
     }
 
     /**
@@ -177,85 +173,49 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
             return $scripts;
         });
 
-        $view = $this->getPhpRenderer();
+        $escaper = new Escaper();
+        $doctype = new Doctype();
         $manager = $this->getMockBuilder(AssetManager::class)
             ->setConstructorArgs([
                 $themeInfo,
                 $pipeline,
-                $view->plugin('url'),
-                $view->plugin('headLink'),
-                $view->plugin('headStyle'),
-                $view->plugin('inlineScript'),
+                new Url($this->createMock(Application::class), $this->createMock(RouteStackInterface::class), null),
+                new HeadLink($escaper, $doctype),
+                new HeadStyle($escaper, $doctype),
+                new InlineScript($escaper, $doctype),
             ])
             ->onlyMethods(['outputInlineScriptLink', 'outputInlineScriptString', 'outputStyleAssets'])
             ->getMock();
         $manager->method('outputInlineScriptLink')
-            ->willReturnCallback(function (string $src, array $attrs, array $arbitrary): string {
-                return $src . '/' . implode('|', $attrs) . '/' . ($arbitrary ? 1 : 0);
+            ->willReturnCallback(function (string $src, array $attrs): string {
+                return $src . '/' . implode('|', $attrs);
             });
         $manager->method('outputInlineScriptString')
-            ->willReturnCallback(function (string $script, array $attrs, array $arbitrary): string {
-                return $script . '/' . implode('|', $attrs) . '/' . ($arbitrary ? 1 : 0);
+            ->willReturnCallback(function (string $script, array $attrs): string {
+                return $script . '/' . implode('|', $attrs);
             });
         $manager->method('outputStyleAssets')->willReturn('');
+
         $manager->appendScriptString('foo')
             ->appendScriptLink('foo.js')
-            ->prependScriptString('bar', ['attr'], options: ['allow_arbitrary_attributes' => true]);
-        $this->assertSame("bar/attr/1\nfoo//0\nfoo.js//0", trim($manager->outputHeaderAssets()));
+            ->prependScriptString('bar', ['attr']);
+        $this->assertSame("bar/attr\nfoo/\nfoo.js/", trim($manager->outputHeaderAssets()));
+
         $manager->forcePrependScriptLink('bar.js')
-            ->forcePrependScriptLink('foo.js', ['attr1'], options: ['allow_arbitrary_attributes' => true]);
-        $this->assertSame("foo.js/attr1/1\nbar.js//0\nbar/attr/1\nfoo//0", trim($manager->outputHeaderAssets()));
+            ->forcePrependScriptLink('foo.js', ['attr1']);
+        $this->assertSame("foo.js/attr1\nbar.js/\nbar/attr\nfoo/", trim($manager->outputHeaderAssets()));
+
         $manager->appendScriptString('foot1', position: 'footer')
             ->prependScriptString('foot0', position: 'footer')
             ->appendScriptLink('foot.js', position: 'footer')
             ->forcePrependScriptLink('pre-foot.js', position: 'footer');
-        $this->assertSame("pre-foot.js//0\nfoot0//0\nfoot1//0\nfoot.js//0", trim($manager->outputFooterAssets()));
+        $this->assertSame("pre-foot.js/\nfoot0/\nfoot1/\nfoot.js/", trim($manager->outputFooterAssets()));
+
         $manager->clearScriptList()
-            ->appendScriptString('xyzzy', ['foo'], options: ['allow_arbitrary_attributes' => true]);
-        $this->assertSame('xyzzy/foo/1', trim($manager->outputHeaderAssets()));
+            ->appendScriptString('xyzzy', ['foo']);
+        $this->assertSame('xyzzy/foo', trim($manager->outputHeaderAssets()));
+
         $this->assertSame('', trim($manager->outputFooterAssets()));
-    }
-
-    /**
-     * Build a simulated version of a Laminas style helper.
-     *
-     * @param string $appendMethod Expected method name for append operations.
-     *
-     * @return object
-     */
-    public function getMockStyleHelper(string $appendMethod): object
-    {
-        $data = [];
-        $baseClass = $appendMethod === 'appendStylesheet'
-            ? \Laminas\View\Helper\HeadLink::class
-            : \Laminas\View\Helper\HeadStyle::class;
-
-        $mock = $this->getMockBuilder($baseClass)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['__invoke', '__call'])
-            ->getMock();
-
-        $mock->method('__call')->willReturnCallback(
-            function ($method, $args) use ($appendMethod, &$data): void {
-                if ($method !== $appendMethod) {
-                    throw new \Exception("Unexpected method call: $method");
-                }
-                $data[] = implode(
-                    '/',
-                    array_map(fn ($d) => is_array($d) ? implode('|', $d) : $d, $args)
-                );
-            }
-        );
-
-        $mock->method('__invoke')->willReturnCallback(
-            function () use (&$data) {
-                $str = implode("\n", $data);
-                $data = [];
-                return $str;
-            }
-        );
-
-        return $mock;
     }
 
     /**
@@ -272,19 +232,16 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
             return $styles;
         });
 
-        $helpers = [
-            'headLink' => $this->getMockStyleHelper('appendStylesheet'),
-            'headStyle' => $this->getMockStyleHelper('appendStyle'),
-        ];
-        $view = $this->getPhpRenderer($helpers);
+        $escaper = new Escaper();
+        $doctype = new Doctype();
         $manager = $this->getMockBuilder(AssetManager::class)
             ->setConstructorArgs([
                 $themeInfo,
                 $pipeline,
-                $view->plugin('url'),
-                $helpers['headLink'],
-                $helpers['headStyle'],
-                $view->plugin('inlineScript'),
+                new Url($this->createMock(Application::class), $this->createMock(RouteStackInterface::class), null),
+                new HeadLink($escaper, $doctype),
+                new HeadStyle($escaper, $doctype),
+                new InlineScript($escaper, $doctype),
             ])
             ->onlyMethods(['outputScriptAssets'])
             ->getMock();
@@ -292,13 +249,33 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
         $manager->appendStyleString('foo')
             ->appendStyleLink('foo.css')
             ->forcePrependStyleLink('bar.css');
-        $this->assertSame("bar.css/screen//\nfoo.css/screen//\nfoo/", trim($manager->outputHeaderAssets()));
-        $manager->clearStyleList()
-            ->appendStyleLink('xyzzy.css', 'print', 'cond', ['a', 'b'])
-            ->appendStyleString('baz', ['c', 'd'])
-            ->forcePrependStyleLink('pre.css', 'odd', 'oop', ['z']);
         $this->assertSame(
-            "pre.css/odd/oop/z\nxyzzy.css/print/cond/a|b\nbaz/c|d",
+            <<<EOT
+                <link href="bar.css" media="screen" rel="stylesheet" type="text/css">
+                <link href="foo.css" media="screen" rel="stylesheet" type="text/css">
+                <style>
+                foo
+                </style>
+                EOT,
+            trim($manager->outputHeaderAssets())
+        );
+        $manager->clearStyleList()
+            ->appendStyleLink('xyzzy.css', 'print', 'cond', ['a' => '1', 'b' => '2'])
+            ->appendStyleString('baz', ['c' => '3', 'd' => '4'])
+            ->forcePrependStyleLink('pre.css', 'odd', 'oop', ['z' => '5']);
+        $this->assertSame(
+            <<<EOT
+                <link href="bar.css" media="screen" rel="stylesheet" type="text/css">
+                <link href="foo.css" media="screen" rel="stylesheet" type="text/css">
+                <link href="pre.css" media="odd" rel="stylesheet" type="text/css" z="5">
+                <link a="1" b="2" href="xyzzy.css" media="print" rel="stylesheet" type="text/css">
+                <style>
+                foo
+                </style>
+                <style c="3" d="4">
+                baz
+                </style>
+                EOT,
             trim($manager->outputHeaderAssets())
         );
     }

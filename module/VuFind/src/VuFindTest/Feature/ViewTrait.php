@@ -31,11 +31,16 @@ namespace VuFindTest\Feature;
 
 use Laminas\Cache\Storage\Adapter\AdapterOptions;
 use Laminas\Cache\Storage\StorageInterface;
+use Laminas\Router\RouteStackInterface;
+use Laminas\View\Helper\Doctype;
 use Laminas\View\Helper\EscapeHtml;
+use Laminas\View\HelperPluginManager;
 use Laminas\View\Renderer\PhpRenderer;
 use Psr\Container\ContainerInterface;
+use VuFind\Application;
 use VuFind\Cache\Manager as CacheManager;
 use VuFind\Config\ConfigManagerInterface;
+use VuFind\Escaper\Escaper;
 use VuFind\Search\Memory;
 use VuFind\Search\Params\PluginManager;
 use VuFind\View\Helper\Root\CleanHtml;
@@ -60,27 +65,31 @@ trait ViewTrait
     /**
      * Get a working AssetManager helper.
      *
-     * @param PhpRenderer $renderer View for helper
+     * @param HelperPluginManager $helperPluginManager View helper plugin manager
      *
      * @return AssetManager
      */
-    protected function getAssetManager(PhpRenderer $renderer): AssetManager
+    protected function getAssetManager(HelperPluginManager $helperPluginManager): AssetManager
     {
         $container = new MockContainer($this);
         $container->get(\VuFind\Security\NonceGenerator::class)->method('getNonce')->willReturn('');
+        $escaper = new Escaper();
+        $doctype = new Doctype();
         $services = [
-            \Laminas\View\Helper\HeadLink::class => new \Laminas\View\Helper\HeadLink(),
-            \Laminas\View\Helper\HeadStyle::class => new \Laminas\View\Helper\HeadStyle(),
-            \Laminas\View\Helper\InlineScript::class => new \Laminas\View\Helper\InlineScript(),
-            \VuFind\View\Helper\Root\Url::class => new \VuFind\View\Helper\Root\Url(),
+            \Laminas\View\Helper\Doctype::class => new \Laminas\View\Helper\Doctype(),
+            \Laminas\View\Helper\HeadLink::class => new \Laminas\View\Helper\HeadLink($escaper, $doctype),
+            \Laminas\View\Helper\HeadStyle::class => new \Laminas\View\Helper\HeadStyle($escaper, $doctype),
+            \Laminas\View\Helper\InlineScript::class => new \Laminas\View\Helper\InlineScript($escaper, $doctype),
+            \VuFind\View\Helper\Root\Url::class => new \VuFind\View\Helper\Root\Url(
+                $this->createMock(Application::class),
+                $this->createMock(RouteStackInterface::class),
+                null
+            ),
         ];
-        $viewHelperManager = $renderer->getHelperPluginManager();
         foreach ($services as $key => $value) {
-            if (!$viewHelperManager->has($key)) {
-                $viewHelperManager->setService($key, $value);
-            }
+            $helperPluginManager->setService($key, $value);
         }
-        $container->set(\Laminas\View\HelperPluginManager::class, $viewHelperManager);
+        $container->set(\Laminas\View\HelperPluginManager::class, $helperPluginManager);
         $factory = new AssetManagerFactory();
         $assetManager = $factory($container, AssetManager::class);
 
@@ -88,36 +97,50 @@ trait ViewTrait
     }
 
     /**
+     * Get helper plugin manager.
+     *
+     * @param array               $plugins   Plugins
+     * @param ?ContainerInterface $container Container
+     *
+     * @return HelperPluginManager
+     */
+    protected function getHelperPluginManager(
+        array $plugins = [],
+        ?ContainerInterface $container = null
+    ): HelperPluginManager {
+        $helperPluginManager = new HelperPluginManager($container ?? $this->createMock(ContainerInterface::class), []);
+        foreach ($plugins as $key => $value) {
+            $helperPluginManager->setService($key, $value);
+        }
+        return $helperPluginManager;
+    }
+
+    /**
      * Get a working renderer.
      *
-     * @param array  $plugins Custom VuFind plug-ins to register
-     * @param string $theme   Theme directory to load from
+     * @param ?HelperPluginManager $helperPluginManager Configured helper plugin manager
+     * @param string               $theme               Theme directory to load from
      *
      * @return PhpRenderer
      */
-    protected function getPhpRenderer($plugins = [], $theme = 'bootstrap5')
+    protected function getPhpRenderer(?HelperPluginManager $helperPluginManager = null, $theme = 'bootstrap5')
     {
         $resolver = new \Laminas\View\Resolver\TemplatePathStack();
 
-        // This assumes that all themes will be testing inherit directly
-        // from root with no intermediate themes. Probably safe for most
-        // test situations, though other scenarios are possible.
+        // This assumes that all themes will be testing inherit directly from root with no intermediate themes. Probably
+        // safe for most test situations, though other scenarios are possible.
         $resolver->setPaths(
             [
                 $this->getPathForTheme('root'),
                 $this->getPathForTheme($theme),
             ]
         );
-        $renderer = new PhpRenderer();
-        $renderer->setResolver($resolver);
-        $pluginManager = $renderer->getHelperPluginManager();
-        if (!isset($plugins['assetManager'])) {
-            $plugins['assetManager'] = $this->getAssetManager($renderer);
+
+        $helperPluginManager ??= $this->getHelperPluginManager();
+        if (!$helperPluginManager->has('assetManager')) {
+            $helperPluginManager->setService('assetManager', $this->getAssetManager($helperPluginManager));
         }
-        foreach ($plugins as $key => $value) {
-            $pluginManager->setService($key, $value);
-        }
-        return $renderer;
+        return new PhpRenderer($helperPluginManager, $resolver);
     }
 
     /**
@@ -153,7 +176,7 @@ trait ViewTrait
             $memory->method('getLastSearchId')->willReturn(-123);
         }
         $url ??= $this->createMock(Url::class);
-        $escapeHtml ??= $this->createMock(EscapeHtml::class);
+        $escapeHtml ??= new EscapeHtml(new Escaper());
         $searchParams ??= $this->createMock(PluginManager::class);
         return new SearchMemory($memory, $url, $escapeHtml, $searchParams);
     }

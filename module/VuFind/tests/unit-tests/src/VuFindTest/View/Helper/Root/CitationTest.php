@@ -29,7 +29,12 @@
 
 namespace VuFindTest\View\Helper\Root;
 
+use Laminas\View\View;
+use Laminas\View\ViewInterface;
 use VuFind\View\Helper\Root\Citation;
+use VuFind\View\Renderer\LaminasTemplateRenderer;
+use VuFindTest\Feature\AutowireTrait;
+use VuFindTest\Feature\ViewTrait;
 
 /**
  * CitationBuilder Test Class.
@@ -42,7 +47,8 @@ use VuFind\View\Helper\Root\Citation;
  */
 class CitationTest extends \PHPUnit\Framework\TestCase
 {
-    use \VuFindTest\Feature\ViewTrait;
+    use AutowireTrait;
+    use ViewTrait;
 
     /**
      * Sample citations -- each element of this array contains three elements --
@@ -368,10 +374,18 @@ class CitationTest extends \PHPUnit\Framework\TestCase
      */
     public function testCitations()
     {
-        $view = $this->getPhpRenderer();
+        $helperPluginManager = $this->getHelperPluginManager();
+        $phpRenderer = $this->getPhpRenderer($helperPluginManager);
         $citation = new Citation(
             new \VuFind\Date\Converter(),
-            $view->plugin('partial')
+            $this->getAutowiredObject(
+                LaminasTemplateRenderer::class,
+                [
+                    'config' => [],
+                    ViewInterface::class => new View($phpRenderer, $helperPluginManager, 'layout/layout', 'content'),
+                    'ViewRenderer' => $phpRenderer,
+                ]
+            )
         );
         $driver = new \VuFindTest\RecordDriver\TestHarness();
         foreach ($this->citations as $current) {

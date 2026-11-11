@@ -29,8 +29,8 @@
 
 namespace VuFindTest\View\Helper\Root;
 
-use VuFind\View\Helper\Root\Url;
 use VuFind\View\Helper\Root\AlphaBrowse;
+use VuFind\View\Helper\Root\Url;
 
 /**
  * AlphaBrowse view helper Test Class.

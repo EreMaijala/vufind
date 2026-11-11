@@ -29,6 +29,7 @@
 
 namespace VuFindTest\View\Helper\Root;
 
+use VuFind\Escaper\Escaper;
 use VuFind\View\Helper\Root\JsTranslations;
 use VuFind\View\Helper\Root\TransEsc;
 use VuFind\View\Helper\Root\Translate;
@@ -56,9 +57,9 @@ class JsTranslationsTest extends \PHPUnit\Framework\TestCase
      */
     public function testHelper()
     {
-        $view = $this->getPhpRenderer($this->getViewHelpers());
-        $translate = $view->plugin('translate');
-        $escapeHtml = new \Laminas\View\Helper\EscapeHtml();
+        $helperPluginManager = $this->getHelperPluginManager($this->getViewHelpers());
+        $translate = $helperPluginManager->get('translate');
+        $escapeHtml = new \Laminas\View\Helper\EscapeHtml(new Escaper());
         $transEsc = new TransEsc($translate, $escapeHtml);
         $helper = new JsTranslations($translate, $transEsc);
 
