@@ -245,4 +245,4 @@
   }
 ?>
 
-<?=$this->render('account/notify-account-status.phtml', ['method' => 'fines', 'accountStatus' => $this->accountStatus]); ?>
+<?=$this->partial('account/notify-account-status.phtml', ['method' => 'fines', 'accountStatus' => $this->accountStatus]); ?>

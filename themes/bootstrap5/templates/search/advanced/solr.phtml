@@ -1,4 +1,4 @@
-<?=$this->render('search/advanced/solr-facets.phtml')?>
+<?=$this->partial('search/advanced/solr-facets.phtml')?>
 <?php if (isset($this->illustratedLimit)): ?>
   <fieldset class="solr">
     <legend><?=$this->transEsc('Illustrated')?>:</legend>
@@ -8,5 +8,5 @@
     <?php endforeach; ?>
   </fieldset>
 <?php endif; ?>
-<?=$this->render('search/advanced/limit.phtml', iterator_to_array($this))?>
-<?=$this->render('search/advanced/ranges.phtml', iterator_to_array($this))?>
+<?=$this->partial('search/advanced/limit.phtml', iterator_to_array($this))?>
+<?=$this->partial('search/advanced/ranges.phtml', iterator_to_array($this))?>

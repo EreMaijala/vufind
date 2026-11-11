@@ -29,9 +29,9 @@
   // Set up search controls (avoiding unnecessary rendering):
   if (!$this->slot('search-controls')->isset()) {
       $this->slot('search-controls')->set(
-          $this->render('search/controls/limit.phtml', iterator_to_array($this))
-          . ' ' . $this->render('search/controls/sort.phtml', iterator_to_array($this))
-          . ' ' . $this->render('search/controls/view.phtml', iterator_to_array($this))
+          $this->partial('search/controls/limit.phtml', iterator_to_array($this))
+          . ' ' . $this->partial('search/controls/sort.phtml', iterator_to_array($this))
+          . ' ' . $this->partial('search/controls/view.phtml', iterator_to_array($this))
       );
   }
 
@@ -39,7 +39,7 @@
   $globals['searchId'] = $this->results->getSearchId();
 
   $options = $this->params->getOptions();
-  $this->render(
+  $this->partial(
       'search/results-scripts.phtml',
       [
           'displayVersions' => !empty($options->getVersionsAction()),
@@ -110,7 +110,7 @@
     <?php endforeach; ?>
   <?php else: ?>
     <?php if ($options->showRestrictedViewWarning('result_list_top') && $this->results->isRestrictedView()): ?>
-      <?=$this->render('error/restrictedViewWarning.phtml')?>
+      <?=$this->partial('error/restrictedViewWarning.phtml')?>
     <?php endif; ?>
     <?php if ($this->results->getOptions()->getTopPaginatorStyle() === 'full'): ?>
       <?=$this->paginationControl($this->results->getPaginator(), 'Sliding', 'Helpers/pagination-top.phtml', ['params' => ['results' => $this->results], 'options' => $this->paginationOptions ?? []])?>

@@ -1,9 +1,4 @@
 <?php
-  if (($children = $this->layout()->getChildren()) && $children[0]?->getTemplate() === 'laminas_whoops/simple_error') {
-    // Whoops error is a complete page, so just output it and nothing else:
-    echo $this->layout()->content;
-    return;
-  }
   echo $this->doctype();
 ?>
 <?php
@@ -155,7 +150,7 @@
         <?php if (!($globals['disableDefaultNotices'] ?? false)): ?>
           <?=$this->notices()->renderNoticesForPosition('default')?>
         <?php endif; ?>
-        <?=$this->layout()->content ?>
+        <?=$this->content ?>
       </div>
     </div>
     <?=$this->partial('footer.phtml')?>

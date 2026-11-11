@@ -45,5 +45,5 @@
   $params = iterator_to_array($this) + [
       'helpTopics' => ['blender_advsearch' => 'Help with Advanced Search', 'blender' => 'Help with Search Operators'],
   ];
-  echo $this->render('search/advanced/layout.phtml', $params);
+  echo $this->partial('search/advanced/layout.phtml', $params);
 ?>
