@@ -29,7 +29,7 @@
 
 namespace VuFind\Sitemap\Plugin;
 
-use Laminas\Router\RouteStackInterface;
+use VuFind\Http\RouteHelper;
 use VuFindTheme\ThemeInfo;
 use Webmozart\Glob\Glob;
 
@@ -87,13 +87,13 @@ class ContentPages extends AbstractGeneratorPlugin
     /**
      * Constructor.
      *
-     * @param ThemeInfo           $themeInfo Theme info
-     * @param RouteStackInterface $router    Router
-     * @param array               $config    Main VuFind configuration (config.ini)
+     * @param ThemeInfo   $themeInfo   Theme info
+     * @param RouteHelper $routeHelper Route helper
+     * @param array       $config      Main VuFind configuration (config.ini)
      */
     public function __construct(
         protected ThemeInfo $themeInfo,
-        protected RouteStackInterface $router,
+        protected RouteHelper $routeHelper,
         protected array $config
     ) {
     }
@@ -160,10 +160,7 @@ class ContentPages extends AbstractGeneratorPlugin
         }
 
         foreach (array_keys($nonLanguageFiles) as $fileName) {
-            $url = $this->baseUrl . $this->router->assemble(
-                ['page' => $fileName],
-                ['name' => 'content-page']
-            );
+            $url = $this->baseUrl . $this->routeHelper->getUrlFromRoute('content-page', ['page' => $fileName]);
             $this->verboseMsg("Adding content page $url");
             yield $url;
         }

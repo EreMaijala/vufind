@@ -34,6 +34,7 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
+use VuFind\Http\RouteHelper;
 
 /**
  * Content pages generator plugin factory.
@@ -71,7 +72,7 @@ class ContentPagesFactory implements FactoryInterface
         $config = $container->get(\VuFind\Config\ConfigManagerInterface::class)->getConfigArray('config');
         return new $requestedName(
             $container->get(\VuFindTheme\ThemeInfo::class),
-            $container->get('HttpRouter'),
+            $container->get(RouteHelper::class),
             $config
         );
     }
