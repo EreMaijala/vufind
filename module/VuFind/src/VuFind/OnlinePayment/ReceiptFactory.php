@@ -76,7 +76,6 @@ class ReceiptFactory implements FactoryInterface
             $container->get(\VuFind\Date\Converter::class),
             $container->get(\VuFind\I18n\Locale\LocaleSettings::class),
             $container->get(\VuFind\Service\CurrencyFormatter::class),
-            $container->get('HttpRouter'),
             $container->get(\VuFind\Mailer\Mailer::class),
             $container->get('ViewRenderer'),
             $dbServiceManager->get(\VuFind\Db\Service\PaymentFeeServiceInterface::class),

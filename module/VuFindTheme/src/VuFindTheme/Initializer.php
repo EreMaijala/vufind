@@ -88,8 +88,7 @@ class Initializer
     /**
      * Constructor.
      *
-     * @param array                       $config           Configuration array
-     * containing these keys:
+     * @param array              $config         Configuration array containing these keys:
      * <ul>
      *   <li>theme - the name of the default theme for non-mobile devices</li>
      *   <li>mobile_theme - the name of the default theme for mobile devices
@@ -105,7 +104,7 @@ class Initializer
      * (optional)</li>
      * </ul>
      * @param ContainerInterface $serviceManager Service manager
-     * @param ?EventInterface $event Event, if any
+     * @param ?EventInterface    $event          Event, if any
      */
     public function __construct(
         protected array $config,
@@ -201,10 +200,9 @@ class Initializer
     /**
      * Support method for init() -- figure out which theme option is active.
      *
-     * @param array   $themes  Data on all available themes (must include at
-     * minimum a 'standard' key)
-     * @param ServerRequestInterface $request Request object (for obtaining user parameters);
-     * set to null if no request context is available.
+     * @param array                  $themes  Data on all available themes (must include at minimum a 'standard' key)
+     * @param ServerRequestInterface $request Request object (for obtaining user parameters); set to null if no request
+     * context is available.
      *
      * @return string
      */

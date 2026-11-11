@@ -49,17 +49,17 @@ class EventManagerFactory implements FactoryInterface
      *
      * Creates a new EventManager instance, seeding it with a shared instance of SharedEventManager.
      *
-     * @param ContainerInterface $container
-     * @param string             $name
-     * @param ?array             $options
+     * @param ContainerInterface $container     Service manager
+     * @param string             $requestedName Service being created
+     * @param null|array         $options       Extra options (optional)
      *
      * @return object
      */
-    public function __invoke(ContainerInterface $container, string $name, ?array $options = null): mixed
+    public function __invoke(ContainerInterface $container, string $requestedName, ?array $options = null): mixed
     {
         $shared = $container->has('SharedEventManager') ? $container->get('SharedEventManager') : null;
 
-        $result = new \Laminas\EventManager\EventManager($shared);
+        $result = new EventManager($shared);
         $result->setEventPrototype(new Event());
         return $result;
     }

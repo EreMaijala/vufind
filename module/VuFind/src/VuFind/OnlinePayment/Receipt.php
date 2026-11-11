@@ -31,7 +31,6 @@ declare(strict_types=1);
 
 namespace VuFind\OnlinePayment;
 
-use Laminas\Router\RouteInterface;
 use Mpdf\Mpdf;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Part\DataPart;
@@ -96,10 +95,8 @@ class Receipt implements TranslatorAwareInterface
      * @param DateConverter              $dateConverter     Date converter
      * @param LocaleSettings             $localeSettings    Locale settings
      * @param CurrencyFormatter          $currencyFormatter Currency formatter
-     * @param RouteInterface             $router            Router
      * @param Mailer                     $mailer            Mailer
      * @param TemplateRendererInterface  $templateRenderer  Template renderer
-     *
      * @param PaymentFeeServiceInterface $paymentFeeService Payment fee database service
      * @param string                     $cacheDir          Cache directory for temporary files
      */
@@ -108,7 +105,6 @@ class Receipt implements TranslatorAwareInterface
         protected DateConverter $dateConverter,
         protected LocaleSettings $localeSettings,
         protected CurrencyFormatter $currencyFormatter,
-        protected RouteInterface $router,
         protected Mailer $mailer,
         protected TemplateRendererInterface $templateRenderer,
         protected PaymentFeeServiceInterface $paymentFeeService,

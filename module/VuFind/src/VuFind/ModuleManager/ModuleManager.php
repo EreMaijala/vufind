@@ -119,7 +119,8 @@ class ModuleManager implements ModuleManagerInterface
     /**
      * Set an array or Traversable of module names that this module manager should load.
      *
-     * @param  mixed $modules array or Traversable of module names
+     * @param mixed $modules Module names
+     *
      * @return ModuleManagerInterface
      */
     public function setModules($modules): ModuleManagerInterface
@@ -131,10 +132,9 @@ class ModuleManager implements ModuleManagerInterface
     /**
      * Get a list of loaded modules.
      *
-     * @param  bool $loadModules If true, load modules if they're not already
-     * @return array An array of Module objects, keyed by module name
+     * @param bool $loadModules If true, load modules if they're not already loaded
      *
-     * @return array
+     * @return array An array of Module objects, keyed by module name
      */
     public function getLoadedModules($loadModules)
     {
@@ -173,7 +173,7 @@ class ModuleManager implements ModuleManagerInterface
     /**
      * Load a specific module by name.
      *
-     * @param string $moduleName
+     * @param string $moduleName Module name
      *
      * @return mixed Module's Module class or ConfigProvider
      */

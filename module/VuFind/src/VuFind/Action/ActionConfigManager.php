@@ -68,7 +68,8 @@ class ActionConfigManager
      *
      * @param ActionInterface      $action           Action
      * @param ?RouteMatchInterface $routeMatch       Route match
-     * @param ?string              $actionIdentifier Action identifier to use (alternative to one determined from RouteMatch)
+     * @param ?string              $actionIdentifier Action identifier to use (alternative to one determined from
+     * RouteMatch)
      *
      * @return void
      */

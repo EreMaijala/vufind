@@ -45,7 +45,7 @@ class ServerUrl
     /**
      * Constructor.
      *
-     * @param ServerUrlHelper $serverUrlHelper
+     * @param ServerUrlHelper $serverUrlHelper Server URL helper
      */
     public function __construct(
         protected ServerUrlHelper $serverUrlHelper,
@@ -55,7 +55,7 @@ class ServerUrl
     /**
      * Return a server URL.
      *
-     * @param  string|true|null $requestUri  If true, the request URI found in $_SERVER will be appended as a path. If a
+     * @param string|true|null $requestUri If true, the request URI found in $_SERVER will be appended as a path. If a
      * string is given, it will be appended as a path. If null, no path is appended.
      *
      * @return string

@@ -33,6 +33,8 @@ namespace VuFind\Http;
 
 use VuFind\ServiceManager\Factory\Autowire;
 
+use function in_array;
+
 /**
  * Server URL Helper class.
  *
@@ -49,21 +51,21 @@ use VuFind\ServiceManager\Factory\Autowire;
 class ServerUrlHelper
 {
     /**
-     * Host (including port)
+     * Host (including port).
      *
      * @var ?string
      */
     protected ?string $host = null;
 
     /**
-     * Port
+     * Port.
      *
      * @var ?int
      */
     protected ?int $port = null;
 
     /**
-     * Scheme
+     * Scheme.
      *
      * @var ?string
      */
@@ -117,7 +119,7 @@ class ServerUrlHelper
     /**
      * Return a server URL.
      *
-     * @param  string|true|null $requestUri  If true, the request URI found in $_SERVER will be appended as a path. If a
+     * @param string|true|null $requestUri If true, the request URI found in $_SERVER will be appended as a path. If a
      * string is given, it will be appended as a path. If null, no path is appended.
      *
      * @return string
@@ -132,7 +134,7 @@ class ServerUrlHelper
             $path = $requestUri;
         }
 
-        return $this->getScheme() . '://' . $this->getHost() . (string) $path;
+        return $this->getScheme() . '://' . $this->getHost() . (string)$path;
     }
 
     /**
@@ -151,7 +153,7 @@ class ServerUrlHelper
     /**
      * Set server host.
      *
-     * @param  string $host Host
+     * @param string $host Host
      *
      * @return static
      */
@@ -168,7 +170,7 @@ class ServerUrlHelper
             return $this;
         }
 
-        $this->host = $host . ':' . (string) $port;
+        $this->host = $host . ':' . (string)$port;
         return $this;
     }
 
@@ -189,7 +191,7 @@ class ServerUrlHelper
     /**
      * Set server port.
      *
-     * @param  int $port Post
+     * @param int $port Post
      *
      * @return static
      */
@@ -200,7 +202,7 @@ class ServerUrlHelper
     }
 
     /**
-     * Returns scheme (typically http or https)
+     * Returns scheme (typically http or https).
      *
      * @return string
      */
@@ -213,9 +215,9 @@ class ServerUrlHelper
     }
 
     /**
-     * Sets scheme (typically http or https)
+     * Sets scheme (typically http or https).
      *
-     * @param  string $scheme Scheme
+     * @param string $scheme Scheme
      *
      * @return static
      */
@@ -226,7 +228,7 @@ class ServerUrlHelper
     }
 
     /**
-     * Detect the host based on headers
+     * Detect the host based on headers.
      *
      * @return void
      */
@@ -280,7 +282,7 @@ class ServerUrlHelper
             return false;
         }
 
-        if (strpos($host, ',') !== false) {
+        if (str_contains($host, ',')) {
             $hosts = explode(',', $host);
             $host = trim(array_pop($hosts));
         }
@@ -290,7 +292,6 @@ class ServerUrlHelper
         $this->setHost($host);
         return true;
     }
-
 
     /**
      * Detect the port.
@@ -354,7 +355,7 @@ class ServerUrlHelper
     }
 
     /**
-     * Set the current scheme based on detected proxy headers
+     * Set the current scheme based on detected proxy headers.
      *
      * @return bool
      */

@@ -66,14 +66,17 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
     /**
      * Constructor.
      *
-     * @param ServerUrlHelper   $serverUrlHelper   Server URL helper
-     * @param RendererInterface $viewRenderer      View renderer
-     * @param ViewInterface     $view              View
-     * @param ResolverInterface $templateResolver  Template resolver
-     * @param bool              $displayExceptions Display exceptions?
-     * @param string            $notFoundTemplate  Template for 404 errors
-     * @param string            $errorTemplate     Template for errors
-     * @param GlobalsContainer  $globalsContainer  Global data container
+     * @param ServerUrlHelper   $serverUrlHelper       Server URL helper
+     * @param RendererInterface $viewRenderer          View renderer
+     * @param ViewInterface     $view                  View
+     * @param ResolverInterface $templateResolver      Template resolver
+     * @param bool              $displayExceptions     Display exceptions?
+     * @param string            $notFoundTemplate      Template for 404 errors
+     * @param string            $errorTemplate         Template for errors
+     * @param array             $extraThemePrefixes    Extra theme prefixes
+     * @param array             $excludedThemePrefixes Excluded theme prefixes
+     * @param GlobalsContainer  $globalsContainer      Global data container
+     * @param ModuleManager     $moduleManager         Module manager
      */
     public function __construct(
         protected ServerUrlHelper $serverUrlHelper,

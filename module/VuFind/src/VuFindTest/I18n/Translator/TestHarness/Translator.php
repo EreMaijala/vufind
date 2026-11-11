@@ -82,6 +82,7 @@ class Translator implements TranslatorInterface
      *
      * @param string  $singular   Singular message
      * @param string  $plural     Plural message
+     * @param int     $number     Number to compare
      * @param string  $textDomain Text domain
      * @param ?string $locale     Locale
      *

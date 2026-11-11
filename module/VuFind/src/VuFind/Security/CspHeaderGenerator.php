@@ -95,6 +95,8 @@ class CspHeaderGenerator implements
     /**
      * Toggle active flag.
      *
+     * @param bool $active Active flag
+     *
      * @return static
      */
     public function setActive(bool $active): static

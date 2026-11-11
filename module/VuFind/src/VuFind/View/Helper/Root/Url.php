@@ -31,7 +31,6 @@ namespace VuFind\View\Helper\Root;
 
 use Laminas\Router\RouteMatchInterface;
 use Laminas\Router\RouteStackInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
 use VuFind\Application;
 
@@ -54,9 +53,9 @@ class Url
     /**
      * Constructor.
      *
-     * @param ?ServerRequestInterface $request    Request object for GET parameters
-     * @param RouteStackInterface     $router     Router,
-     * @param ?RouteMatchInterface    $routeMatch Route match returned by the router
+     * @param Application          $application Application
+     * @param RouteStackInterface  $router      Router,
+     * @param ?RouteMatchInterface $routeMatch  Route match returned by the router
      */
     public function __construct(
         protected Application $application,
@@ -75,8 +74,7 @@ class Url
      *
      * @see \Laminas\Router\RouteInterface::assemble()
      *
-     * @throws RuntimeException If no RouteStackInterface or no RouteMatch was provided, or if RouteMatch is missing the
-     * route name
+     * @throws RuntimeException If no RouteMatch was provided, or if RouteMatch is missing the route name
      *
      * @return static|string This if no params were passed, or URL for the link href attribute
      */
@@ -89,10 +87,6 @@ class Url
         // If argument list is empty, return object for method access:
         if (func_num_args() === 0) {
             return $this;
-        }
-
-        if (null === $this->router) {
-            throw new RuntimeException('No RouteStackInterface instance provided');
         }
 
         if (3 === func_num_args() && is_bool($options)) {

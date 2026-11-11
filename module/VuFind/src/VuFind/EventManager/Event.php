@@ -262,8 +262,9 @@ class Event implements EventInterface
     /**
      * Get a single parameter by name.
      *
-     * @param  string|int $name
-     * @param  mixed      $default Default value to return if parameter does not exist
+     * @param string|int $name    Parameter name
+     * @param mixed      $default Default value to return if parameter does not exist
+     *
      * @return mixed
      */
     public function getParam($name, $default = null)
@@ -274,8 +275,9 @@ class Event implements EventInterface
     /**
      * Set a single parameter by key.
      *
-     * @param  string|int $name
-     * @param  mixed      $value
+     * @param string|int $name  Parameter name
+     * @param mixed      $value Parameter value
+     *
      * @return void
      */
     public function setParam($name, $value)
@@ -296,9 +298,9 @@ class Event implements EventInterface
     /**
      * Set the event target/context.
      *
-     * @param    object|string|null $target
-     * @template NewTTarget of object|string|null
-     * @return   void
+     * @param object|string|null $target Event targer
+     *
+     * @return void
      */
     public function setTarget($target)
     {

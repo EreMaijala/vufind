@@ -46,7 +46,7 @@ class TemplatePathStack implements ResolverInterface
     /**
      * Resolve a template/pattern name to a resource the renderer can consume.
      *
-     * @param string $name
+     * @param string $name Route name
      *
      * @return string|false
      */

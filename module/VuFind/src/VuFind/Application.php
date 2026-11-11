@@ -97,6 +97,8 @@ class Application
 
     /**
      * Run the application.
+     *
+     * @return void
      */
     public function run(): void
     {
@@ -271,6 +273,8 @@ class Application
      *
      * Adapted from Laminas Request class.
      *
+     * @param ServerRequestInterface $request Request
+     *
      * @return string
      */
     protected function detectBasePath(ServerRequestInterface $request): string
@@ -291,7 +295,7 @@ class Application
         } else {
             // Backtrack up the SCRIPT_FILENAME to find the portion matching PHP_SELF:
             $baseUrl  = '/';
-            $basename = basename($filename ?? '');
+            $basename = basename($filename);
             if ($basename) {
                 $path     = $phpSelf ? trim($phpSelf, '/') : '';
                 $basePos  = strpos($path, $basename) ?: 0;
