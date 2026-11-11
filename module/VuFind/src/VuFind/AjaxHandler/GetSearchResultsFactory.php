@@ -32,11 +32,11 @@ namespace VuFind\AjaxHandler;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\View\Helper\EscapeHtml;
-use Laminas\View\Helper\PaginationControl;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use VuFind\Cart;
 use VuFind\View\Helper\Root\LocalizedNumber;
+use VuFind\View\Helper\Root\PaginationControl;
 use VuFind\View\Renderer\TemplateRendererInterface;
 
 /**
