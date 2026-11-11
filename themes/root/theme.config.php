@@ -32,9 +32,6 @@ return [
 
             'Laminas\View\Helper\EscapeHtmlAttr' => 'VuFind\View\Helper\Root\EscapeHtmlAttrFactory',
         ],
-        'initializers' => [
-            \VuFind\View\Helper\Root\HelperInitializer::class,
-        ],
         'aliases' => [
             'accountCapabilities' => 'VuFind\View\Helper\Root\AccountCapabilities',
             'accountMenu' => 'VuFind\View\Helper\Root\AccountMenu',

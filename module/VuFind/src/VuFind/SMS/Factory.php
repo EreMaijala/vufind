@@ -58,9 +58,9 @@ class Factory implements FactoryInterface
      */
     public function __invoke(
         ContainerInterface $container,
-        $name,
+        string $name,
         ?array $options = null
-    ) {
+    ): mixed {
         // Load configurations:
         $configManager = $container->get(\VuFind\Config\ConfigManagerInterface::class);
         $mainConfig = $configManager->getConfigArray('config');

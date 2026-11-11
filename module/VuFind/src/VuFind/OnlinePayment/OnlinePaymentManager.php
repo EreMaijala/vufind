@@ -33,6 +33,7 @@ namespace VuFind\OnlinePayment;
 
 use Laminas\Http\PhpEnvironment\Response;
 use Laminas\Session\Container as SessionContainer;
+use Laminas\Session\ManagerInterface;
 use Laminas\Stdlib\RequestInterface;
 use Psr\Log\LoggerAwareInterface;
 use VuFind\Auth\ILSAuthenticator;

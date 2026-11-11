@@ -120,7 +120,7 @@ class SetupThemeResourcesTest extends \PHPUnit\Framework\TestCase
      *
      * @return MockObject&HeadLink
      */
-    protected function getMockHeadLink(): MockObject&HeadLink
+    protected function getMockHeadLink(): HeadLink
     {
         $mock = $this->createMock(HeadLink::class);
         $mock->method('__invoke')->willReturn($mock);
@@ -132,7 +132,7 @@ class SetupThemeResourcesTest extends \PHPUnit\Framework\TestCase
      *
      * @return MockObject&HeadScript
      */
-    protected function getMockHeadScript(): MockObject&HeadScript
+    protected function getMockHeadScript(): HeadScript
     {
         $mock = $this->createMock(HeadScript::class);
         $mock->method('__invoke')->willReturn($mock);

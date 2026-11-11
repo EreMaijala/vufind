@@ -477,8 +477,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
     /**
      * Get an action.
      *
-     * @param class-string<InstanceType>|string $name    Service name of plugin to retrieve.
-     * @param null|array<mixed>                 $options Options to use when creating the instance.
+     * @param class-string<InstanceType>|string $name Service name of plugin to retrieve.
      *
      * @return mixed
      *
@@ -486,9 +485,9 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
      * and the service is not auto-invokable.
      * @throws InvalidServiceException  If the plugin created is invalid for the plugin context.
      */
-    public function get(string $name, ?array $options = null): mixed
+    public function get(string $name): mixed
     {
-        return parent::get($this->resolveAlias($name), $options);
+        return parent::get($this->resolveAlias($name));
     }
 
     /**
