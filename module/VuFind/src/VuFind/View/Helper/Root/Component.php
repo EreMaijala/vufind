@@ -30,8 +30,8 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\View\Renderer\RendererInterface;
 use VuFind\ServiceManager\Factory\Autowire;
+use VuFind\View\Renderer\TemplateRendererInterface;
 
 /**
  * Component view helper.
@@ -55,11 +55,11 @@ class Component
     /**
      * Constructor.
      *
-     * @param RendererInterface $view View renderer
+     * @param TemplateRendererInterface $templateRenderer Template renderer
      */
     #[Autowire]
     public function __construct(
-        protected RendererInterface $view
+        protected TemplateRendererInterface $templateRenderer,
     ) {
     }
 
@@ -95,6 +95,6 @@ class Component
         // Pass information from view to the component
         $params['inLightbox'] ??= $this->view->inLightbox ?? false;
 
-        return $this->view->render("_ui/$path/" . $name, $params);
+        return $this->templateRenderer->renderTemplateAsString(template: "_ui/$path/" . $name, params: $params);
     }
 }
