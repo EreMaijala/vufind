@@ -31,6 +31,7 @@ namespace VuFind\AjaxHandler;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
+use Laminas\View\HelperPluginManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use VuFind\Search\Results\PluginManager as ResultsManager;
@@ -77,7 +78,7 @@ class RecommendFactory implements \Laminas\ServiceManager\Factory\FactoryInterfa
             $container->get(\VuFind\Recommend\PluginManager::class),
             $container->get(ResultsManager::class)->get('Solr'),
             $container->get(TemplateRendererInterface::class),
-            $container->get('ViewHelperManager')->get(Recommend::class),
+            $container->get(HelperPluginManagerInterface::class)->get(Recommend::class),
         );
     }
 }

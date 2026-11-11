@@ -36,7 +36,6 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Laminas\Session\Container;
 use Laminas\Session\ManagerInterface;
-use Laminas\Session\SessionManager;
 use Laminas\Translator\TranslatorInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;

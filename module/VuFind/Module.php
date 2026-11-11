@@ -29,11 +29,11 @@
 
 namespace VuFind;
 
+use Laminas\EventManager\EventManagerInterface;
 use Psr\Container\ContainerInterface;
 use VuFind\Config\ConfigManagerInterface;
 use VuFind\EventManager\Event;
 use VuFind\EventManager\EventInterface;
-use Laminas\EventManager\EventManagerInterface;
 use VuFind\ModuleManager\ModuleInterface;
 
 /**
@@ -73,8 +73,8 @@ class Module implements ModuleInterface
     /**
      * Bootstrap the module.
      *
-     * @param EventInterface $event Event
-     * @param ContainerInterface $container Service manager
+     * @param EventInterface        $event        Event
+     * @param ContainerInterface    $container    Service manager
      * @param EventManagerInterface $eventManager Event manager
      *
      * @return void

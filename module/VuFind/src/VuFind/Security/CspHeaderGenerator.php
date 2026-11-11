@@ -29,11 +29,8 @@
 
 namespace VuFind\Security;
 
-use Laminas\Http\Header\ContentSecurityPolicy;
-use Laminas\Http\Header\ContentSecurityPolicyReportOnly;
-use Laminas\Http\Header\GenericHeader;
-
 use function in_array;
+use function sprintf;
 
 /**
  * VuFind class for generating Content Security Policy http headers.
@@ -210,7 +207,7 @@ class CspHeaderGenerator implements
 
         return [
             'name' => 'Report-To',
-            'value' => implode(', ', $groupsText)
+            'value' => implode(', ', $groupsText),
         ];
     }
 

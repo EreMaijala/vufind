@@ -29,7 +29,6 @@
 
 namespace VuFind\View\Helper\Root;
 
-use VuFind\View\Helper\Root\ServerUrl;
 use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use VuFind\Cover\Router as CoverRouter;

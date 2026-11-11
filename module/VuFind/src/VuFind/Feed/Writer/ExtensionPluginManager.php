@@ -57,14 +57,14 @@ use function substr;
 class ExtensionPluginManager extends AbstractPluginManager implements ExtensionManagerInterface
 {
     /**
-     * Aliases for default set of extension classes
+     * Aliases for default set of extension classes.
      *
      * @var array
      */
     protected array $aliases = [];
 
     /**
-     * Factories for default set of extension classes
+     * Factories for default set of extension classes.
      *
      * @var array
      */

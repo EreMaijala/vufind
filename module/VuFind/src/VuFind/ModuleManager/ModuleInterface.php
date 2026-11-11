@@ -29,7 +29,6 @@
 
 namespace VuFind\ModuleManager;
 
-use Laminas\ServiceManager\ServiceManager;
 use Psr\Container\ContainerInterface;
 
 /**

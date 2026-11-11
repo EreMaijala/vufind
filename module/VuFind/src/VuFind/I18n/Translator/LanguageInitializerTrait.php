@@ -103,8 +103,8 @@ trait LanguageInitializerTrait
      * Configure a translator to support the requested language.
      *
      * @param DynamicFileListCollector $collector Translation collector
-     * @param LocaleSettings $settings   Locale settings
-     * @param string         $language   Language to set up
+     * @param LocaleSettings           $settings  Locale settings
+     * @param string                   $language  Language to set up
      *
      * @return void
      */

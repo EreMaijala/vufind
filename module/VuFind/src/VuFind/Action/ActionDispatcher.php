@@ -32,10 +32,6 @@ namespace VuFind\Action;
 use GuzzleHttp\Psr7\Response;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\Http\Request;
-use Laminas\Http\Response as LaminasResponse;
-use Laminas\Http\Response\Stream as LaminasResponseStream;
-use Laminas\Psr7Bridge\Psr7Response;
-use Laminas\Psr7Bridge\Psr7ServerRequest;
 use Laminas\View\Model\ViewModel;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -44,12 +40,9 @@ use VuFind\Action\Error\ExceptionAction;
 use VuFind\Action\Error\NotFoundAction;
 use VuFind\ActionHelper\PluginManager as HelperPluginManager;
 use VuFind\ActionHelper\RedirectHelper;
-use VuFind\Exception\HttpStatusInterface;
 use VuFind\Http\RouteHelper;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\View\GlobalsContainer;
-use VuFind\Exception\NotFound as NotFoundException;
-use VuFind\View\Renderer\TemplateRendererInterface;
 
 /**
  * Action dispatcher.
@@ -65,14 +58,14 @@ class ActionDispatcher
     /**
      * Constructor.
      *
-     * @param PluginManager       $actionPluginManager       Action plugin manager
-     * @param HelperPluginManager $actionHelperPluginManager Action helper plugin manager
-     * @param RouteHelper         $routeHelper               Route helper
-     * @param GlobalsContainer    $globalsContainer          Global data container
-     * @param ActionConfigManager $actionConfigManager       Action configuration manager
-     * @param EventManagerInterface $eventManager Event manager
-     * @param array               $config                    VuFind configuration
-     * @param array               $redirectConfig            Redirects from legacy actions to current ones
+     * @param PluginManager         $actionPluginManager       Action plugin manager
+     * @param HelperPluginManager   $actionHelperPluginManager Action helper plugin manager
+     * @param RouteHelper           $routeHelper               Route helper
+     * @param GlobalsContainer      $globalsContainer          Global data container
+     * @param ActionConfigManager   $actionConfigManager       Action configuration manager
+     * @param EventManagerInterface $eventManager              Event manager
+     * @param array                 $config                    VuFind configuration
+     * @param array                 $redirectConfig            Redirects from legacy actions to current ones
      */
     public function __construct(
         protected PluginManager $actionPluginManager,
@@ -91,8 +84,8 @@ class ActionDispatcher
     /**
      * Dispatch a request.
      *
-     * @param ServerRequestInterface $request Request
-     * @param ResponseInterface $response Response
+     * @param ServerRequestInterface $request  Request
+     * @param ResponseInterface      $response Response
      *
      * @return ResponseInterface
      */
@@ -128,9 +121,9 @@ class ActionDispatcher
     /**
      * Return an exception response.
      *
-     * @param ServerRequestInterface $request Request
-     * @param ResponseInterface $response Response
-     * @param Throwable $ex Exeption
+     * @param ServerRequestInterface $request  Request
+     * @param ResponseInterface      $response Response
+     * @param Throwable              $ex       Exeption
      *
      * @return ResponseInterface
      */
@@ -147,8 +140,8 @@ class ActionDispatcher
     /**
      * Return a redirect for actions that should be redirected.
      *
-     * @param ServerRequestInterface $request Request
-     * @param ResponseInterface $response Response
+     * @param ServerRequestInterface $request  Request
+     * @param ResponseInterface      $response Response
      *
      * @return ?ResponseInterface
      */

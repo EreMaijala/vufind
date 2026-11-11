@@ -45,11 +45,11 @@ use Psr\Container\ContainerInterface;
 class SharedEventManagerFactory implements FactoryInterface
 {
     /**
-     * Create a SharedEventManager instance
+     * Create a SharedEventManager instance.
      *
      * @param  ContainerInterface $container
-     * @param  string $name
-     * @param  null|array $options
+     * @param  string             $name
+     * @param  null|array         $options
      * @return EventManager
      */
     public function __invoke(ContainerInterface $container, string $name, ?array $options = null): mixed

@@ -33,9 +33,9 @@ use Closure;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
-use VuFind\View\Helper\Root\ServerUrl;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
+use VuFind\View\Helper\Root\ServerUrl;
 
 /**
  * Server URL Helper factory.

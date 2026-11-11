@@ -37,6 +37,8 @@ use Laminas\ServiceManager\Factory\FactoryInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 
+use function assert;
+
 /**
  * HTTP router factory.
  *

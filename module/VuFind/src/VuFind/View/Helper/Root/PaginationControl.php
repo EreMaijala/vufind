@@ -32,10 +32,10 @@ class PaginationControl
      * if so, uses that.  Also, if no scrolling style or partial are specified,
      * the defaults will be used (if set).
      *
-     * @param ?Paginator $paginator Paginator
-     * @param  string              $scrollingStyle Scrolling style
-     * @param  string              $partial        View partial
-     * @param  array               $params         Params to pass to the partial
+     * @param ?Paginator $paginator      Paginator
+     * @param string     $scrollingStyle Scrolling style
+     * @param string     $partial        View partial
+     * @param array      $params         Params to pass to the partial
      *
      * @return string
      * @throws RuntimeException If no paginator or no view partial provided.

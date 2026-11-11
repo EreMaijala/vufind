@@ -263,7 +263,7 @@ class Event implements EventInterface
      * Get a single parameter by name.
      *
      * @param  string|int $name
-     * @param  mixed $default Default value to return if parameter does not exist
+     * @param  mixed      $default Default value to return if parameter does not exist
      * @return mixed
      */
     public function getParam($name, $default = null)
@@ -275,7 +275,7 @@ class Event implements EventInterface
      * Set a single parameter by key.
      *
      * @param  string|int $name
-     * @param  mixed $value
+     * @param  mixed      $value
      * @return void
      */
     public function setParam($name, $value)
@@ -284,7 +284,7 @@ class Event implements EventInterface
     }
 
     /**
-     * Get target/context from which event was triggered
+     * Get target/context from which event was triggered.
      *
      * @return object|string|null
      */
@@ -294,15 +294,14 @@ class Event implements EventInterface
     }
 
     /**
-     * Set the event target/context
+     * Set the event target/context.
      *
-     * @param object|string|null $target
+     * @param    object|string|null $target
      * @template NewTTarget of object|string|null
-     * @return void
+     * @return   void
      */
     public function setTarget($target)
     {
-        /** @psalm-suppress InvalidPropertyAssignmentValue Pretty sure this is correct after this-out. */
         $this->target = $target;
     }
 }

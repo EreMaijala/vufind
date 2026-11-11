@@ -29,8 +29,6 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\Http\Response;
-use Psr\Http\Message\ResponseInterface;
 use VuFind\Security\CspHeaderGenerator;
 use VuFind\Security\NonceGenerator;
 use VuFind\ServiceManager\Factory\Autowire;
@@ -57,7 +55,7 @@ class Csp
      * Constructor.
      *
      * @param CspHeaderGenerator $cspHeaderGenerator CSP header generator
-     * @param NonceGenerator $generator Nonce generator
+     * @param NonceGenerator     $generator          Nonce generator
      */
     public function __construct(
         #[Autowire]

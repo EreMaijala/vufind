@@ -35,6 +35,8 @@ use Laminas\ModuleManager\ModuleManagerInterface;
 use Laminas\ServiceManager\ServiceManager;
 use Laminas\Stdlib\ArrayUtils;
 
+use function is_callable;
+
 /**
  * Module manager.
  *
@@ -72,10 +74,10 @@ class ModuleManager implements ModuleManagerInterface
     /**
      * Constructor.
      *
-     * @param ServiceManager $serviceManager Service manager
-     * @param EventManagerInterface $eventManager Event manager
-     * @param array          $modules        List of modules
-     * @param array $configProviders List of additional configuration providers
+     * @param ServiceManager        $serviceManager  Service manager
+     * @param EventManagerInterface $eventManager    Event manager
+     * @param array                 $modules         List of modules
+     * @param array                 $configProviders List of additional configuration providers
      */
     public function __construct(
         protected ServiceManager $serviceManager,
@@ -171,7 +173,7 @@ class ModuleManager implements ModuleManagerInterface
     /**
      * Load a specific module by name.
      *
-     * @param  string $moduleName
+     * @param string $moduleName
      *
      * @return mixed Module's Module class or ConfigProvider
      */
@@ -225,7 +227,7 @@ class ModuleManager implements ModuleManagerInterface
      */
     protected function initializeModules(): void
     {
-        foreach ($this->loadedModules as $moduleName => $module) {
+        foreach ($this->loadedModules as $module) {
             if ($module instanceof ModuleInterface) {
                 $module->initialize($this->serviceManager);
             } elseif (is_callable([$module, 'init'])) {

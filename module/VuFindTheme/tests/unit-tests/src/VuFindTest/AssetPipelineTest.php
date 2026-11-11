@@ -29,8 +29,8 @@
 
 namespace VuFindTest;
 
-use VuFind\View\Helper\Root\Url;
 use PHPUnit\Framework\MockObject\MockObject;
+use VuFind\View\Helper\Root\Url;
 use VuFindTheme\AssetPipeline;
 use VuFindTheme\ThemeInfo;
 

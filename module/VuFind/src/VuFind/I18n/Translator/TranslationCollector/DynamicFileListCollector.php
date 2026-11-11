@@ -69,7 +69,7 @@ class DynamicFileListCollector implements TranslationCollectorInterface
      * Collect translations.
      *
      * @param string $textDomain Text domain
-     * @param string $locale Locale
+     * @param string $locale     Locale
      *
      * @return TextDomain
      */
@@ -95,10 +95,10 @@ class DynamicFileListCollector implements TranslationCollectorInterface
     /**
      * Add a translation file.
      *
-     * @param  string      $type File type
-     * @param  string      $filename Filename
-     * @param  string      $textDomain Text domain
-     * @param  ?string $locale Locale
+     * @param string  $type       File type
+     * @param string  $filename   Filename
+     * @param string  $textDomain Text domain
+     * @param ?string $locale     Locale
      *
      * @return void
      */

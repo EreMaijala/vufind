@@ -33,7 +33,6 @@ namespace VuFind\View\Helper\Root;
 
 use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Renderer\Template;
-use Laminas\View\TemplateInterface;
 use VuFind\ServiceManager\Factory\Autowire;
 
 /**
@@ -50,7 +49,7 @@ use VuFind\ServiceManager\Factory\Autowire;
 class Context
 {
     /**
-     * Current template
+     * Current template.
      *
      * @var ?Template
      */

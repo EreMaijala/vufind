@@ -30,15 +30,14 @@
 namespace VuFind;
 
 use GuzzleHttp\Psr7\Message;
+use Laminas\EventManager\EventInterface;
+use Laminas\EventManager\EventManagerInterface;
 use Laminas\Http\Header\Location;
 use Laminas\Http\Response;
-use Laminas\Psr7Bridge\Psr7ServerRequest;
-use Laminas\Router\Http\RouteMatch;
+use Laminas\Router\Http\HttpRouteMatch;
 use Psr\Container\ContainerInterface;
 use VuFind\Cookie\CookieManager;
 use VuFind\EventManager\Event;
-use Laminas\EventManager\EventInterface;
-use Laminas\EventManager\EventManagerInterface;
 use VuFind\Http\ServerUrlHelper;
 use VuFind\I18n\Locale\LocaleSettings;
 use VuFind\RateLimiter\RateLimiterManager;
@@ -58,10 +57,10 @@ class Bootstrapper
     /**
      * Constructor.
      *
-     * @param EventInterface $event Event
-     * @param ContainerInterface $container Service manager
+     * @param EventInterface        $event        Event
+     * @param ContainerInterface    $container    Service manager
      * @param EventManagerInterface $eventManager Event manager
-     * @param array $config VuFind configuration
+     * @param array                 $config       VuFind configuration
      */
     public function __construct(
         protected EventInterface $event,
@@ -129,11 +128,10 @@ class Bootstrapper
         // unavailable page.
         if (PHP_SAPI !== 'cli' && !($this->config['System']['available'] ?? true)) {
             $callback = function ($e): void {
-                $routeMatch = new RouteMatch(
+                $routeMatch = new HttpRouteMatch(
                     ['controller' => 'Error', 'action' => 'Unavailable'],
-                    1
+                    'error-unavailable'
                 );
-                $routeMatch->setMatchedRouteName('error-unavailable');
                 $e->setRouteMatch($routeMatch);
             };
             $this->eventManager->attach('route', $callback);

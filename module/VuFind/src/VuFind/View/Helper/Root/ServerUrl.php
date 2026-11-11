@@ -29,16 +29,7 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\View\Renderer\RendererInterface;
-use Laminas\View\Resolver\ResolverInterface;
 use VuFind\Http\ServerUrlHelper;
-use VuFind\Section\Plugin\SectionInterface;
-use VuFind\Section\SectionServiceInterface;
-use VuFind\ServiceManager\Factory\Autowire;
-
-use function call_user_func_array;
-use function is_callable;
-use function is_string;
 
 /**
  * Server URL helper.

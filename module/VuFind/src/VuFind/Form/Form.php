@@ -33,7 +33,6 @@ namespace VuFind\Form;
 use DateTime;
 use Exception;
 use Laminas\Uri\UriFactory;
-use Laminas\View\HelperPluginManager;
 use Laminas\View\HelperPluginManagerInterface;
 use VuFind\Date\Converter as DateConverter;
 use VuFind\Exception\ConfigException;
@@ -99,12 +98,12 @@ class Form implements \VuFind\I18n\Translator\TranslatorAwareInterface
     /**
      * Constructor.
      *
-     * @param HelperPluginManagerInterface   $viewHelperManager  View helper manager
-     * @param HandlerManager        $handlerManager     Handler plugin manager
-     * @param DateConverter         $dateConverter      Date converter
-     * @param EmailAddressValidator $emailValidator     Email address validator
-     * @param array                 $config             VuFind main configuration
-     * @param array                 $feedbackFormConfig Feedback form config
+     * @param HelperPluginManagerInterface $viewHelperManager  View helper manager
+     * @param HandlerManager               $handlerManager     Handler plugin manager
+     * @param DateConverter                $dateConverter      Date converter
+     * @param EmailAddressValidator        $emailValidator     Email address validator
+     * @param array                        $config             VuFind main configuration
+     * @param array                        $feedbackFormConfig Feedback form config
      */
     public function __construct(
         #[Autowire(service: HelperPluginManagerInterface::class)]

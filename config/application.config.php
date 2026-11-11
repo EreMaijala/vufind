@@ -1,6 +1,5 @@
 <?php
 
-use Laminas\View\HelperPluginManager;
 use Laminas\View\HelperPluginManagerInterface;
 
 require __DIR__ . '/constants.config.php';

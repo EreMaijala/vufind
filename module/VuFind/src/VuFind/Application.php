@@ -32,10 +32,6 @@ namespace VuFind;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ServerRequest;
 use Laminas\EventManager\EventManagerInterface;
-use Laminas\Psr7Bridge\Psr7ServerRequest;
-use Laminas\Router\Http\HttpRouteInterface;
-use Laminas\Router\RouterFactory;
-use Laminas\Router\RouteStackInterface;
 use Laminas\View\Model\ModelInterface;
 use Laminas\View\Model\ViewModel;
 use Psr\Container\ContainerInterface;
@@ -43,11 +39,12 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use VuFind\Action\ActionDispatcher;
 use VuFind\EventManager\Event;
-use VuFind\Http\RouteHelper;
-use VuFind\Http\ServerUrlHelper;
 //use VuFind\EventManager\EventManager;
 //use VuFind\EventManager\EventManagerInterface;
 use VuFind\ServiceManager\Factory\Autowire;
+
+use function dirname;
+use function strlen;
 
 /**
  * VuFind main application.
@@ -86,9 +83,9 @@ class Application
     /**
      * Constructor.
      *
-     * @param ContainerInterface $container Service container
-     * @param EventManagerInterface $eventManager Event manager
-     * @param ActionDispatcher $actionDispatcher Action dispatcher
+     * @param ContainerInterface    $container        Service container
+     * @param EventManagerInterface $eventManager     Event manager
+     * @param ActionDispatcher      $actionDispatcher Action dispatcher
      */
     #[Autowire]
     public function __construct(
@@ -241,7 +238,7 @@ class Application
             $status .= " $reason";
         }
 
-        header((string) $status);
+        header($status);
 
         foreach ($response->getHeaders() as $header => $values) {
             foreach ($values as $value) {
@@ -311,13 +308,13 @@ class Application
         $requestUri = $this->detectRequestUri($request);
 
         // Full base URL matches.
-        if (0 === strpos($requestUri, $baseUrl)) {
+        if (str_starts_with($requestUri, $baseUrl)) {
             return $baseUrl;
         }
 
         // Directory portion of base path matches.
         $baseDir = str_replace('\\', '/', dirname($baseUrl));
-        if (0 === strpos($requestUri, $baseDir)) {
+        if (str_starts_with($requestUri, $baseDir)) {
             return $baseDir;
         }
 
@@ -330,7 +327,7 @@ class Application
         $basename = basename($baseUrl);
 
         // No match whatsoever
-        if (empty($basename) || false === strpos($truncatedRequestUri, $basename)) {
+        if (empty($basename) || !str_contains($truncatedRequestUri, $basename)) {
             return '';
         }
 
@@ -347,7 +344,7 @@ class Application
     }
 
     /**
-     * Detect the base URI for the request
+     * Detect the base URI for the request.
      *
      * Looks at a variety of criteria in order to attempt to autodetect a base
      * URI, including rewrite URIs, proxy URIs, etc.

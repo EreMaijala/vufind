@@ -32,7 +32,6 @@ namespace VuFind\View\Helper\Root;
 use DateTime;
 use Laminas\Feed\Writer\Feed;
 use Laminas\Feed\Writer\Writer as FeedWriter;
-use VuFind\View\Helper\Root\ServerUrl;
 use Psr\Container\ContainerInterface;
 use VuFind\I18n\Translator\TranslatorAwareInterface;
 use VuFind\RecordDriver\AbstractBase as RecordDriver;

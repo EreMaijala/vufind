@@ -31,6 +31,7 @@ namespace VuFind\AjaxHandler;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
+use Laminas\View\HelperPluginManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use VuFind\Http\RouteHelper;
@@ -79,7 +80,7 @@ class IdentifierLinksLookupFactory implements \Laminas\ServiceManager\Factory\Fa
             $container->get(TemplateRendererInterface::class),
             $container->get(ServerUrlHelper::class),
             $container->get(RouteHelper::class),
-            $container->get('ViewHelperManager')->get(Icon::class),
+            $container->get(HelperPluginManagerInterface::class)->get(Icon::class),
             $config
         );
     }

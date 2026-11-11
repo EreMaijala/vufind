@@ -76,7 +76,6 @@ class Module implements ModuleInterface
         ];
     }
 
-
     /**
      * Initialize the module.
      *

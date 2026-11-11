@@ -314,7 +314,7 @@ class RateLimiterManager implements LoggerAwareInterface, TranslatorAwareInterfa
      * Check if an event matches a filter.
      *
      * @param EventInterface $event  Event
-     * @param array    $filter Filter from configuration
+     * @param array          $filter Filter from configuration
      *
      * @return bool
      */
@@ -363,7 +363,7 @@ class RateLimiterManager implements LoggerAwareInterface, TranslatorAwareInterfa
      * Get a response message for too many requests.
      *
      * @param EventInterface $event  Request event
-     * @param array    $result Rate limiter result
+     * @param array          $result Rate limiter result
      *
      * @return string
      */

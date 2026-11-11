@@ -29,7 +29,6 @@
 
 namespace VuFind\View\Helper\Root;
 
-use VuFind\View\Helper\Root\Url;
 use VuFind\ServiceManager\Factory\Autowire;
 
 /**

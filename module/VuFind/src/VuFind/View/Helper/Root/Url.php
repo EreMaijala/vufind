@@ -29,15 +29,14 @@
 
 namespace VuFind\View\Helper\Root;
 
-use InvalidArgumentException;
 use Laminas\Router\RouteMatchInterface;
 use Laminas\Router\RouteStackInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use RuntimeException;
 use VuFind\Application;
-use VuFind\ServiceManager\Factory\Autowire;
 
 use function func_num_args;
+use function is_bool;
 
 /**
  * Url view helper.
@@ -55,9 +54,9 @@ class Url
     /**
      * Constructor.
      *
-     * @param ?ServerRequestInterface $request Request object for GET parameters
-     * @param RouteStackInterface $router Router,
-     * @param ?RouteMatchInterface $routeMatch Route match returned by the router
+     * @param ?ServerRequestInterface $request    Request object for GET parameters
+     * @param RouteStackInterface     $router     Router,
+     * @param ?RouteMatchInterface    $routeMatch Route match returned by the router
      */
     public function __construct(
         protected Application $application,

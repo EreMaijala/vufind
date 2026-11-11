@@ -33,7 +33,6 @@ use InvalidArgumentException;
 use Laminas\Uri\Http;
 use Laminas\View\Model\ModelInterface;
 use Laminas\View\Model\ViewModel;
-use Laminas\View\Renderer\PhpRenderer;
 use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use Laminas\View\ViewInterface;
@@ -67,14 +66,14 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
     /**
      * Constructor.
      *
-     * @param ServerUrlHelper        $serverUrlHelper        Server URL helper
-     * @param RendererInterface      $viewRenderer           View renderer
-     * @param ViewInterface          $view                   View
-     * @param ResolverInterface      $templateResolver       Template resolver
-     * @param bool                   $displayExceptions      Display exceptions?
-     * @param string                 $notFoundTemplate       Template for 404 errors
-     * @param string                 $errorTemplate          Template for errors
-     * @param GlobalsContainer       $globalsContainer       Global data container
+     * @param ServerUrlHelper   $serverUrlHelper   Server URL helper
+     * @param RendererInterface $viewRenderer      View renderer
+     * @param ViewInterface     $view              View
+     * @param ResolverInterface $templateResolver  Template resolver
+     * @param bool              $displayExceptions Display exceptions?
+     * @param string            $notFoundTemplate  Template for 404 errors
+     * @param string            $errorTemplate     Template for errors
+     * @param GlobalsContainer  $globalsContainer  Global data container
      */
     public function __construct(
         protected ServerUrlHelper $serverUrlHelper,

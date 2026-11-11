@@ -29,9 +29,9 @@
 
 namespace VuFind\EventManager;
 
-use Psr\Container\ContainerInterface;
 use Laminas\EventManager\EventManager;
 use Laminas\ServiceManager\Factory\FactoryInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Event manager factory.
@@ -45,13 +45,13 @@ use Laminas\ServiceManager\Factory\FactoryInterface;
 class EventManagerFactory implements FactoryInterface
 {
     /**
-     * Create an EventManager instance
+     * Create an EventManager instance.
      *
      * Creates a new EventManager instance, seeding it with a shared instance of SharedEventManager.
      *
-     * @param  ContainerInterface $container
-     * @param  string $name
-     * @param  ?array $options
+     * @param ContainerInterface $container
+     * @param string             $name
+     * @param ?array             $options
      *
      * @return object
      */

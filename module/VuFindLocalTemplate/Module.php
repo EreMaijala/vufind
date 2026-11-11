@@ -29,11 +29,10 @@
 
 namespace VuFindLocalTemplate;
 
+use Laminas\EventManager\EventManagerInterface;
 use Psr\Container\ContainerInterface;
 use VuFind\EventManager\Event;
-use Laminas\EventManager\EventManagerInterface;
 use VuFind\ModuleManager\ModuleInterface;
-use VuFind\ModuleManager\ModuleManager;
 
 /**
  * Template for code module for storing local overrides.
@@ -72,7 +71,7 @@ class Module implements ModuleInterface
     /**
      * Bootstrap the module.
      *
-     * @param Event $event Event
+     * @param Event              $event     Event
      * @param ContainerInterface $container Service manager
      *
      * @return void
