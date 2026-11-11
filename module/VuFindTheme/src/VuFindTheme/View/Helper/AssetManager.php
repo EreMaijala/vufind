@@ -30,7 +30,6 @@
 namespace VuFindTheme\View\Helper;
 
 use Laminas\View\Helper\HeadLink;
-use Laminas\View\Helper\HeadScript;
 use Laminas\View\Helper\HeadStyle;
 use Laminas\View\Helper\InlineScript;
 use VuFind\View\Helper\Root\Url;
@@ -119,7 +118,7 @@ class AssetManager
      * @param array  $extras                Array of extra attributes
      * @param array  $options               Additional options (supported: exclude_from_pipeline)
      *
-     * @return void
+     * @return static
      */
     public function appendStyleLink(
         string $href,
@@ -302,10 +301,9 @@ class AssetManager
         $output = [];
         $processedScripts = $this->pipeline->process($this->scripts[$position], 'js');
         foreach ($processedScripts as $script) {
-            $options = $script['options'] ?? [];
             // Every $script will have either a script attribute (inline JS) or a src attribute (file):
             if (isset($script['script'])) {
-                $output[] = $this->outputInlineScriptString($script['script'], $script['attrs'], $options);
+                $output[] = $this->outputInlineScriptString($script['script'], $script['attrs']);
             } else {
                 if ($this->isRelativePath($script['src'])) {
                     if ($themePath = $this->applyThemeToRelativePath('js/' . $script['src'])) {
@@ -333,8 +331,11 @@ class AssetManager
                     $sheet['href'] = $themePath;
                 }
             }
-
-            $this->headLink->appendStylesheet($sheet['href'], $sheet);
+            $attributes = $sheet['extras'];
+            if ($media = $sheet['media'] ?? null) {
+                $attributes['media'] = $media;
+            }
+            $this->headLink->appendStylesheet($sheet['href'], $attributes);
         }
 
         foreach ($this->styles as $style) {
@@ -357,8 +358,8 @@ class AssetManager
     /**
      * Output an inline script.
      *
-     * @param string $script  Script code
-     * @param array  $attrs   Additional attributes for the script tag
+     * @param string $script Script code
+     * @param array  $attrs  Additional attributes for the script tag
      *
      * @return string
      */
@@ -377,8 +378,8 @@ class AssetManager
     /**
      * Output an inline script file.
      *
-     * @param string $src     Script src
-     * @param array  $attrs   Additional attributes for the script tag
+     * @param string $src   Script src
+     * @param array  $attrs Additional attributes for the script tag
      *
      * @return string
      */
