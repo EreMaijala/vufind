@@ -32,7 +32,6 @@ namespace VuFindConsole\Command\ScheduledSearch;
 use DateTime;
 use Exception;
 use Laminas\I18n\Translator\Translator;
-use Laminas\View\Renderer\PhpRenderer;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -42,13 +41,17 @@ use VuFind\Crypt\SecretCalculator;
 use VuFind\Db\Entity\SearchEntityInterface;
 use VuFind\Db\Entity\UserEntityInterface;
 use VuFind\Db\Service\SearchServiceInterface;
+use VuFind\Http\RouteHelper;
 use VuFind\I18n\Locale\LocaleSettings;
+use VuFind\I18n\Translator\TranslationCollector\DynamicFileListCollector;
 use VuFind\I18n\Translator\TranslatorAwareInterface;
 use VuFind\Mailer\Mailer;
 use VuFind\Search\Results\PluginManager as ResultsManager;
+use VuFind\View\Renderer\TemplateRendererInterface;
 
 use function count;
 use function in_array;
+use function is_callable;
 use function sprintf;
 
 /**
@@ -85,13 +88,6 @@ class NotifyCommand extends Command implements TranslatorAwareInterface
     protected $iso8601 = 'Y-m-d\TH:i:s\Z';
 
     /**
-     * URL helper.
-     *
-     * @var \VuFind\View\Helper\Root\Url
-     */
-    protected $urlHelper;
-
-    /**
      * Number of results to retrieve when performing searches.
      *
      * @var int
@@ -108,21 +104,23 @@ class NotifyCommand extends Command implements TranslatorAwareInterface
     /**
      * Constructor.
      *
-     * @param SecretCalculator       $secretCalculator Secret calculator
-     * @param PhpRenderer            $renderer         View renderer
-     * @param ResultsManager         $resultsManager   Search results plugin manager
-     * @param array                  $scheduleOptions  Configured schedule options
-     * @param array                  $mainConfig       Top-level VuFind configuration
-     * @param Mailer                 $mailer           Mail service
-     * @param SearchServiceInterface $searchService    Search table
-     * @param LocaleSettings         $localeSettings   Locale settings object
-     * @param DynamicFileListCollector $translationCollector Translation collector
-     * @param string|null            $name             The name of the command; passing
-     * null means it must be set in configure()
+     * @param SecretCalculator          $secretCalculator     Secret calculator
+     * @param TemplateRendererInterface $templateRenderer     Template renderer
+     * @param ResultsManager            $resultsManager       Search results plugin manager
+     * @param array                     $scheduleOptions      Configured schedule options
+     * @param array                     $mainConfig           Top-level VuFind configuration
+     * @param Mailer                    $mailer               Mail service
+     * @param SearchServiceInterface    $searchService        Search table
+     * @param LocaleSettings            $localeSettings       Locale settings object
+     * @param DynamicFileListCollector  $translationCollector Translation collector
+     * @param RouteHelper               $routeHelper          Route helper
+     * @param string|null               $name                 The name of the command; passing
+     *                                                        null means it must be set in
+     *                                                        configure()
      */
     public function __construct(
         protected SecretCalculator $secretCalculator,
-        protected PhpRenderer $renderer,
+        protected TemplateRendererInterface $templateRenderer,
         protected ResultsManager $resultsManager,
         protected array $scheduleOptions,
         protected array $mainConfig,
@@ -130,9 +128,9 @@ class NotifyCommand extends Command implements TranslatorAwareInterface
         protected SearchServiceInterface $searchService,
         protected LocaleSettings $localeSettings,
         protected DynamicFileListCollector $translationCollector,
+        protected RouteHelper $routeHelper,
         $name = null
     ) {
-        $this->urlHelper = $renderer->plugin('url');
         parent::__construct($name);
     }
 
@@ -272,11 +270,11 @@ class NotifyCommand extends Command implements TranslatorAwareInterface
         if ($userLang != '' && in_array($userLang, $allLanguages)) {
             $language = $userLang;
         }
-        if (!($this->translator instanceof Translator)) {
-            throw new \Exception('Translator must be an instance of Laminas I18N Translator');
+        if (!is_callable([$this->translator, 'setLocale'])) {
+            throw new \Exception('Translator must implement the setLocale method');
         }
         $this->translator->setLocale($language);
-        $this->addLanguageToTranslator(
+        $this->addLanguageToTranslationCollector(
             $this->translationCollector,
             $this->localeSettings,
             $language
@@ -379,13 +377,13 @@ class NotifyCommand extends Command implements TranslatorAwareInterface
     protected function buildEmail($s, $user, $searchObject, $newRecords)
     {
         $viewBaseUrl = $searchUrl = $s->getNotificationBaseUrl();
-        $searchUrl .= ($this->urlHelper)(
-            $searchObject->getOptions()->getSearchAction()
-        ) . $searchObject->getUrlQuery()->getParams(false);
+        $searchUrl .= $this->routeHelper->getUrlFromRoute($searchObject->getOptions()->getSearchAction())
+            . $searchObject->getUrlQuery()->getParams(false);
         $secret = $this->secretCalculator->getSearchUnsubscribeSecret($s);
-        $unsubscribeUrl = $s->getNotificationBaseUrl()
-            . ($this->urlHelper)('account-unsubscribe')
-            . "?id={$s->getId()}&key=$secret";
+        $unsubscribeUrl = $s->getNotificationBaseUrl() . $this->routeHelper->getUrlFromRoute(
+            'account-unsubscribe',
+            queryParams: ['id' => $s->getId(), 'key' => $secret]
+        );
         $params = $searchObject->getParams();
         // Filter function to only pass along selected checkboxes:
         $selectedCheckboxes = function ($data) {
@@ -407,8 +405,8 @@ class NotifyCommand extends Command implements TranslatorAwareInterface
                 'filters' => $params->getFilterList(true),
              ],
         ];
-        return $this->renderer
-            ->render('Email/scheduled-alert.phtml', $viewParams);
+        return $this->templateRenderer
+            ->renderTemplateAsString(template: 'Email/scheduled-alert.phtml', params: $viewParams);
     }
 
     /**
