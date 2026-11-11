@@ -106,7 +106,7 @@ class Url
                 throw new RuntimeException('No RouteMatch instance provided');
             }
 
-            $name = (string) $this->routeMatch->getMatchedRouteName();
+            $name = $this->routeMatch->getMatchedRouteName();
 
             if ($name === '') {
                 throw new RuntimeException('RouteMatch does not contain a matched route name');

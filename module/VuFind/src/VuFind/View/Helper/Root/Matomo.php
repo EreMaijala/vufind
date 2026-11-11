@@ -29,13 +29,12 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\Http\PhpEnvironment\Request;
 use Laminas\Router\Http\TreeRouteStack;
 use Laminas\View\Helper\EscapeJs;
-use VuFind\View\Helper\Root\HeadTitle;
 use Laminas\View\Helper\ViewModel;
 use Laminas\View\Renderer\PhpRenderer;
 use Laminas\View\Renderer\RendererInterface;
+use VuFind\Application;
 use VuFind\RecordDriver\AbstractBase as RecordDriverBase;
 use VuFind\Search\Base\Results;
 use VuFind\ServiceManager\Factory\Autowire;
@@ -125,7 +124,7 @@ class Matomo
      *
      * @param array             $config        VuFind configuration
      * @param TreeRouteStack    $router        Router
-     * @param Request           $request       Request
+     * @param Application       $application   Application
      * @param RendererInterface $viewRenderer  View renderer
      * @param AssetManager      $assetManager  AssetManager view helper
      * @param ViewModel         $viewModel     ViewModel view helper
@@ -139,8 +138,7 @@ class Matomo
         array $config,
         #[Autowire(service: 'HttpRouter')]
         protected TreeRouteStack $router,
-        #[Autowire(service: 'Request')]
-        protected Request $request,
+        protected Application $application,
         protected RendererInterface $viewRenderer,
         #[Autowire(container: 'ViewHelperManager')]
         protected AssetManager $assetManager,
@@ -511,12 +509,15 @@ class Matomo
      */
     protected function getPageUrl(): string
     {
-        $path = $this->request->getUri()->toString();
+        if (!($request = $this->application->getRequest())) {
+            return '';
+        }
+        $path = (string)$request->getUri();
         // Replace 'AjaxTab' with tab name in record page URLs:
-        $routeMatch = $this->router->match($this->request);
+        $routeMatch = $this->router->match($request);
         if (
             $routeMatch
-            && ($tab = $this->request->getPost('tab'))
+            && ($tab = $request->getParsedBody()['tab'])
             && str_ends_with($routeMatch->getMatchedRouteName(), '-ajaxtab')
             && null !== ($pos = strrpos($path, '/AjaxTab'))
         ) {

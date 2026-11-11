@@ -186,7 +186,7 @@ class RecordLinker
             $details['params'] ?: [],
             [
                 'query' => $this->getRecordUrlParams($options) + $query,
-                'fragment' => $anchor ? ltrim($anchor, '#') : '',
+                'fragment' => $anchor ? ltrim($anchor, '#') : null,
                 'normalize_path' => false, // required to keep slashes encoded
             ]
         );
