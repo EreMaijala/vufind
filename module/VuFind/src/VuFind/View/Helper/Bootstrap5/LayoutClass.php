@@ -30,8 +30,6 @@
 
 namespace VuFind\View\Helper\Bootstrap5;
 
-use Laminas\View\Helper\Layout;
-
 /**
  * Helper class for managing bootstrap theme's high-level (body vs. sidebar) page
  * layout.
@@ -50,13 +48,11 @@ class LayoutClass extends \VuFind\View\Helper\AbstractLayoutClass
      * @param bool $sidebarOnLeft Does the sidebar go on the left?
      * @param bool $offcanvas     Is offcanvas menu active?
      * @param bool $rtl           Are we in right-to-left mode?
-     * @param bool $layoutHelper  Layout Helper
      */
     public function __construct(
         bool $sidebarOnLeft,
         bool $offcanvas,
         bool $rtl,
-        protected Layout $layoutHelper
     ) {
         parent::__construct($sidebarOnLeft, $offcanvas, $rtl);
     }
@@ -73,10 +69,6 @@ class LayoutClass extends \VuFind\View\Helper\AbstractLayoutClass
      */
     public function __invoke(string $class, bool $hasSidebar = true)
     {
-        $overwrittenSidebarOnLeft = ($this->layoutHelper)()->sidebarOnLeft;
-        if ($overwrittenSidebarOnLeft !== null) {
-            $this->sidebarOnLeft = $overwrittenSidebarOnLeft;
-        }
         switch ($class) {
             case 'mainbody':
                 if (!$hasSidebar) {
