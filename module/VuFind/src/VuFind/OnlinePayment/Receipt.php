@@ -32,7 +32,6 @@ declare(strict_types=1);
 namespace VuFind\OnlinePayment;
 
 use Laminas\Router\RouteInterface;
-use Laminas\View\Renderer\PhpRenderer;
 use Mpdf\Mpdf;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Part\DataPart;
@@ -46,6 +45,7 @@ use VuFind\I18n\Translator\TranslatorAwareInterface;
 use VuFind\I18n\Translator\TranslatorAwareTrait;
 use VuFind\Mailer\Mailer;
 use VuFind\Service\CurrencyFormatter;
+use VuFind\View\Renderer\TemplateRendererInterface;
 
 use function count;
 
@@ -98,7 +98,8 @@ class Receipt implements TranslatorAwareInterface
      * @param CurrencyFormatter          $currencyFormatter Currency formatter
      * @param RouteInterface             $router            Router
      * @param Mailer                     $mailer            Mailer
-     * @param PhpRenderer                $renderer          View renderer
+     * @param TemplateRendererInterface  $templateRenderer  Template renderer
+     *
      * @param PaymentFeeServiceInterface $paymentFeeService Payment fee database service
      * @param string                     $cacheDir          Cache directory for temporary files
      */
@@ -109,7 +110,7 @@ class Receipt implements TranslatorAwareInterface
         protected CurrencyFormatter $currencyFormatter,
         protected RouteInterface $router,
         protected Mailer $mailer,
-        protected PhpRenderer $renderer,
+        protected TemplateRendererInterface $templateRenderer,
         protected PaymentFeeServiceInterface $paymentFeeService,
         protected string $cacheDir
     ) {
@@ -158,9 +159,9 @@ class Receipt implements TranslatorAwareInterface
         }
         $creator = $this->config['Site']['generator'] ?? 'VuFind';
 
-        $pdfHtml = $this->renderer->partial(
-            'OnlinePayment/receipt.phtml',
-            compact(
+        $pdfHtml = $this->templateRenderer->renderTemplateAsString(
+            template: 'OnlinePayment/receipt.phtml',
+            params: compact(
                 'payment',
                 'paidDate',
                 'sourceIls',
@@ -247,9 +248,9 @@ class Receipt implements TranslatorAwareInterface
         $sourceIls = $payment->getSourceIls();
         $sourceName = $this->getSourceName($payment);
         $contactInfo = $this->getContactInfo($sourceIls);
-        $messageContent = $this->renderer->partial(
-            'Email/receipt.phtml',
-            compact('user', 'patronProfile', 'payment', 'sourceIls', 'sourceName', 'contactInfo')
+        $messageContent = $this->templateRenderer->renderTemplateAsString(
+            template: 'Email/receipt.phtml',
+            params: compact('user', 'patronProfile', 'payment', 'sourceIls', 'sourceName', 'contactInfo')
         );
         $pdf = (new DataPart($data['pdf'], $data['filename'], 'application/pdf'))->asInline();
 
