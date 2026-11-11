@@ -31,6 +31,7 @@ namespace VuFind\Search\Factory;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
+use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -216,7 +217,7 @@ class PrimoBackendFactory extends AbstractBackendFactory
 
         $session = new \Laminas\Session\Container(
             'Primo',
-            $this->getService(\Laminas\Session\SessionManager::class)
+            $this->getService(ManagerInterface::class)
         );
 
         // Create connector:

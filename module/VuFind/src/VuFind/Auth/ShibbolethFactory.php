@@ -31,6 +31,7 @@ namespace VuFind\Auth;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
+use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use VuFind\Auth\Shibboleth\ConfigurationLoaderInterface;
@@ -75,7 +76,7 @@ class ShibbolethFactory implements \Laminas\ServiceManager\Factory\FactoryInterf
         $loader = $this->getConfigurationLoader($container);
         $request = $container->get('Request');
         return new $requestedName(
-            $container->get(\Laminas\Session\SessionManager::class),
+            $container->get(ManagerInterface::class),
             $loader,
             $request,
             $container->get(\VuFind\Auth\ILSAuthenticator::class)

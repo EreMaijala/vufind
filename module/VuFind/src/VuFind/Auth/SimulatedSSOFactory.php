@@ -31,6 +31,8 @@ namespace VuFind\Auth;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
+use Laminas\Session\ManagerInterface;
+use Laminas\View\HelperPluginManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 
@@ -67,7 +69,7 @@ class SimulatedSSOFactory implements \Laminas\ServiceManager\Factory\FactoryInte
         if (!empty($options)) {
             throw new \Exception('Unexpected options passed to factory.');
         }
-        $helpers = $container->get('ViewHelperManager');
+        $helpers = $container->get(HelperPluginManagerInterface::class);
         // The view helpers aren't set up yet when this factory runs, so we need to
         // wrap the view helper functionality in a callback function to ensure
         // everything is ready when it is called.
@@ -83,7 +85,7 @@ class SimulatedSSOFactory implements \Laminas\ServiceManager\Factory\FactoryInte
             $getUrl,
             $config,
             $container->get(\VuFind\Auth\ILSAuthenticator::class),
-            $container->get(\Laminas\Session\SessionManager::class)
+            $container->get(ManagerInterface::class)
         );
     }
 }

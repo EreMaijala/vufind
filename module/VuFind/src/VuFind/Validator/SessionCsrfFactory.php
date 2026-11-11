@@ -34,6 +34,7 @@ namespace VuFind\Validator;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
+use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 
@@ -74,7 +75,7 @@ class SessionCsrfFactory implements FactoryInterface
             throw new \Exception('Unexpected options passed to factory.');
         }
         $config = $container->get(\VuFind\Config\ConfigManagerInterface::class)->getConfigArray('config');
-        $sessionManager = $container->get(\Laminas\Session\SessionManager::class);
+        $sessionManager = $container->get(ManagerInterface::class);
         return new $requestedName(
             [
                 'session' => new \Laminas\Session\Container('csrf', $sessionManager),

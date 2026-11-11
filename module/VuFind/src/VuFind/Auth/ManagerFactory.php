@@ -32,6 +32,7 @@ namespace VuFind\Auth;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
+use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use VuFind\Http\RouteHelper;
@@ -74,7 +75,7 @@ class ManagerFactory implements FactoryInterface
         $config = $container->get(\VuFind\Config\ConfigManagerInterface::class)->getConfigArray('config');
         $dbServiceManager = $container->get(\VuFind\Db\Service\PluginManager::class);
         $userService = $dbServiceManager->get(\VuFind\Db\Service\UserServiceInterface::class);
-        $sessionManager = $container->get(\Laminas\Session\SessionManager::class);
+        $sessionManager = $container->get(ManagerInterface::class);
         $pm = $container->get(\VuFind\Auth\PluginManager::class);
         $cookies = $container->get(\VuFind\Cookie\CookieManager::class);
         $csrf = $container->get(\VuFind\Validator\CsrfInterface::class);

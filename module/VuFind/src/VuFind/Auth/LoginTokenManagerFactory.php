@@ -33,6 +33,7 @@ use BrowscapPHP\Browscap;
 use Laminas\Cache\Psr\SimpleCache\SimpleCacheDecorator;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
+use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use VuFind\Db\Service\LoginTokenServiceInterface;
@@ -86,7 +87,7 @@ class LoginTokenManagerFactory implements \Laminas\ServiceManager\Factory\Factor
             $dbServiceManager->get(UserServiceInterface::class),
             $dbServiceManager->get(LoginTokenServiceInterface::class),
             $container->get(\VuFind\Cookie\CookieManager::class),
-            $container->get(\Laminas\Session\SessionManager::class),
+            $container->get(ManagerInterface::class),
             $container->get(\VuFind\Mailer\Mailer::class),
             $container->get('ViewRenderer'),
             [$this, 'getBrowscap']

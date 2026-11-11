@@ -31,7 +31,8 @@
 
 namespace VuFind\Action\Search;
 
-use Laminas\Session\SessionManager;
+use Laminas\Session\ManagerInterface;
+use Laminas\View\HelperPluginManagerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use VuFind\Auth\Manager as AuthManager;
 use VuFind\Config\ConfigManager;
@@ -80,7 +81,7 @@ abstract class AbstractNewItemAction extends AbstractSearchAndResultsFacetingAct
      * @param BlockLoader                $blockLoader                Content block loader
      * @param ConfigManager              $configManager              Configuration manager
      * @param RecordRouter               $recordRouter               Record router
-     * @param SessionManager             $sessionManager             Session manager
+     * @param ManagerInterface           $sessionManager             Session manager
      * @param SearchServiceInterface     $searchService              Search service
      * @param AuthManager                $authManager                Authentication manager
      * @param SearchNormalizer           $searchNormalizer           Search normalize
@@ -102,12 +103,12 @@ abstract class AbstractNewItemAction extends AbstractSearchAndResultsFacetingAct
         BlockLoader $blockLoader,
         ConfigManager $configManager,
         RecordRouter $recordRouter,
-        SessionManager $sessionManager,
+        ManagerInterface $sessionManager,
         #[Autowire(container: DbServicePluginManager::class)]
         SearchServiceInterface $searchService,
         AuthManager $authManager,
         SearchNormalizer $searchNormalizer,
-        #[Autowire(container: 'ViewHelperManager')]
+        #[Autowire(container: HelperPluginManagerInterface::class)]
         ResultFeed $resultFeedHelper,
         ThemeInfo $themeInfo,
         SearchHistory $searchHistory,
@@ -115,7 +116,7 @@ abstract class AbstractNewItemAction extends AbstractSearchAndResultsFacetingAct
         FacetCachePluginManager $facetCachePluginManager,
         HierarchicalFacetHelper $hierarchicalFacetHelper,
         protected NewItemsHelper $newItemsHelper,
-        #[Autowire(container: 'ViewHelperManager')]
+        #[Autowire(container: HelperPluginManagerInterface::class)]
         protected SearchTabs $searchTabsHelper,
     ) {
         parent::__construct(

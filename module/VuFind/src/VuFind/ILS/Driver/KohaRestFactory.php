@@ -31,6 +31,7 @@ namespace VuFind\ILS\Driver;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
+use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 
@@ -68,7 +69,7 @@ class KohaRestFactory extends \VuFind\ILS\Driver\DriverWithDateConverterFactory
             throw new \Exception('Unexpected options passed to factory.');
         }
         $sessionFactory = function ($namespace) use ($container) {
-            $manager = $container->get(\Laminas\Session\SessionManager::class);
+            $manager = $container->get(ManagerInterface::class);
             return new \Laminas\Session\Container("KohaRest_$namespace", $manager);
         };
         $currencyFormatter

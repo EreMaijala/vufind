@@ -34,6 +34,7 @@ use Laminas\Uri\Http;
 use Laminas\View\Model\ModelInterface;
 use Laminas\View\Model\ViewModel;
 use Laminas\View\Renderer\PhpRenderer;
+use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use Laminas\View\ViewInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -67,7 +68,7 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
      * Constructor.
      *
      * @param ServerUrlHelper        $serverUrlHelper        Server URL helper
-     * @param PhpRenderer            $viewRenderer           View renderer
+     * @param RendererInterface      $viewRenderer           View renderer
      * @param ViewInterface          $view                   View
      * @param ResolverInterface      $templateResolver       Template resolver
      * @param bool                   $displayExceptions      Display exceptions?
@@ -78,7 +79,7 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
     public function __construct(
         protected ServerUrlHelper $serverUrlHelper,
         #[Autowire(service: 'ViewRenderer')]
-        protected PhpRenderer $viewRenderer,
+        protected RendererInterface $viewRenderer,
         protected ViewInterface $view,
         protected ResolverInterface $templateResolver,
         #[Autowire(service: 'config', path: 'view_manager/display_exceptions', default: false)]
@@ -199,10 +200,7 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
         $this->globalsContainer['templateDir'] = $templateParts[0];
         $this->globalsContainer['templateName'] = $templateParts[1] ?? null;
 
-        $viewModel->setCaptureTo('content');
-
-        $layoutModel = new ViewModel([]);
-        $layoutModel->setTemplate('layout/layout');
+        $layoutModel = new ViewModel([], 'layout/layout');
         $this->setupRenderingInLightbox($request, $layoutModel);
         $layoutModel->addChild($viewModel);
 

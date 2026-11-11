@@ -32,6 +32,7 @@ namespace VuFind\ILS;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
+use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 
@@ -81,7 +82,7 @@ class ConnectionFactory implements FactoryInterface
             $container->get(\VuFind\ILS\HoldSettings::class)
         );
         $catalog->setCacheStorage($container->get(\VuFind\Cache\Manager::class)->getCache('object'));
-        $manager = $container->get(\Laminas\Session\SessionManager::class);
+        $manager = $container->get(ManagerInterface::class);
         $catalog->setSessionCache(new \Laminas\Session\Container('ILS', $manager));
         if ($cacheLifeTime = $config['Catalog']['cacheLifeTime'] ?? []) {
             $catalog->setCacheLifeTime($cacheLifeTime);

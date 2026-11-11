@@ -33,6 +33,7 @@ namespace VuFind\DigitalContent;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
+use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 
@@ -87,7 +88,7 @@ class OverdriveConnectorFactory implements
         if (PHP_SAPI !== 'cli') {
             $sessionContainer = new \Laminas\Session\Container(
                 'DigitalContent\OverdriveController',
-                $container->get(\Laminas\Session\SessionManager::class)
+                $container->get(ManagerInterface::class)
             );
         }
         $connector = new $requestedName(

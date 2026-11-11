@@ -31,6 +31,7 @@ namespace VuFind\AjaxHandler;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
+use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 
@@ -73,7 +74,7 @@ class SystemStatusFactory implements \Laminas\ServiceManager\Factory\FactoryInte
             \VuFind\Db\Service\PluginManager::class
         );
         return new $requestedName(
-            $container->get(\Laminas\Session\SessionManager::class),
+            $container->get(ManagerInterface::class),
             $container->get(\VuFind\Search\Results\PluginManager::class),
             $container->get(\VuFind\Config\ConfigManagerInterface::class)->getConfigArray('config'),
             $servicePluginManager->get(\VuFind\Db\Service\SessionServiceInterface::class),

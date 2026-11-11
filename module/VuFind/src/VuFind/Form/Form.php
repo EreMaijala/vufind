@@ -34,6 +34,7 @@ use DateTime;
 use Exception;
 use Laminas\Uri\UriFactory;
 use Laminas\View\HelperPluginManager;
+use Laminas\View\HelperPluginManagerInterface;
 use VuFind\Date\Converter as DateConverter;
 use VuFind\Exception\ConfigException;
 use VuFind\Form\Handler\HandlerInterface;
@@ -98,7 +99,7 @@ class Form implements \VuFind\I18n\Translator\TranslatorAwareInterface
     /**
      * Constructor.
      *
-     * @param HelperPluginManager   $viewHelperManager  View helper manager
+     * @param HelperPluginManagerInterface   $viewHelperManager  View helper manager
      * @param HandlerManager        $handlerManager     Handler plugin manager
      * @param DateConverter         $dateConverter      Date converter
      * @param EmailAddressValidator $emailValidator     Email address validator
@@ -106,8 +107,8 @@ class Form implements \VuFind\I18n\Translator\TranslatorAwareInterface
      * @param array                 $feedbackFormConfig Feedback form config
      */
     public function __construct(
-        #[Autowire(service: 'ViewHelperManager')]
-        protected HelperPluginManager $viewHelperManager,
+        #[Autowire(service: HelperPluginManagerInterface::class)]
+        protected HelperPluginManagerInterface $viewHelperManager,
         protected HandlerManager $handlerManager,
         protected DateConverter $dateConverter,
         protected EmailAddressValidator $emailValidator,
