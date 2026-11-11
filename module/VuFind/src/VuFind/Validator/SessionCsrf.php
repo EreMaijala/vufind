@@ -33,7 +33,6 @@ use InvalidArgumentException;
 use Laminas\Session\Container;
 use Laminas\Session\Validator\Csrf;
 
-use function array_slice;
 use function count;
 
 /**
@@ -84,14 +83,7 @@ class SessionCsrf implements CsrfInterface
      */
     public function trimTokenList($limit)
     {
-        if ($limit < 1) {
-            // Reset the array if necessary:
-            $this->sessionContainer->tokenList = [];
-        } elseif ($limit < $this->getTokenCount()) {
-            // Trim the array if necessary:
-            $this->sessionContainer->tokenList
-                = array_slice($this->sessionContainer->tokenList, -1 * $limit, null, true);
-        }
+        // This method only exists for back-compatibility.
     }
 
     /**
@@ -101,6 +93,7 @@ class SessionCsrf implements CsrfInterface
      */
     public function getTokenCount()
     {
+        // This method only exists for back-compatibility.
         return count($this->sessionContainer->tokenList ?? []);
     }
 
@@ -117,7 +110,7 @@ class SessionCsrf implements CsrfInterface
     public function getHash($regenerate = false)
     {
         if ($regenerate) {
-            $this->csrf = new Csrf($this->options);
+            throw new InvalidArgumentException('The regenerate parameter is no longer supported');
         }
         return $this->csrf->getHash();
     }
