@@ -117,8 +117,6 @@ class Application
 
         // Try to find a route match for the request:
         $basePath = $this->getBasePath();
-        /*$router = $this->container->get('HttpRouter');
-        $router->*/
         $routeMatch = $this->container->get('HttpRouter')->match($this->request, strlen($basePath));
         $this->request = $this->request
             ->withAttribute('route-match', $routeMatch)
