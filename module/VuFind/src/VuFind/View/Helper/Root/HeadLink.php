@@ -30,6 +30,8 @@
 namespace VuFind\View\Helper\Root;
 
 use Laminas\View\HelperPluginManager;
+use Override;
+use Stringable;
 use VuFind\ServiceManager\Factory\Autowire;
 
 use function call_user_func_array;
@@ -43,7 +45,7 @@ use function call_user_func_array;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development Wiki
  */
-class HeadLink
+class HeadLink implements Stringable
 {
     /**
      * Constructor.
@@ -51,7 +53,6 @@ class HeadLink
      * @param \Laminas\View\Helper\HeadLink $headLink Wrapped HeadLink helper
      */
     public function __construct(
-        #[Autowire(container: HelperPluginManager::class)]
         protected \Laminas\View\Helper\HeadLink $headLink,
     ) {
     }
@@ -84,6 +85,16 @@ class HeadLink
             ($this->headLink)($attributes);
         }
         return $this;
+    }
+
+    /**
+     * Convert to string.
+     *
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return (string)$this->headLink;
     }
 
     /**

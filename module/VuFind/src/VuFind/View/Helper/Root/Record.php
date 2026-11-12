@@ -44,6 +44,7 @@ use VuFind\Search\UrlQueryHelper;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\Tags\TagsService;
 use VuFind\View\GlobalsContainer;
+use VuFind\View\Renderer\TemplateRendererInterface;
 
 use function get_class;
 use function in_array;
@@ -79,7 +80,7 @@ class Record implements DbServiceAwareInterface
      * @param CoverRouter       $coverRouter       Cover router
      * @param Memory            $searchMemory      Search memory
      * @param Context           $contextHelper     Context helper
-     * @param RendererInterface $viewRenderer      View renderer
+     * @param TemplateRendererInterface $templateRenderer Template renderer
      * @param ResolverInterface $viewResolver      View resolver
      * @param SearchTabs        $searchTabs        SearchTabs helper
      * @param TransEsc          $transEsc          TransEsc helper
@@ -99,7 +100,7 @@ class Record implements DbServiceAwareInterface
         protected Memory $searchMemory,
         #[Autowire(container: 'ViewHelperManager')]
         Context $contextHelper,
-        RendererInterface $viewRenderer,
+        TemplateRendererInterface $templateRenderer,
         ResolverInterface $viewResolver,
         #[Autowire(container: 'ViewHelperManager')]
         protected SearchTabs $searchTabs,
@@ -123,7 +124,7 @@ class Record implements DbServiceAwareInterface
         #[Autowire(config: 'config', configType: 'array')]
         protected ?array $config = null
     ) {
-        $this->setClassBasedTemplateRendererDependencies($viewRenderer, $viewResolver, $contextHelper);
+        $this->setClassBasedTemplateRendererDependencies($templateRenderer, $viewResolver, $contextHelper);
     }
 
     /**
@@ -525,8 +526,7 @@ class Record implements DbServiceAwareInterface
         $classParts = explode('\\', $tab::class);
         $template = 'RecordTab/' . strtolower(array_pop($classParts)) . '.phtml';
 
-        // Render with a cloned renderer to avoid changing global state:
-        return (clone $this->viewRenderer)->render($template, $context);
+        return $this->getTemplateRenderer()->renderTemplateAsString(null, $template, $context);
     }
 
     /**

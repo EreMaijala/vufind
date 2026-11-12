@@ -1,5 +1,5 @@
 <div class="alert alert-info">
   <?=$this->transEsc('This result is not displayed to guests')?>
   <br>
-  <?=$this->partial('error/loginForAccess.phtml')?>
+  <?=$this->partial('error/loginForAccess.phtml', iterator_to_array($this))?>
 </div>

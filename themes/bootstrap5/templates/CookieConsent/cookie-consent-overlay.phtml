@@ -29,7 +29,7 @@
         </button>
       </p>
       <div class="collapse js-settings-collapse" id="cookie_consent_settings_collapse">
-        <?=$this->partial('CookieConsent/cookie-consent-settings.phtml')?>
+        <?=$this->partial('CookieConsent/cookie-consent-settings.phtml', iterator_to_array($this))?>
       </div>
     </div>
 

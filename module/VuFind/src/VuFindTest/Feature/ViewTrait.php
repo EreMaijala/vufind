@@ -77,7 +77,8 @@ trait ViewTrait
         $doctype = new Doctype();
         $services = [
             \Laminas\View\Helper\Doctype::class => new \Laminas\View\Helper\Doctype(),
-            \Laminas\View\Helper\HeadLink::class => new \Laminas\View\Helper\HeadLink($escaper, $doctype),
+            \VuFind\View\Helper\Root\HeadLink::class
+                => new \VuFind\View\Helper\Root\HeadLink(new \Laminas\View\Helper\HeadLink($escaper, $doctype)),
             \Laminas\View\Helper\HeadStyle::class => new \Laminas\View\Helper\HeadStyle($escaper, $doctype),
             \Laminas\View\Helper\InlineScript::class => new \Laminas\View\Helper\InlineScript($escaper, $doctype),
             \VuFind\View\Helper\Root\Url::class => new \VuFind\View\Helper\Root\Url(

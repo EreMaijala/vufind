@@ -4,7 +4,7 @@
 ?>
 <?php if ('email' === $loginMethod): ?>
   <?php if ($authManager->getPreAuthenticationData()): ?>
-    <?=$this->auth()->getOtpLoginFields()?>
+    <?=$this->auth()->getOtpLoginFields(iterator_to_array($this))?>
   <?php else: ?>
     <div class="form-group">
       <label class="form-label" for="login_<?=$this->escapeHtmlAttr($topClass)?>_username"><?=$this->transEsc('Email')?>:</label>

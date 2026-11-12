@@ -4,5 +4,5 @@
   <input type="hidden" value="<?=$this->escapeHtmlAttr($this->auth()->getManager()->getCsrfHash())?>" name="csrf">
   <input type="hidden" value="<?=$this->escapeHtmlAttr($this->target)?>" name="target">
 
-  <?=$this->auth()->getPasswordRecoveryForm() ?>
+  <?=$this->auth()->getPasswordRecoveryForm(iterator_to_array($this)) ?>
 </form>

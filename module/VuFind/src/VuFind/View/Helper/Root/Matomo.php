@@ -38,6 +38,7 @@ use VuFind\Application;
 use VuFind\RecordDriver\AbstractBase as RecordDriverBase;
 use VuFind\Search\Base\Results;
 use VuFind\ServiceManager\Factory\Autowire;
+use VuFind\View\GlobalsContainer;
 use VuFindTheme\View\Helper\AssetManager;
 
 use function intval;
@@ -126,6 +127,7 @@ class Matomo
      * @param TreeRouteStack    $router        Router
      * @param Application       $application   Application
      * @param RendererInterface $viewRenderer  View renderer
+     * @param GlobalsContainer $globalsContainer Globals container
      * @param AssetManager      $assetManager  AssetManager view helper
      * @param ViewModel         $viewModel     ViewModel view helper
      * @param EscapeJs          $escapejs      EscapeJs view helper
@@ -140,10 +142,9 @@ class Matomo
         protected TreeRouteStack $router,
         protected Application $application,
         protected RendererInterface $viewRenderer,
+        protected GlobalsContainer $globalsContainer,
         #[Autowire(container: 'ViewHelperManager')]
         protected AssetManager $assetManager,
-        #[Autowire(container: 'ViewHelperManager')]
-        protected ViewModel $viewModel,
         #[Autowire(container: 'ViewHelperManager')]
         protected EscapeJs $escapejs,
         #[Autowire(container: 'ViewHelperManager')]
@@ -295,18 +296,15 @@ class Matomo
      */
     protected function getSearchResults(): ?Results
     {
-        $current = $this->viewModel->getCurrent();
-        if (null === $current || 'layout/lightbox' === $current->getTemplate()) {
+        $viewModel = $this->globalsContainer['viewModel'] ?? null;
+        if (null === $viewModel || 'layout/lightbox' === $viewModel->getTemplate()) {
             return null;
         }
-        $children = $current->getChildren();
-        if (isset($children[0])) {
-            $template = $children[0]->getTemplate();
-            if (!strstr($template, '/home') && !strstr($template, 'facet-list')) {
-                $results = $children[0]->getVariable('results');
-                if ($results instanceof Results) {
-                    return $results;
-                }
+        $template = $viewModel->getTemplate();
+        if (!strstr($template, '/home') && !strstr($template, 'facet-list')) {
+            $results = $viewModel->getVariable('results');
+            if ($results instanceof Results) {
+                return $results;
             }
         }
         return null;
@@ -320,16 +318,13 @@ class Matomo
      */
     protected function getCombinedSearchResults(): ?array
     {
-        $current = $this->viewModel->getCurrent();
-        if (null === $current) {
+        $viewModel = $this->globalsContainer['viewModel'] ?? null;
+        if (null === $viewModel) {
             return null;
         }
-        $children = $current->getChildren();
-        if (isset($children[0])) {
-            $results = $children[0]->getVariable('combinedResults');
-            if (is_array($results)) {
-                return $results;
-            }
+        $results = $viewModel->getVariable('combinedResults');
+        if (is_array($results)) {
+             return $results;
         }
         return null;
     }
@@ -341,22 +336,13 @@ class Matomo
      */
     protected function getRecordDriver(): ?RecordDriverBase
     {
-        $current = $this->viewModel->getCurrent();
-        if (null === $current) {
-            if ($this->viewRenderer instanceof PhpRenderer) {
-                $driver = $this->viewRenderer->vars('driver');
-                if ($driver instanceof RecordDriverBase) {
-                    return $driver;
-                }
-            }
+        $viewModel = $this->globalsContainer['viewModel'] ?? null;
+        if (null === $viewModel) {
             return null;
         }
-        $children = $current->getChildren();
-        if (isset($children[0])) {
-            $driver = $children[0]->getVariable('driver');
-            if ($driver instanceof RecordDriverBase) {
-                return $driver;
-            }
+        $driver = $viewModel->getVariable('driver');
+        if ($driver instanceof RecordDriverBase) {
+            return $driver;
         }
         return null;
     }
@@ -517,7 +503,7 @@ class Matomo
         $routeMatch = $this->router->match($request);
         if (
             $routeMatch
-            && ($tab = $request->getParsedBody()['tab'])
+            && ($tab = $request->getParsedBody()['tab'] ?? null)
             && str_ends_with($routeMatch->getMatchedRouteName(), '-ajaxtab')
             && null !== ($pos = strrpos($path, '/AjaxTab'))
         ) {

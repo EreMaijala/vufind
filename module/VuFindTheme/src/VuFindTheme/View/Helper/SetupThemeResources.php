@@ -29,7 +29,7 @@
 
 namespace VuFindTheme\View\Helper;
 
-use Laminas\View\Helper\HeadLink;
+use VuFind\View\Helper\Root\HeadLink;
 use Laminas\View\Helper\HeadMeta;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFindTheme\ResourceContainer;

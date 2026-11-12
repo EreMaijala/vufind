@@ -36,6 +36,7 @@ use Laminas\ServiceManager\Factory\FactoryInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
+use VuFind\View\Renderer\TemplateRendererInterface;
 
 /**
  * Captcha helper factory.
@@ -85,7 +86,7 @@ class CaptchaFactory implements FactoryInterface
         return new $requestedName(
             $config,
             $captchas,
-            $container->get('ViewRenderer'),
+            $container->get(TemplateRendererInterface::class),
             $container->get(ResolverInterface::class),
             $container->get('ViewHelperManager')->get('context')
         );

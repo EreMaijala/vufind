@@ -90,6 +90,6 @@
 </ul>
 <?=$pageLinks ?>
 <div class="clearfix">
-  <?=$this->partial('collections/list.phtml')?>
+  <?=$this->partial('collections/list.phtml', iterator_to_array($this))?>
 </div><br>
 <?=$pageLinks ?>

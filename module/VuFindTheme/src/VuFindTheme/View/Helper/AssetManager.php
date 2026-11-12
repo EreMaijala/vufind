@@ -29,7 +29,7 @@
 
 namespace VuFindTheme\View\Helper;
 
-use Laminas\View\Helper\HeadLink;
+use VuFind\View\Helper\Root\HeadLink;
 use Laminas\View\Helper\HeadStyle;
 use Laminas\View\Helper\InlineScript;
 use VuFind\View\Helper\Root\Url;
@@ -342,7 +342,7 @@ class AssetManager
             $this->headStyle->appendStyle($style['css'], $style['attributes']);
         }
 
-        return ($this->headLink)() . "\n" . ($this->headStyle)();
+        return $this->headLink->toString() . "\n" . ($this->headStyle)();
     }
 
     /**

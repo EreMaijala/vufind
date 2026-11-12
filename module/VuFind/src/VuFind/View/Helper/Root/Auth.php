@@ -41,6 +41,7 @@ use VuFind\Db\Service\DbServiceAwareTrait;
 use VuFind\Db\Service\LoginTokenServiceInterface;
 use VuFind\Exception\ILS as ILSException;
 use VuFind\ServiceManager\Factory\Autowire;
+use VuFind\View\Renderer\TemplateRendererInterface;
 
 /**
  * Authentication view helper.
@@ -61,19 +62,19 @@ class Auth implements DbServiceAwareInterface
      *
      * @param Manager           $manager          Authentication manager
      * @param ILSAuthenticator  $ilsAuthenticator ILS Authenticator
-     * @param RendererInterface $viewRenderer     View renderer
+     * @param TemplateRendererInterface $templateRenderer Template renderer
      * @param ResolverInterface $viewResolver     View resolver
      * @param Context           $context          Context helper
      */
     public function __construct(
         protected Manager $manager,
         protected ILSAuthenticator $ilsAuthenticator,
-        RendererInterface $viewRenderer,
+        TemplateRendererInterface $templateRenderer,
         ResolverInterface $viewResolver,
         #[Autowire(container: 'ViewHelperManager')]
         Context $context,
     ) {
-        $this->setClassBasedTemplateRendererDependencies($viewRenderer, $viewResolver, $context);
+        $this->setClassBasedTemplateRendererDependencies($templateRenderer, $viewResolver, $context);
     }
 
     /**

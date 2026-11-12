@@ -37,6 +37,8 @@ use Laminas\View\Renderer\PhpRenderer;
 use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use Laminas\View\Resolver\TemplatePathStack;
+use Laminas\View\View;
+use Laminas\View\ViewInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 use VuFind\ActionHelper\LoginHelper;
@@ -51,6 +53,7 @@ use VuFind\View\Helper\Root\RecordDataFormatter;
 use VuFind\View\Helper\Root\SchemaOrg;
 use VuFind\View\Helper\Root\ServerUrl;
 use VuFind\View\Helper\Root\Url;
+use VuFind\View\Renderer\LaminasTemplateRenderer;
 
 use function count;
 
@@ -65,6 +68,7 @@ use function count;
  */
 class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
 {
+    use \VuFindTest\Feature\AutowireTrait;
     use \VuFindTest\Feature\FixtureTrait;
     use \VuFindTest\Feature\ViewTrait;
     use \VuFindTest\Feature\ConfigRelatedServicesTrait;
@@ -133,13 +137,22 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
             $escapeHtml
         );
 
+        $templateRenderer = $this->getAutowiredObject(
+            LaminasTemplateRenderer::class,
+            [
+                'config' => [],
+                ViewInterface::class => new View($renderer, $helperPluginManager, 'layout/layout', 'content'),
+                'ViewRenderer' => $renderer,
+            ]
+        );
+
         $authManager = $this->createMock(\VuFind\Auth\Manager::class);
         $authManager->method('loginEnabled')->willReturn(true);
         $authManager->method('inPrivacyMode')->willReturn(false);
         $auth = new \VuFind\View\Helper\Root\Auth(
             $authManager,
             $this->createMock(\VuFind\Auth\ILSAuthenticator::class),
-            $renderer,
+            $templateRenderer,
             $resolver,
             $context
         );
@@ -154,7 +167,7 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
             $coverRouter,
             $memory,
             $context,
-            $renderer,
+            $templateRenderer,
             $resolver,
             $this->createMock(\VuFind\View\Helper\Root\SearchTabs::class),
             $transEsc,

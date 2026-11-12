@@ -45,6 +45,7 @@ use VuFind\View\Helper\Root\Record;
 use VuFind\View\Helper\Root\SearchTabs;
 use VuFind\View\Helper\Root\ServerUrl;
 use VuFind\View\Helper\Root\Url;
+use VuFind\View\Renderer\TemplateRendererInterface;
 use VuFindTheme\ThemeInfo;
 
 /**
@@ -93,7 +94,8 @@ class RecordTest extends \PHPUnit\Framework\TestCase
             ],
             false
         );
-        $record->getViewRenderer()->method('render')->willThrowException(new RuntimeException('boom'));
+        $record->getTemplateRenderer()->method('renderTemplateAsString')
+            ->willThrowException(new RuntimeException('boom'));
         $record->getCoreMetadata();
     }
 
@@ -127,8 +129,8 @@ class RecordTest extends \PHPUnit\Framework\TestCase
             [['RecordDriver/SolrMarc/collection-record.phtml'], [$tpl]],
             [false, 'template']
         );
-        $record->getViewRenderer()->expects($this->once())->method('render')
-            ->with($tpl)
+        $record->getTemplateRenderer()->expects($this->once())->method('renderTemplateAsString')
+            ->with(null, $tpl)
             ->willReturn('success');
         $this->assertEquals('success', $record->getCollectionBriefRecord());
     }
@@ -245,8 +247,8 @@ class RecordTest extends \PHPUnit\Framework\TestCase
             [[/* anything */], [$tpl]],
             [false, 'template']
         );
-        $record->getViewRenderer()->expects($this->once())->method('render')
-            ->with($tpl)
+        $record->getTemplateRenderer()->expects($this->once())->method('renderTemplateAsString')
+            ->with(null, $tpl)
             ->willReturn('success');
         $this->assertEquals('success', $record->getListEntry(null, $user, $recordNumber));
     }
@@ -287,7 +289,7 @@ class RecordTest extends \PHPUnit\Framework\TestCase
         $record->getViewResolver()->method('resolve')->willReturn('template');
         $tpl1 = 'RecordDriver/SolrMarc/previewdata.phtml';
         $tpl2 = 'RecordDriver/SolrMarc/previewlink.phtml';
-        $callback = function ($tpl) use ($tpl1, $tpl2) {
+        $callback = function ($request, $tpl) use ($tpl1, $tpl2) {
             if ($tpl === $tpl1) {
                 return 'success1';
             } elseif ($tpl === $tpl2) {
@@ -296,8 +298,8 @@ class RecordTest extends \PHPUnit\Framework\TestCase
                 return 'fail';
             }
         };
-        $record->getViewRenderer()->method('render')
-            ->with($this->logicalOr($this->equalTo($tpl1), $this->equalTo($tpl2)))
+        $record->getTemplateRenderer()->method('renderTemplateAsString')
+            ->with(null, $this->logicalOr($this->equalTo($tpl1), $this->equalTo($tpl2)))
             ->willReturnCallback($callback);
         $this->assertEquals('success1success2', $record->getPreviews());
     }
@@ -505,8 +507,8 @@ class RecordTest extends \PHPUnit\Framework\TestCase
         $driver = $this->loadRecordFixture('testbug1.json');
         $context = $this->getMockContext();
         $record = $this->getRecord($driver, [], $context);
-        $record->getViewRenderer()->expects($this->once())->method('render')
-            ->with('RecordTab/description.phtml')
+        $record->getTemplateRenderer()->method('renderTemplateAsString')
+            ->with(null, 'RecordTab/description.phtml')
             ->willReturn('success');
         $this->assertEquals('success', $record->getTab($tab));
     }
@@ -751,6 +753,7 @@ class RecordTest extends \PHPUnit\Framework\TestCase
             ->disableOriginalConstructor()
             ->onlyMethods(['render'])
             ->getMock();
+        $templateRenderer = $this->createMock(TemplateRendererInterface::class);
 
         $serverUrlHelper = $this->getMockServerUrl($serverurl);
         $urlHelper = $url ? $this->getMockUrl($url) : $this->createMock(\VuFind\View\Helper\Root\Url::class);
@@ -758,7 +761,7 @@ class RecordTest extends \PHPUnit\Framework\TestCase
         $auth = new \VuFind\View\Helper\Root\Auth(
             $this->createMock(\VuFind\Auth\Manager::class),
             $this->createMock(\VuFind\Auth\ILSAuthenticator::class),
-            $view,
+            $templateRenderer,
             $resolver,
             $context
         );
@@ -768,7 +771,7 @@ class RecordTest extends \PHPUnit\Framework\TestCase
             new \VuFind\Cover\Router('http://foo/bar', $this->getCoverLoader()),
             $this->createMock(\VuFind\Search\Memory::class),
             $context,
-            $view,
+            $templateRenderer,
             $resolver,
             $searchTabs,
             $this->createMock(\VuFind\View\Helper\Root\TransEsc::class),
@@ -893,8 +896,8 @@ class RecordTest extends \PHPUnit\Framework\TestCase
         $record->getViewResolver()->expects($matcher ?? $this->once())->method('resolve')
             ->with($tpl)
             ->willReturn('template');
-        $record->getViewRenderer()->expects($matcher ?? $this->once())->method('render')
-            ->with($tpl)
+        $record->getTemplateRenderer()->expects($matcher ?? $this->once())->method('renderTemplateAsString')
+            ->with(null, $tpl)
             ->willReturn($response);
     }
 

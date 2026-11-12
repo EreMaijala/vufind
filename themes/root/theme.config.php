@@ -9,6 +9,8 @@ return [
             'VuFind\View\Helper\Root\AuthorNotes' => 'VuFind\View\Helper\Root\ContentLoaderFactory',
             'VuFind\View\Helper\Root\Captcha' => 'VuFind\View\Helper\Root\CaptchaFactory',
             'VuFind\View\Helper\Root\CleanHtml' => 'VuFind\View\Helper\Root\CleanHtmlFactory',
+            'VuFind\View\Helper\Root\HeadLink' => 'VuFind\View\Helper\Root\HeadLinkFactory',
+            'VuFind\View\Helper\Root\HeadTitle' => 'VuFind\View\Helper\Root\HeadTitleFactory',
             'VuFind\View\Helper\Root\GeoCoords' => 'VuFind\View\Helper\Root\GeoCoordsFactory',
             'VuFind\View\Helper\Root\GoogleAnalytics' => 'VuFind\View\Helper\Root\GoogleAnalyticsFactory',
             'VuFind\View\Helper\Root\Icon' => 'VuFind\View\Helper\Root\IconFactory',
@@ -139,6 +141,10 @@ return [
             'url' => 'VuFind\View\Helper\Root\Url',
             'userlist' => 'VuFind\View\Helper\Root\UserList',
             'usertags' => 'VuFind\View\Helper\Root\UserTags',
+
+            // Overrides:
+            'Laminas\View\Helper\HeadLink' => 'VuFind\View\Helper\Root\HeadLink',
+            'Laminas\View\Helper\HeadTitle' => 'VuFind\View\Helper\Root\HeadTitle',
         ],
     ],
 ];

@@ -32,6 +32,7 @@ namespace VuFind\View\Helper\Root;
 
 use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
+use VuFind\View\Renderer\TemplateRendererInterface;
 
 use function count;
 
@@ -54,18 +55,18 @@ class Captcha
      *
      * @param array                          $config       Config
      * @param \VuFind\Captcha\AbstractBase[] $captchas     Captchas
-     * @param RendererInterface              $viewRenderer View renderer
+     * @param TemplateRendererInterface $templateRenderer Template renderer
      * @param ResolverInterface              $viewResolver View resolver
      * @param Context                        $context      Context helper
      */
     public function __construct(
         protected array $config,
         protected array $captchas,
-        RendererInterface $viewRenderer,
+        TemplateRendererInterface $templateRenderer,
         ResolverInterface $viewResolver,
         Context $context
     ) {
-        $this->setClassBasedTemplateRendererDependencies($viewRenderer, $viewResolver, $context);
+        $this->setClassBasedTemplateRendererDependencies($templateRenderer, $viewResolver, $context);
     }
 
     /**
@@ -108,9 +109,9 @@ class Captcha
             return '';
         }
 
-        return $this->viewRenderer->render(
-            'Helpers/captcha',
-            [
+        return $this->templateRenderer->renderTemplateAsString(
+            template: 'Helpers/captcha',
+            params: [
                 'wrapHtml' => $wrapHtml,
                 'captchas' => $this->captchas,
             ]

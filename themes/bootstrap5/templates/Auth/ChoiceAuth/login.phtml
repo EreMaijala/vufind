@@ -6,7 +6,7 @@
   <div class="authmethod<?=$loop?> span<?=floor(12 / $count) ?>">
     <?php $this->auth()->getManager()->setAuthMethod($method) ?>
     <?=$this->auth()->getLoginDesc() ?>
-    <?=$this->auth()->getLogin() ?>
+    <?=$this->auth()->getLogin(iterator_to_array($this)) ?>
   </div>
 <?php endforeach ?>
 </div>

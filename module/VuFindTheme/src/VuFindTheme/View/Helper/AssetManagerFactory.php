@@ -106,7 +106,7 @@ class AssetManagerFactory implements FactoryInterface
             $container->get(\VuFindTheme\ThemeInfo::class),
             $container->get(\VuFindTheme\AssetPipeline::class),
             $viewHelperManager->get(\VuFind\View\Helper\Root\Url::class),
-            $viewHelperManager->get(\Laminas\View\Helper\HeadLink::class),
+            $viewHelperManager->get(\VuFind\View\Helper\Root\HeadLink::class),
             $viewHelperManager->get(\Laminas\View\Helper\HeadStyle::class),
             $viewHelperManager->get(\Laminas\View\Helper\InlineScript::class),
             $nonce

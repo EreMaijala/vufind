@@ -35,6 +35,7 @@ use VuFind\Config\ConfigManagerInterface;
 use VuFind\Related\PluginManager as RelatedManager;
 use VuFind\Search\Options\PluginManager as OptionsManager;
 use VuFind\ServiceManager\Factory\Autowire;
+use VuFind\View\Renderer\TemplateRendererInterface;
 
 /**
  * Related records view helper.
@@ -56,7 +57,7 @@ class Related
      * @param ConfigManagerInterface $configManager        Configuration manager
      * @param OptionsManager         $optionsManager       Search options plugin manager
      * @param Context                $contextHelper        Context helper
-     * @param RendererInterface      $viewRenderer         View renderer
+     * @param TemplateRendererInterface $templateRenderer Template renderer
      * @param ResolverInterface      $viewResolver         View resolver
      */
     public function __construct(
@@ -65,10 +66,10 @@ class Related
         protected OptionsManager $optionsManager,
         #[Autowire(container: 'ViewHelperManager')]
         Context $contextHelper,
-        RendererInterface $viewRenderer,
+        TemplateRendererInterface $templateRenderer,
         ResolverInterface $viewResolver
     ) {
-        $this->setClassBasedTemplateRendererDependencies($viewRenderer, $viewResolver, $contextHelper);
+        $this->setClassBasedTemplateRendererDependencies($templateRenderer, $viewResolver, $contextHelper);
     }
 
     /**

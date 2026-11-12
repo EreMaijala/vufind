@@ -56,8 +56,8 @@ class PaginationControl
      *
      * @param TemplateRendererInterface $templateRenderer Template renderer
      */
+    #[Autowire]
     public function __construct(
-        #[Autowire(container: HelperPluginManager::class)]
         protected TemplateRendererInterface $templateRenderer,
     ) {
     }

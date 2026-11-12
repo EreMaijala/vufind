@@ -2,6 +2,6 @@
 
 <?=$this->paymentEntity ? $this->partial('admin/payment/details-payment.phtml') : $this->transEsc('An error has occurred')?>
 
-<?=$this->partial('admin/payment/details-fees.phtml')?>
+<?=$this->partial('admin/payment/details-fees.phtml', iterator_to_array($this))?>
 
-<?=$this->partial('admin/payment/details-events.phtml')?>
+<?=$this->partial('admin/payment/details-events.phtml', iterator_to_array($this))?>

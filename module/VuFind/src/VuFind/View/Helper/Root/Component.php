@@ -95,6 +95,6 @@ class Component
         // Pass information from view to the component
         $params['inLightbox'] ??= $this->view->inLightbox ?? false;
 
-        return $this->templateRenderer->renderTemplateAsString(template: "_ui/$path/" . $name, params: $params);
+        return (clone $this->templateRenderer)->renderTemplateAsString(template: "_ui/$path/" . $name, params: $params);
     }
 }

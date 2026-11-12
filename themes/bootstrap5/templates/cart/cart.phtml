@@ -106,7 +106,7 @@
       </label>
     </div>
   <?php endif; ?>
-  <?=$this->partial('cart/contents.phtml')?>
+  <?=$this->partial('cart/contents.phtml', iterator_to_array($this))?>
 </form>
 
 <?php

@@ -34,6 +34,7 @@ use Laminas\View\Resolver\ResolverInterface;
 use VuFind\Section\Plugin\SectionInterface;
 use VuFind\Section\SectionServiceInterface;
 use VuFind\ServiceManager\Factory\Autowire;
+use VuFind\View\Renderer\TemplateRendererInterface;
 
 use function call_user_func_array;
 use function is_callable;
@@ -93,17 +94,17 @@ class Section
      *
      * @param SectionServiceInterface $sectionService Section service
      * @param Context                 $contextHelper  Context helper
-     * @param RendererInterface       $viewRenderer   View renderer
+     * @param TemplateRendererInterface $templateRenderer Template renderer
      * @param ResolverInterface       $viewResolver   View resolver
      */
     public function __construct(
         protected SectionServiceInterface $sectionService,
         #[Autowire(container: 'ViewHelperManager')]
         Context $contextHelper,
-        RendererInterface $viewRenderer,
+        TemplateRendererInterface $templateRenderer,
         ResolverInterface $viewResolver
     ) {
-        $this->setClassBasedTemplateRendererDependencies($viewRenderer, $viewResolver, $contextHelper);
+        $this->setClassBasedTemplateRendererDependencies($templateRenderer, $viewResolver, $contextHelper);
     }
 
     /**
@@ -166,7 +167,7 @@ class Section
         $mergedContext[self::SECTION_CONTEXT_KEY] = $sectionContext;
         $mergedContext[self::ADDITIONAL_CONTEXT_KEY] = $context;
         if ($this->viewResolver->resolve($this->template)) {
-            return $this->viewRenderer->render($this->template, $mergedContext);
+            return $this->templateRenderer->renderTemplateAsString(template: $this->template, params: $mergedContext);
         } else {
             // Default to class-based template.
             $template = $this->defaultTemplateDir . '/%s.phtml';

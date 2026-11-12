@@ -5,9 +5,9 @@
   $searchOptions = $this->searchOptions($this->driver->getSourceIdentifier());
 ?>
 <?php if ($this->driver->isPlaceholder()): ?>
-  <?=$this->partial('error/guestRestriction.phtml')?>
+  <?=$this->partial('error/guestRestriction.phtml', iterator_to_array($this))?>
 <?php elseif ($searchOptions->showRestrictedViewWarning('record_view') && $restrictedView): ?>
-  <?=$this->partial('error/restrictedViewWarning.phtml')?>
+  <?=$this->partial('error/restrictedViewWarning.phtml', iterator_to_array($this))?>
 <?php endif; ?>
 <?php if (!empty($coreFields)): ?>
   <table <?php if (!empty($this->tableId)): ?>id="<?=$this->tableId ?>" <?php endif; ?>class="table table-striped">

@@ -1,4 +1,4 @@
-<?=$this->partial('search/advanced/solr-facets.phtml')?>
+<?=$this->partial('search/advanced/solr-facets.phtml', iterator_to_array($this))?>
 <?php if (isset($this->illustratedLimit)): ?>
   <fieldset class="solr">
     <legend><?=$this->transEsc('Illustrated')?>:</legend>

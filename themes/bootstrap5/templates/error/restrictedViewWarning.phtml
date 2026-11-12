@@ -1,4 +1,4 @@
 <div class="alert alert-info">
   <?=$this->transEsc('This is only a restricted view')?>
-  <?=$this->partial('error/loginForAccess.phtml')?>
+  <?=$this->partial('error/loginForAccess.phtml', iterator_to_array($this))?>
 </div>

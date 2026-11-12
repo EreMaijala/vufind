@@ -47,11 +47,8 @@ class HeadTitle
 {
     /**
      * Constructor.
-     *
-     * @param \Laminas\View\Helper\HeadTitle $headTitle Wrapped HeadTitle helper
      */
     public function __construct(
-        #[Autowire(container: HelperPluginManager::class)]
         protected \Laminas\View\Helper\HeadTitle $headTitle,
     ) {
     }

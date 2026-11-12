@@ -3,7 +3,7 @@
   $loginTargets = $authManager->getLoginTargets();
 ?>
 <?php if ($authManager->getPreAuthenticationData()): ?>
-  <?=$this->auth()->getOtpLoginFields()?>
+  <?=$this->auth()->getOtpLoginFields(iterator_to_array($this))?>
 <?php else: ?>
   <div class="form-group">
     <label class="form-label" for="login_<?=$this->escapeHtmlAttr($topClass)?>_target"><?=$this->transEsc('login_target')?>:</label>

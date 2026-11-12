@@ -163,7 +163,7 @@
   <?php endforeach; ?>
 <?php else: ?>
   <?php if ($results->getOptions()->showRestrictedViewWarning('result_list_top') && $results->isRestrictedView()): ?>
-    <?=$this->partial('error/restrictedViewWarning.phtml')?>
+    <?=$this->partial('error/restrictedViewWarning.phtml', iterator_to_array($this))?>
   <?php endif; ?>
   <?php
     $viewType = in_array('list', array_keys($params->getViewList()))

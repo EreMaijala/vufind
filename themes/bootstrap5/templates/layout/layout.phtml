@@ -142,7 +142,7 @@
         <span class="visually-hidden" role="heading" aria-level="1"><?=$globals['srmessage'] ?></span>
       <?php endif; ?>
       <a class="visually-hidden-focusable" href="#content"><?=$this->transEsc('Skip to content') ?></a>
-      <?=$this->partial('header.phtml')?>
+      <?=$this->partial('header.phtml', iterator_to_array($this))?>
     </header>
     <?=$this->breadcrumbs()->render()?>
     <div role="main" class="main">
@@ -153,7 +153,7 @@
         <?=$this->content ?>
       </div>
     </div>
-    <?=$this->partial('footer.phtml')?>
+    <?=$this->partial('footer.phtml', iterator_to_array($this))?>
     <!-- MODAL IN CASE WE NEED ONE -->
     <div id="modal" class="modal fade hidden-print" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog">
@@ -166,7 +166,7 @@
       </div>
     </div>
     <div class="vufind-offcanvas-overlay" data-toggle="vufind-offcanvas"></div>
-    <?=$this->partial('Helpers/analytics.phtml')?>
+    <?=$this->partial('Helpers/analytics.phtml', iterator_to_array($this))?>
     <?php foreach ($this->captcha()->js() as $jsInclude):?>
       <?=$this->assetManager()->outputInlineScriptLink($jsInclude)?>
     <?php endforeach; ?>

@@ -201,6 +201,7 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
         $templateParts = explode('/', $viewModel->getTemplate());
         $this->globalsContainer['templateDir'] = $templateParts[0];
         $this->globalsContainer['templateName'] = $templateParts[1] ?? null;
+        $this->globalsContainer['viewModel'] = $viewModel;
 
         $layoutModel = new ViewModel([], 'layout/layout');
         $this->setupRenderingInLightbox($request, $layoutModel);

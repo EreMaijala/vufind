@@ -5,7 +5,7 @@
     $this->globals()['skipTotalCount'] = true;
 
     // Load standard settings from the default search results screen:
-    echo $this->partial('search/results.phtml');
+    echo $this->partial('search/results.phtml', iterator_to_array($this));
 
     // Override some details...
 

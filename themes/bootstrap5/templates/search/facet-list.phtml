@@ -65,7 +65,7 @@
     </div>
   </form>
   <?php if (($this->multiFacetsSelection ?? 'false') !== 'false'): ?>
-    <?=$this->partial('Recommend/SideFacets/multiFacetsSelection.phtml') ?>
+    <?=$this->partial('Recommend/SideFacets/multiFacetsSelection.phtml', iterator_to_array($this)) ?>
   <?php endif; ?>
 
   <div id="facet-info-result" class="lightbox-scroll full-facets">

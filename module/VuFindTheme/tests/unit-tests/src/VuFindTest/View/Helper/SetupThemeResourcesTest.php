@@ -30,11 +30,11 @@
 namespace VuFindTest\View\Helper;
 
 use Laminas\View\Helper\Doctype;
-use Laminas\View\Helper\HeadLink;
 use Laminas\View\Helper\HeadMeta;
 use Laminas\View\Helper\HeadScript;
 use PHPUnit\Framework\MockObject\MockObject;
 use VuFind\Escaper\Escaper;
+use VuFind\View\Helper\Root\HeadLink;
 use VuFindTheme\ResourceContainer;
 use VuFindTheme\View\Helper\AssetManager;
 use VuFindTheme\View\Helper\ImageLink;
@@ -63,7 +63,7 @@ class SetupThemeResourcesTest extends \PHPUnit\Framework\TestCase
         $escaper = new Escaper();
         $doctype = new Doctype();
         $headMeta = new HeadMeta($escaper, $doctype);
-        $headLink = new HeadLink($escaper, $doctype);
+        $headLink = new HeadLink(new \Laminas\View\Helper\HeadLink($escaper, $doctype));
         $helper = new SetupThemeResources(
             $this->getResourceContainer(),
             $headMeta,

@@ -12,12 +12,12 @@
 
 <div class="collection-hierarchytree">
   <div class="tree-panel">
-    <?=$this->partial('RecordTab/hierarchytree.phtml')?>
+    <?=$this->partial('RecordTab/hierarchytree.phtml', iterator_to_array($this))?>
   </div>
   <div<?=$this->htmlAttributes($previewAttrs)?>>
     <?php if (($collectionRecord = $this->tab->getActiveRecord()) !== false): ?>
       <?php if ($collectionRecord === null): ?>
-        <?=$this->partial('collection/collection-record-error.phtml')?>
+        <?=$this->partial('collection/collection-record-error.phtml', iterator_to_array($this))?>
       <?php else: ?>
         <?=$this->record($collectionRecord)->getCollectionBriefRecord()?>
       <?php endif; ?>

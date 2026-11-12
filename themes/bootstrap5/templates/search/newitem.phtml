@@ -46,7 +46,7 @@
       <?php endforeach; ?>
     </div>
   </div>
-  <?=$this->partial('search/advanced/solr-facets.phtml')?>
+  <?=$this->partial('search/advanced/solr-facets.phtml', iterator_to_array($this))?>
   <div class="adv-submit">
     <input class="btn btn-primary" type="submit" name="submitButton" value="<?=$this->transEscAttr('Find')?>">
     <input class="clear-btn btn btn-default" type="button" value="<?= $this->transEscAttr('Clear')?>">
