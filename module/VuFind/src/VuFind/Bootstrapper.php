@@ -127,14 +127,15 @@ class Bootstrapper
         // If the system is unavailable and we're not in the console, forward to the
         // unavailable page.
         if (PHP_SAPI !== 'cli' && !($this->config['System']['available'] ?? true)) {
-            $callback = function ($e): void {
+            $callback = function ($e): mixed {
                 $routeMatch = new HttpRouteMatch(
-                    ['controller' => 'Error', 'action' => 'Unavailable'],
+                    ['category' => 'Error', 'action' => 'Unavailable'],
                     'error-unavailable'
                 );
                 $e->setRouteMatch($routeMatch);
+                return $e;
             };
-            $this->eventManager->attach('route', $callback);
+            $this->eventManager->attach(Event::EVENT_ROUTE, $callback);
         }
     }
 
@@ -195,18 +196,23 @@ class Bootstrapper
     {
         // Attach remaining theme configuration to the dispatch event at high priority:
         $siteConfig = $this->config['Site'];
-        $callback = function (Event $event) use ($siteConfig): void {
+        $callback = function (Event $event) use ($siteConfig): mixed {
             $theme = new \VuFindTheme\Initializer($siteConfig, $this->container, $event);
             try {
                 $theme->init();
+                return null;
             } catch (\Exception $e) {
                 // Try to display an error page if the theme fails to initialize:
-                $appConfig = $this->container->get('config');
-                $model = $event->getRequest()->getAttribute('view-model');
-                $model->setTemplate('error/index');
-                // Note: display_exceptions is also used by Laminas, so we need to use the view model for it!
-                $model->setVariable('display_exceptions', $appConfig['view_manager']['display_exceptions'] ?? false);
-                $model->exception = $e;
+                $response = $event->getResponse()
+                    ->withStatus(500)
+                    ->withHeader('Content-Type', 'text/plain');
+                $body = $response->getBody();
+                $body->write('An error has occurred.');
+                if ($appConfig['view_manager']['display_exceptions'] ?? false) {
+                    $body->write("\n" . (string)$e);
+                }
+                $event->stopPropagation();
+                return $response;
             }
         };
         $this->eventManager->attach('dispatch.error', $callback, 9000);

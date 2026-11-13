@@ -52,6 +52,13 @@ class Event implements EventInterface
     public const EVENT_BOOTSTRAP = 'bootstrap';
 
     /**
+     * Route event.
+     *
+     * @var string
+     */
+    public const EVENT_ROUTE = 'route';
+
+    /**
      * Dispatch event.
      *
      * @var string
