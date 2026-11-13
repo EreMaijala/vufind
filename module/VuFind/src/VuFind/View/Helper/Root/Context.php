@@ -34,6 +34,7 @@ namespace VuFind\View\Helper\Root;
 use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Renderer\Template;
 use VuFind\ServiceManager\Factory\Autowire;
+use VuFind\View\Renderer\TemplateRendererInterface;
 
 /**
  * Context manager (useful for using render() instead of partial() for better
@@ -58,11 +59,11 @@ class Context
     /**
      * Constructor.
      *
-     * @param RendererInterface $view View renderer
+     * @param TemplateRendererInterface $templateRenderer Template renderer
      */
     #[Autowire]
     public function __construct(
-        protected RendererInterface $view
+        protected TemplateRendererInterface $templateRenderer,
     ) {
     }
 
@@ -80,24 +81,19 @@ class Context
     }
 
     /**
-     * Render a template using a temporary context; restore the view to its original state when done. This offers the
-     * template full access to the global scope, modified by $context, then puts the global scope back the way it was.
+     * Render a template using a context that includes the variables from current template.
      *
-     * @param string $template Template to render
-     * @param array  $context  Array of context variables to set temporarily
+     * @param string $$templateName Template to render
+     * @param array  $context       Array of context variables to add
      *
-     * @return string          Rendered template output
+     * @return string Rendered template output
      */
-    public function renderInContext($template, $context)
+    public function renderInContext(string $templateName, array $context = [])
     {
-        // Use a clone to avoid modifying global rendering state:
-        $view = clone $this->view;
-
-        if (!$this->template) {
-            return $view->render($template, $context);
+        if ($this->template) {
+            $context += iterator_to_array($this->template);
         }
-
-        return $view->render($template, $context + iterator_to_array($this->template));
+        return $this->templateRenderer->renderTemplateAsString(template: $templateName, params: $context);
     }
 
     /**
