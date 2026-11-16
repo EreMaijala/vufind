@@ -90,8 +90,8 @@ class Context
     /**
      * Render a template using a context that includes the variables from current template.
      *
-     * @param string $$templateName Template to render
-     * @param array  $context       Array of context variables to add
+     * @param string $templateName Template to render
+     * @param array  $context      Array of context variables to add
      *
      * @return string Rendered template output
      */

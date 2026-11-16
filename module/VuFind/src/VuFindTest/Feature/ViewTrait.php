@@ -66,6 +66,8 @@ use VuFindTheme\View\Helper\AssetManagerFactory;
  */
 trait ViewTrait
 {
+    use AutowireTrait;
+
     /**
      * Get a working AssetManager helper.
      *

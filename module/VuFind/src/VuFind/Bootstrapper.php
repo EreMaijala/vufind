@@ -207,6 +207,7 @@ class Bootstrapper
                     ->withHeader('Content-Type', 'text/plain');
                 $body = $response->getBody();
                 $body->write('An error has occurred.');
+                $appConfig = $this->container->get('Config');
                 if ($appConfig['view_manager']['display_exceptions'] ?? false) {
                     $body->write("\n" . (string)$e);
                 }

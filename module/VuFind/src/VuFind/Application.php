@@ -288,7 +288,7 @@ class Application
     protected function triggerEvent(EventInterface $event, string $eventName): mixed
     {
         // Callback that stops event propagation on results:
-        $callback = static function ($result) use ($event): bool {
+        $callback = static function ($result): bool {
             return $result instanceof ResponseInterface;
         };
 

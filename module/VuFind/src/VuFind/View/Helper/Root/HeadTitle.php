@@ -44,6 +44,8 @@ class HeadTitle
 {
     /**
      * Constructor.
+     *
+     * @param \Laminas\View\Helper\HeadTitle $headTitle Wrapped HeadTitle helper
      */
     public function __construct(
         protected \Laminas\View\Helper\HeadTitle $headTitle,

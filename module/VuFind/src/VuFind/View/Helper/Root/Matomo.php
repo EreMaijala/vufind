@@ -31,7 +31,6 @@ namespace VuFind\View\Helper\Root;
 
 use Laminas\Router\Http\TreeRouteStack;
 use Laminas\View\Helper\EscapeJs;
-use Laminas\View\Helper\ViewModel;
 use Laminas\View\Renderer\RendererInterface;
 use VuFind\Application;
 use VuFind\RecordDriver\AbstractBase as RecordDriverBase;
@@ -128,7 +127,6 @@ class Matomo
      * @param RendererInterface $viewRenderer     View renderer
      * @param GlobalsContainer  $globalsContainer Globals container
      * @param AssetManager      $assetManager     AssetManager view helper
-     * @param ViewModel         $viewModel        ViewModel view helper
      * @param EscapeJs          $escapejs         EscapeJs view helper
      * @param CookieConsent     $cookieConsent    CookieConsent view helper
      * @param Translate         $translate        Translate view helper

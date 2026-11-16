@@ -75,7 +75,7 @@ class ParentTemplate
                 if (is_callable([$current, 'getPaths'])) {
                     $paths = [
                         ...$paths,
-                        ...$current->getPaths()->toArray()
+                        ...$current->getPaths()->toArray(),
                     ];
                 }
             }

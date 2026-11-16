@@ -99,7 +99,7 @@ class ResultFeed implements TranslatorAwareInterface
      */
     public function registerExtensions(ContainerInterface $container)
     {
-        $manager = new \VuFind\Feed\Writer\ExtensionPluginManager($container);
+        $manager = new \VuFind\Feed\Writer\ExtensionPluginManager();
         $manager->add(
             'DublinCore\Renderer\Entry',
             \VuFind\Feed\Writer\Extension\DublinCore\Renderer\Entry::class
