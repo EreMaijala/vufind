@@ -416,7 +416,8 @@ final class OnlinePaymentTest extends \VuFindTest\Integration\MinkTestCase
         $this->checkForMissingDevTools($page);
 
         $session = $this->getMinkSession();
-        $windowCount = count($session->getWindowNames());
+        $originalWindowNames = $session->getWindowNames();
+        $windowCount = count($originalWindowNames);
         $this->clickCss($page, '.last-payment-information a');
         $this->assertSameWithTimeout(
             $windowCount + 1,
@@ -424,6 +425,7 @@ final class OnlinePaymentTest extends \VuFindTest\Integration\MinkTestCase
                 return count($session->getWindowNames());
             }
         );
+        $session->switchToWindow(null);
 
         // Check contents of HTML version of the receipt (the PDF version can't be loaded in chrome-headless-shell):
         $url = $this->getVuFindUrl(

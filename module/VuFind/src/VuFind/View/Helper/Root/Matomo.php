@@ -32,7 +32,6 @@ namespace VuFind\View\Helper\Root;
 use Laminas\Router\Http\TreeRouteStack;
 use Laminas\View\Helper\EscapeJs;
 use Laminas\View\Helper\ViewModel;
-use Laminas\View\Renderer\PhpRenderer;
 use Laminas\View\Renderer\RendererInterface;
 use VuFind\Application;
 use VuFind\RecordDriver\AbstractBase as RecordDriverBase;
@@ -123,17 +122,17 @@ class Matomo
     /**
      * Constructor.
      *
-     * @param array             $config        VuFind configuration
-     * @param TreeRouteStack    $router        Router
-     * @param Application       $application   Application
-     * @param RendererInterface $viewRenderer  View renderer
-     * @param GlobalsContainer $globalsContainer Globals container
-     * @param AssetManager      $assetManager  AssetManager view helper
-     * @param ViewModel         $viewModel     ViewModel view helper
-     * @param EscapeJs          $escapejs      EscapeJs view helper
-     * @param CookieConsent     $cookieConsent CookieConsent view helper
-     * @param Translate         $translate     Translate view helper
-     * @param HeadTitle         $headTitle     HeadTitle view helper
+     * @param array             $config           VuFind configuration
+     * @param TreeRouteStack    $router           Router
+     * @param Application       $application      Application
+     * @param RendererInterface $viewRenderer     View renderer
+     * @param GlobalsContainer  $globalsContainer Globals container
+     * @param AssetManager      $assetManager     AssetManager view helper
+     * @param ViewModel         $viewModel        ViewModel view helper
+     * @param EscapeJs          $escapejs         EscapeJs view helper
+     * @param CookieConsent     $cookieConsent    CookieConsent view helper
+     * @param Translate         $translate        Translate view helper
+     * @param HeadTitle         $headTitle        HeadTitle view helper
      */
     public function __construct(
         #[Autowire(config: 'config', configType: 'array')]
@@ -324,7 +323,7 @@ class Matomo
         }
         $results = $viewModel->getVariable('combinedResults');
         if (is_array($results)) {
-             return $results;
+            return $results;
         }
         return null;
     }

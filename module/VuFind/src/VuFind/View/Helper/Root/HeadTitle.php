@@ -29,9 +29,6 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\View\HelperPluginManager;
-use VuFind\ServiceManager\Factory\Autowire;
-
 use function call_user_func_array;
 
 /**

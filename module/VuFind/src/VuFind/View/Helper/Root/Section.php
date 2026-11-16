@@ -29,7 +29,6 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use VuFind\Section\Plugin\SectionInterface;
 use VuFind\Section\SectionServiceInterface;
@@ -92,10 +91,10 @@ class Section
     /**
      * Constructor.
      *
-     * @param SectionServiceInterface $sectionService Section service
-     * @param Context                 $contextHelper  Context helper
+     * @param SectionServiceInterface   $sectionService   Section service
+     * @param Context                   $contextHelper    Context helper
      * @param TemplateRendererInterface $templateRenderer Template renderer
-     * @param ResolverInterface       $viewResolver   View resolver
+     * @param ResolverInterface         $viewResolver     View resolver
      */
     public function __construct(
         protected SectionServiceInterface $sectionService,

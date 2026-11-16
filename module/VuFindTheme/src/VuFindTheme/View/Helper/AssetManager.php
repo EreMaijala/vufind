@@ -29,9 +29,9 @@
 
 namespace VuFindTheme\View\Helper;
 
-use VuFind\View\Helper\Root\HeadLink;
 use Laminas\View\Helper\HeadStyle;
 use Laminas\View\Helper\InlineScript;
+use VuFind\View\Helper\Root\HeadLink;
 use VuFind\View\Helper\Root\Url;
 use VuFindTheme\AssetPipeline;
 use VuFindTheme\ThemeInfo;

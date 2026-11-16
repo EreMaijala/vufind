@@ -176,6 +176,7 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
      * @param array[]                 $childTemplates Any child templates; an array of associative array with keys
      *                                                'template' and 'params'
      * @param bool                    $useLayout      Render full page with the layout?
+     * @param bool                    $rootContext    Include root context (main template variables)?
      *
      * @return string
      */
@@ -185,7 +186,11 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
         array $params = [],
         array $childTemplates = [],
         bool $useLayout = false,
+        bool $rootContext = false,
     ): string {
+        if ($rootContext && ($rootViewModel = $this->globalsContainer['viewModel'] ?? null)) {
+            $params += $rootViewModel->getVariables();
+        }
         $viewModel = $this->createViewModel($request, $params, $template);
         foreach ($childTemplates as $current) {
             $viewModel->addChild($this->createViewModel($request, $current['params'] ?? [], $current['template']));
@@ -358,6 +363,7 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
     {
         if ($this->inLightbox($request)) {
             $layout->setTemplate('layout/lightbox');
+            $this->globalsContainer['inLightbox'] = true;
         }
         $lightboxParentUrl = new Http($this->serverUrlHelper->getCurrentUrl());
         $query = $lightboxParentUrl->getQueryAsArray();

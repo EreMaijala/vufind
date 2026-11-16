@@ -53,7 +53,7 @@ foreach ($ids as $id) {
         }
         $current['full_status'] .= '</div>';
     }
-    $current['availability_message'] = $availabilityStatus ? $this->partial(
+    $current['availability_message'] = $availabilityStatus ? $this->render(
         'ajax/status.phtml',
         ['availabilityStatus' => new \VuFind\ILS\Logic\AvailabilityStatus($availabilityStatus)]
     ) : '';

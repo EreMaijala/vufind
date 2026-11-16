@@ -31,6 +31,7 @@
 namespace VuFindTest\View\Helper\Root;
 
 use Laminas\View\Helper\EscapeHtml;
+use Laminas\View\View;
 use VuFind\Escaper\Escaper;
 use VuFind\Role\PermissionDeniedManager;
 use VuFind\Role\PermissionManager;
@@ -51,6 +52,7 @@ use VuFind\View\Helper\Root\Translate;
  */
 class PermissionTest extends \PHPUnit\Framework\TestCase
 {
+    use \VuFindTest\Feature\AutowireTrait;
     use \VuFindTest\Feature\ViewTrait;
 
     /**
@@ -96,14 +98,13 @@ class PermissionTest extends \PHPUnit\Framework\TestCase
         $escapehtml = new EscapeHtml(new Escaper());
         $translate = new Translate();
         $transEsc = new TransEsc($translate, $escapehtml);
-        $renderer = $this->getPhpRenderer(
-            $this->getHelperPluginManager(compact('translate', 'transEsc', 'escapehtml'))
-        );
+        $helperPluginManager = $this->getHelperPluginManager(compact('translate', 'transEsc', 'escapehtml'));
+        $templateRenderer = $this->getTemplateRenderer($helperPluginManager);
         return new Permission(
             $this->getMockPm(false),
             $mockPdm,
             $transEsc,
-            new Context($renderer)
+            new Context($templateRenderer)
         );
     }
 

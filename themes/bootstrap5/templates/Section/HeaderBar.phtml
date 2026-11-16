@@ -22,7 +22,7 @@
                     ...$item,
                   ];
                 ?>
-                <?= $this->partial($item['template'], $context) ?>
+                <?= $this->render($item['template'], $context) ?>
               <?php elseif (isset($item['submenuItems'])): ?>
                 <?= $this->component('menu-button', [
                   'toggleLabel' => $item['label'],

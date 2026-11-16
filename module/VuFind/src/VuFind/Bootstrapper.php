@@ -30,7 +30,6 @@
 namespace VuFind;
 
 use GuzzleHttp\Psr7\Message;
-use Laminas\EventManager\EventInterface;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\Http\Header\Location;
 use Laminas\Http\Response;
@@ -38,6 +37,7 @@ use Laminas\Router\Http\HttpRouteMatch;
 use Psr\Container\ContainerInterface;
 use VuFind\Cookie\CookieManager;
 use VuFind\EventManager\Event;
+use VuFind\EventManager\EventInterface;
 use VuFind\Http\ServerUrlHelper;
 use VuFind\I18n\Locale\LocaleSettings;
 use VuFind\RateLimiter\RateLimiterManager;
@@ -129,11 +129,10 @@ class Bootstrapper
         if (PHP_SAPI !== 'cli' && !($this->config['System']['available'] ?? true)) {
             $callback = function ($e): mixed {
                 $routeMatch = new HttpRouteMatch(
-                    ['category' => 'Error', 'action' => 'Unavailable'],
+                    ['controller' => 'Error', 'action' => 'Unavailable'],
                     'error-unavailable'
                 );
-                $e->setRouteMatch($routeMatch);
-                return $e;
+                return $routeMatch;
             };
             $this->eventManager->attach(Event::EVENT_ROUTE, $callback);
         }
@@ -388,15 +387,16 @@ class Bootstrapper
             }
             $result = $rateLimiterManager->check($event);
             if (!$result['allow']) {
-                $response = $event->getResponse();
                 if ($result['presentTurnstileChallenge'] ?? false) {
-                    $this->presentTurnstileChallenge($rateLimiterManager, $event, $response);
+                    $this->presentTurnstileChallenge($rateLimiterManager, $event);
                 } else {
-                    $response->setStatusCode(429);
-                    $response->setContent($result['message']);
+                    $response = $event->getResponse();
+                    $response = $response->withStatus(429);
+                    $response->getBody()->write($result['message']);
+                    $event->setResponse($response);
                 }
                 $event->stopPropagation(true);
-                return $response;
+                return $event->getResponse();
             }
         };
         $this->eventManager->attach('dispatch', $callback, 11000);
@@ -405,21 +405,19 @@ class Bootstrapper
     /**
      * Present a Cloudflare Turnstile challenge to the user.
      *
-     * @param RateLimiterManager               $rateLimiterManager The RateLimiterManager
-     * @param Event                            $event              The current event
-     * @param Laminas\Stdlib\ResponseInterface $response           Response object to modify to present the challenge
+     * @param RateLimiterManager $rateLimiterManager The RateLimiterManager
+     * @param EventInterface     $event              The current event
      *
      * @return void
      */
     protected function presentTurnstileChallenge(
         RateLimiterManager $rateLimiterManager,
-        Event $event,
-        \Laminas\Stdlib\ResponseInterface $response
+        EventInterface $event
     ): void {
-        // Although the challenge could be displayed at the current URL, redirecting
-        // to a simple URL (combined with a policy that blocks the referrer URL) may
-        // hide search or result data from being accessible to Turnstile.
-        $response->setStatusCode(307);
+        // Although the challenge could be displayed at the current URL, redirecting to a simple URL (combined with a
+        // policy that blocks the referrer URL) may hide search or result data from being accessible to Turnstile.
+        $response = $event->getResponse();
+        $response = $response->withStatus(307);
         $policyId = $rateLimiterManager->getPolicyIdForEvent($event);
         // base64_encoding the destination URL is just further obfuscation
         $context = base64_encode(json_encode([
@@ -427,9 +425,10 @@ class Bootstrapper
             'destination' => (string)$event->getRequest()->getUri(),
         ]));
         $serverUrlHelper = $this->container->get(ServerUrlHelper::class);
-        $response->getHeaders()->addHeaderLine(
+        $response = $response->withHeader(
             'Location',
             $serverUrlHelper->getBaseUrl() . '/Turnstile/Challenge?context=' . $context
         );
+        $event->setResponse($response);
     }
 }

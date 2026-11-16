@@ -34,6 +34,7 @@ namespace VuFind;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Psr7\ServerRequest;
 use Laminas\EventManager\EventManagerInterface;
+use Laminas\Router\Http\HttpRouteMatch;
 use Laminas\View\Model\ModelInterface;
 use Laminas\View\Model\ViewModel;
 use Psr\Container\ContainerInterface;
@@ -41,6 +42,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use VuFind\Action\ActionDispatcher;
 use VuFind\EventManager\Event;
+use VuFind\EventManager\EventInterface;
 use VuFind\ServiceManager\Factory\Autowire;
 
 use function dirname;
@@ -110,12 +112,11 @@ class Application
         $event = (new Event())
             ->setRequest($this->request)
             ->setResponse($this->response);
-
-        $this->eventManager->setEventPrototype($event);
-        $this->eventManager->trigger(Event::EVENT_BOOTSTRAP);
+        $result = $this->triggerEvent($event, Event::EVENT_BOOTSTRAP)->last();
         // Update with any changes from event listeners:
-        $this->request = $event->getRequest();
-        $this->response = $event->getResponse();
+        if ($result instanceof ResponseInterface) {
+            $this->response = $result;
+        }
 
         // Try to find a route match for the request:
         $basePath = $this->getBasePath();
@@ -123,10 +124,9 @@ class Application
 
         // Trigger route event:
         $event->setRouteMatch($routeMatch);
-        $this->eventManager->setEventPrototype($event);
-        $results = $this->eventManager->trigger(Event::EVENT_ROUTE);
-        if ($result = $results->last()) {
-            $routeMatch = $result->getRouteMatch();
+        $result = $this->triggerEvent($event, Event::EVENT_ROUTE)->last();
+        if ($result instanceof HttpRouteMatch) {
+            $routeMatch = $result;
         }
 
         $this->request = $this->request
@@ -135,20 +135,24 @@ class Application
 
         // Trigger dispatch or dispatch error event:
         $event->setRequest($this->request);
-        $this->eventManager->setEventPrototype($event);
-        $results = $this->eventManager->trigger($routeMatch ? Event::EVENT_DISPATCH : Event::EVENT_DISPATCH_ERROR);
-        if ($results->stopped()) {
-            // Update with any changes from event listeners:
-            $this->response = $results->last();
-            $this->outputResponse($this->response);
-            return;
+        $result = $this->triggerEvent($event, $routeMatch ? Event::EVENT_DISPATCH : Event::EVENT_DISPATCH_ERROR)
+            ->last();
+        // Update with any changes from event listeners (if the result is a response, the actual action won't be
+        // dispatched):
+        if ($result instanceof ResponseInterface) {
+            $this->response = $result;
+        } else {
+            $this->response = $event->getResponse();
+            $this->response = $this->actionDispatcher->dispatch($this->request, $this->response);
         }
-
-        $this->response = $this->actionDispatcher->dispatch($this->request, $this->response);
 
         // Trigger finish event:
         $event->setResponse($this->response);
-        $this->eventManager->trigger(Event::EVENT_FINISH);
+        $result = $this->eventManager->trigger(Event::EVENT_FINISH)->last();
+        // Update with any changes from event listeners:
+        if ($result instanceof ResponseInterface) {
+            $this->response = $result;
+        }
 
         $this->outputResponse($this->response);
     }
@@ -271,6 +275,27 @@ class Application
         while (!$body->eof()) {
             echo $body->read(self::CHUNK_SIZE);
         }
+    }
+
+    /**
+     * Trigger an event.
+     *
+     * @param EventInterface $event     Event prototype
+     * @param string         $eventName Event name
+     *
+     * @return mixed
+     */
+    protected function triggerEvent(EventInterface $event, string $eventName): mixed
+    {
+        // Callback that stops event propagation on results:
+        $callback = static function ($result) use ($event): bool {
+            return $result instanceof ResponseInterface;
+        };
+
+        $event->setName($eventName);
+        $event->stopPropagation(false);
+        $this->eventManager->setEventPrototype($event);
+        return $this->eventManager->triggerEventUntil($callback, $event);
     }
 
     /**

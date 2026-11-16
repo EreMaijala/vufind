@@ -40,7 +40,7 @@
 ?>
 
 <?php if (isset($this->scrollData) && ($this->scrollData['previousRecord'] || $this->scrollData['nextRecord'])): ?>
-  <?=$this->partial('record/prev-next.phtml', iterator_to_array($this)); ?>
+  <?=$this->render('record/prev-next.phtml'); ?>
 <?php endif; ?>
 
 <?=$this->record($this->driver)->getToolbar()?>

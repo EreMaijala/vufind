@@ -29,7 +29,6 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use VuFind\Cover\Router as CoverRouter;
 use VuFind\Db\Entity\UserEntityInterface;
@@ -76,23 +75,23 @@ class Record implements DbServiceAwareInterface
     /**
      * Constructor.
      *
-     * @param TagsService       $tagsService       Tags service
-     * @param CoverRouter       $coverRouter       Cover router
-     * @param Memory            $searchMemory      Search memory
-     * @param Context           $contextHelper     Context helper
-     * @param TemplateRendererInterface $templateRenderer Template renderer
-     * @param ResolverInterface $viewResolver      View resolver
-     * @param SearchTabs        $searchTabs        SearchTabs helper
-     * @param TransEsc          $transEsc          TransEsc helper
-     * @param Highlight         $highlight         Highlight helper
-     * @param AddEllipsis       $addEllipsis       AddEllipsis helper
-     * @param EscapeOrCleanHtml $escapeOrCleanHtml EscapeOrCleanHtml helper
-     * @param Truncate          $truncate          Truncate helper
-     * @param Auth              $auth              Auth helper
-     * @param Url               $url               Url helper
-     * @param ServerUrl         $serverUrl         ServerUrl helper
-     * @param GlobalsContainer  $globalsContainer  Global data container
-     * @param ?array            $config            Configuration from config.ini
+     * @param TagsService               $tagsService       Tags service
+     * @param CoverRouter               $coverRouter       Cover router
+     * @param Memory                    $searchMemory      Search memory
+     * @param Context                   $contextHelper     Context helper
+     * @param TemplateRendererInterface $templateRenderer  Template renderer
+     * @param ResolverInterface         $viewResolver      View resolver
+     * @param SearchTabs                $searchTabs        SearchTabs helper
+     * @param TransEsc                  $transEsc          TransEsc helper
+     * @param Highlight                 $highlight         Highlight helper
+     * @param AddEllipsis               $addEllipsis       AddEllipsis helper
+     * @param EscapeOrCleanHtml         $escapeOrCleanHtml EscapeOrCleanHtml helper
+     * @param Truncate                  $truncate          Truncate helper
+     * @param Auth                      $auth              Auth helper
+     * @param Url                       $url               Url helper
+     * @param ServerUrl                 $serverUrl         ServerUrl helper
+     * @param GlobalsContainer          $globalsContainer  Global data container
+     * @param ?array                    $config            Configuration from config.ini
      */
     public function __construct(
         protected TagsService $tagsService,

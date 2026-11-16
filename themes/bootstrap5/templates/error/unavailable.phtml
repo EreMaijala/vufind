@@ -10,5 +10,5 @@
     <?=$this->transEsc('The system is currently unavailable due to system maintenance')?>.
     <?=$this->transEsc('Please check back soon')?>.
   </p>
-  <?=$this->partial('error/contact.phtml', iterator_to_array($this))?>
+  <?=$this->render('error/contact.phtml')?>
 </div>

@@ -66,7 +66,7 @@ class ResultFeed implements TranslatorAwareInterface
      * @param ServerUrl    $serverUrl    ServerUrl Helper
      * @param CurrentPath  $currentPath  CurrentPath Helper
      * @param RecordLinker $recordLinker RecordLinker Helper
-     * @param Record       $record       Record  Helper
+     * @param Record       $record       Record Helper
      * @param array        $options      Options array (valid key = 'prioritizeRecordDriverLinks')
      */
     public function __construct(
@@ -100,19 +100,19 @@ class ResultFeed implements TranslatorAwareInterface
     public function registerExtensions(ContainerInterface $container)
     {
         $manager = new \VuFind\Feed\Writer\ExtensionPluginManager($container);
-        $manager->setInvokableClass(
+        $manager->add(
             'DublinCore\Renderer\Entry',
             \VuFind\Feed\Writer\Extension\DublinCore\Renderer\Entry::class
         );
-        $manager->setInvokableClass(
+        $manager->add(
             'DublinCore\Entry',
             \VuFind\Feed\Writer\Extension\DublinCore\Entry::class
         );
-        $manager->setInvokableClass(
+        $manager->add(
             'OpenSearch\Renderer\Feed',
             \VuFind\Feed\Writer\Extension\OpenSearch\Renderer\Feed::class
         );
-        $manager->setInvokableClass(
+        $manager->add(
             'OpenSearch\Feed',
             \VuFind\Feed\Writer\Extension\OpenSearch\Feed::class
         );
@@ -336,9 +336,7 @@ class ResultFeed implements TranslatorAwareInterface
             }
         }
         // If we got this far, all methods failed, so we have to throw an exception:
-        if (!$url) {
-            throw new \Exception('Cannot find URL for record.');
-        }
+        throw new \Exception('Cannot find URL for record.');
     }
 
     /**

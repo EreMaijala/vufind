@@ -1,9 +1,7 @@
 <?php
 
 /**
- * Context manager (useful for using render() instead of partial() for better
- * performance -- this allows us to set and roll back variables in the global
- * scope instead of relying on the overhead of building a whole new scope).
+ * Context manager.
  *
  * PHP version 8
  *
@@ -31,15 +29,12 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Renderer\Template;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\View\Renderer\TemplateRendererInterface;
 
 /**
- * Context manager (useful for using render() instead of partial() for better
- * performance -- this allows us to set and roll back variables in the global
- * scope instead of relying on the overhead of building a whole new scope).
+ * Context manager.
  *
  * @category VuFind
  * @package  View_Helpers
@@ -78,6 +73,18 @@ class Context
     {
         $this->template = $template;
         return $this;
+    }
+
+    /**
+     * Get template variables.
+     *
+     * @param array $extra Extra variable
+     *
+     * @return array
+     */
+    public function getVars(array $extra = []): array
+    {
+        return $extra + ($this->template ? iterator_to_array($this->template) : []);
     }
 
     /**

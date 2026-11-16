@@ -33,7 +33,6 @@ namespace VuFind\View\Helper\Root;
 
 use Laminas\Paginator\Paginator;
 use Laminas\View\Helper\Partial;
-use Laminas\View\HelperPluginManager;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\View\Renderer\TemplateRendererInterface;
 

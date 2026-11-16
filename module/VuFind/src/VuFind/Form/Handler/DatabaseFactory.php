@@ -37,6 +37,8 @@ use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
+use VuFind\Http\RouteHelper;
+use VuFind\Http\ServerUrlHelper;
 
 /**
  * Class DatabaseFactory.
@@ -73,9 +75,9 @@ class DatabaseFactory implements FactoryInterface
         }
 
         $dbServiceManager = $container->get(\VuFind\Db\Service\PluginManager::class);
-        $router = $container->get('HttpRouter');
-        $serverUrl = $container->get('ViewRenderer')->plugin('serverurl');
-        $baseUrl = $serverUrl($router->assemble([], ['name' => 'home']));
+        $serverUrlHelper = $container->get(ServerUrlHelper::class);
+        $routeHelper = $container->get(RouteHelper::class);
+        $baseUrl = $serverUrlHelper->getUrlForPath($routeHelper->getUrlFromRoute('home'));
         return new $requestedName(
             $dbServiceManager->get(\VuFind\Db\Service\FeedbackServiceInterface::class),
             $dbServiceManager->get(\VuFind\Db\Service\UserService::class),

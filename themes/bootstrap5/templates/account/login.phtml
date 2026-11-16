@@ -13,7 +13,7 @@
 ?>
 
 <?php if ($offlineMode == 'ils-offline'): ?>
-  <?=$this->partial('Helpers/ils-offline.phtml', ['offlineModeMsg' => 'ils_offline_login_message'])?>
+  <?=$this->render('Helpers/ils-offline.phtml', ['offlineModeMsg' => 'ils_offline_login_message'])?>
 <?php endif; ?>
 
 <h2 class="lightbox-header"><?=$this->transEsc('Login')?></h2>
@@ -22,5 +22,5 @@
 <?php if ($hideLogin): ?>
   <div class="alert alert-danger"><?=$this->transEsc('login_disabled')?></div>
 <?php else: ?>
-  <?=$this->auth()->getLogin(iterator_to_array($this))?>
+  <?=$this->auth()->getLogin()?>
 <?php endif; ?>

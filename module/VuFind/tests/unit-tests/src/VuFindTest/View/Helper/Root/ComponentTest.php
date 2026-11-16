@@ -29,6 +29,7 @@
 
 namespace VuFindTest\View\Helper\Root;
 
+use VuFind\View\GlobalsContainer;
 use VuFind\View\Helper\Root\Component;
 use VuFind\View\Renderer\TemplateRendererInterface;
 
@@ -53,7 +54,7 @@ class ComponentTest extends \PHPUnit\Framework\TestCase
         $renderer = $this->createMock(TemplateRendererInterface::class);
         $renderer->method('renderTemplateAsString')->willReturnArgument(1);
 
-        $helper = new Component($renderer);
+        $helper = new Component($renderer, $this->createMock(GlobalsContainer::class));
 
         return $helper;
     }

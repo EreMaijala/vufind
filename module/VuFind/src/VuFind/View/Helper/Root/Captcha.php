@@ -30,7 +30,6 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use VuFind\View\Renderer\TemplateRendererInterface;
 
@@ -53,11 +52,11 @@ class Captcha
     /**
      * Constructor.
      *
-     * @param array                          $config       Config
-     * @param \VuFind\Captcha\AbstractBase[] $captchas     Captchas
-     * @param TemplateRendererInterface $templateRenderer Template renderer
-     * @param ResolverInterface              $viewResolver View resolver
-     * @param Context                        $context      Context helper
+     * @param array                          $config           Config
+     * @param \VuFind\Captcha\AbstractBase[] $captchas         Captchas
+     * @param TemplateRendererInterface      $templateRenderer Template renderer
+     * @param ResolverInterface              $viewResolver     View resolver
+     * @param Context                        $context          Context helper
      */
     public function __construct(
         protected array $config,

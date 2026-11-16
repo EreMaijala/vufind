@@ -29,7 +29,6 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use VuFind\Recommend\RecommendInterface;
 use VuFind\ServiceManager\Factory\Autowire;
@@ -52,8 +51,8 @@ class Recommend
      * Constructor.
      *
      * @param TemplateRendererInterface $templateRenderer Template renderer
-     * @param ResolverInterface $viewResolver View resolver
-     * @param Context           $context      Context helper
+     * @param ResolverInterface         $viewResolver     View resolver
+     * @param Context                   $context          Context helper
      */
     public function __construct(
         TemplateRendererInterface $templateRenderer,

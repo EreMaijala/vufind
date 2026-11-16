@@ -29,7 +29,6 @@
 
 namespace VuFindTest\View\Helper\Root;
 
-use Laminas\Router\Http\HttpRouteMatch;
 use Laminas\View\Helper\EscapeHtml;
 use Laminas\View\Helper\EscapeHtmlAttr;
 use Laminas\View\HelperPluginManager;
@@ -38,7 +37,6 @@ use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use Laminas\View\Resolver\TemplatePathStack;
 use Laminas\View\View;
-use Laminas\View\ViewInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 use VuFind\ActionHelper\LoginHelper;
@@ -50,10 +48,10 @@ use VuFind\RecordDriver\Response\PublicationDetails;
 use VuFind\Tags\TagsService;
 use VuFind\View\GlobalsContainer;
 use VuFind\View\Helper\Root\RecordDataFormatter;
+use VuFind\View\Helper\Root\Render;
 use VuFind\View\Helper\Root\SchemaOrg;
 use VuFind\View\Helper\Root\ServerUrl;
 use VuFind\View\Helper\Root\Url;
-use VuFind\View\Renderer\LaminasTemplateRenderer;
 
 use function count;
 
@@ -111,8 +109,6 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
         $escapeHtml = new EscapeHtml(new Escaper());
         $serverUrl = new ServerUrl($this->createMock(ServerUrlHelper::class));
 
-        $context = new \VuFind\View\Helper\Root\Context($renderer);
-
         $configManager = $container->get(\VuFind\Config\ConfigManagerInterface::class);
         $configHelper = new \VuFind\View\Helper\Root\Config($configManager, $this->createMock(LoginHelper::class));
         $configEntity = $configManager->getConfigArray('config');
@@ -137,14 +133,9 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
             $escapeHtml
         );
 
-        $templateRenderer = $this->getAutowiredObject(
-            LaminasTemplateRenderer::class,
-            [
-                'config' => [],
-                ViewInterface::class => new View($renderer, $helperPluginManager, 'layout/layout', 'content'),
-                'ViewRenderer' => $renderer,
-            ]
-        );
+        $templateRenderer = $this->getTemplateRenderer($helperPluginManager, renderer: $renderer);
+
+        $context = new \VuFind\View\Helper\Root\Context($templateRenderer);
 
         $authManager = $this->createMock(\VuFind\Auth\Manager::class);
         $authManager->method('loginEnabled')->willReturn(true);
@@ -197,13 +188,13 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
             'context' => $context,
             'config' => $configHelper,
             'escapeHtmlAttr' => $escapeHtmlAttr,
-            'identifierLinker' => new \VuFind\View\Helper\Root\IdentifierLinker($context, $renderer),
+            'identifierLinker' => new \VuFind\View\Helper\Root\IdentifierLinker($context, $templateRenderer),
             'htmlSafeJsonEncode' => new \VuFind\View\Helper\Root\HtmlSafeJsonEncode($helperPluginManager),
             'icon' => new \VuFind\View\Helper\Root\Icon(
                 [],
                 new \Laminas\Cache\Storage\Adapter\BlackHole(),
                 $escapeHtmlAttr,
-                $renderer
+                $templateRenderer
             ),
             'openUrl' => new \VuFind\View\Helper\Root\OpenUrl(
                 $context,
@@ -213,6 +204,7 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
             'proxyUrl' => new \VuFind\View\Helper\Root\ProxyUrl(),
             'record' => $record,
             'recordLinker' => $recordLinker,
+            'render' => new Render($templateRenderer),
             'schemaOrg' => $schemaOrgHelper,
             'searchMemory' => $this->getSearchMemoryViewHelper($memory),
             'searchOptions' => $searchOptions,
@@ -385,8 +377,6 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
             $specManager
         );
         $this->addConfigRelatedServicesToContainer($container);
-
-        $match = new HttpRouteMatch([], 'foo');
 
         $url = $this->createMock(Url::class);
 

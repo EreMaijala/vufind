@@ -36,6 +36,8 @@ use Laminas\View\Helper\Doctype;
 use Laminas\View\Helper\EscapeHtml;
 use Laminas\View\HelperPluginManager;
 use Laminas\View\Renderer\PhpRenderer;
+use Laminas\View\View;
+use Laminas\View\ViewInterface;
 use Psr\Container\ContainerInterface;
 use VuFind\Application;
 use VuFind\Cache\Manager as CacheManager;
@@ -47,6 +49,8 @@ use VuFind\View\Helper\Root\CleanHtml;
 use VuFind\View\Helper\Root\CleanHtmlFactory;
 use VuFind\View\Helper\Root\SearchMemory;
 use VuFind\View\Helper\Root\Url;
+use VuFind\View\Renderer\LaminasTemplateRenderer;
+use VuFind\View\Renderer\TemplateRendererInterface;
 use VuFindTest\Container\MockContainer;
 use VuFindTheme\View\Helper\AssetManager;
 use VuFindTheme\View\Helper\AssetManagerFactory;
@@ -142,6 +146,33 @@ trait ViewTrait
             $helperPluginManager->setService('assetManager', $this->getAssetManager($helperPluginManager));
         }
         return new PhpRenderer($helperPluginManager, $resolver);
+    }
+
+    /**
+     * Get a working template renderer.
+     *
+     * Note: AutowireTrait required!
+     *
+     * @param ?HelperPluginManager $helperPluginManager Configured helper plugin manager
+     * @param string               $theme               Theme directory to load from
+     * @param ?PhpRenderer         $renderer            Laminas PHP renderer
+     *
+     * @return TemplateRendererInterface
+     */
+    protected function getTemplateRenderer(
+        ?HelperPluginManager $helperPluginManager = null,
+        $theme = 'bootstrap5',
+        $renderer = null
+    ): TemplateRendererInterface {
+        $renderer ??= $this->getPhpRenderer($helperPluginManager, $theme);
+        return $this->getAutowiredObject(
+            LaminasTemplateRenderer::class,
+            [
+                'config' => [],
+                ViewInterface::class => new View($renderer, $helperPluginManager, 'layout/layout', 'content'),
+                'ViewRenderer' => $renderer,
+            ]
+        );
     }
 
     /**

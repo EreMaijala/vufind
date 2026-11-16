@@ -34,7 +34,7 @@ namespace VuFind\Feed\Writer;
 use Laminas\Feed\Writer\Extension\GooglePlayPodcast\Feed;
 use Laminas\Feed\Writer\Extension\ITunes\Entry;
 use Laminas\Feed\Writer\ExtensionManagerInterface;
-use Laminas\ServiceManager\AbstractPluginManager;
+use Laminas\Feed\Writer\StandaloneExtensionManager;
 use Laminas\ServiceManager\Exception\InvalidServiceException;
 use Laminas\ServiceManager\Factory\InvokableFactory;
 
@@ -54,7 +54,7 @@ use function substr;
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development Wiki
  */
-class ExtensionPluginManager extends AbstractPluginManager implements ExtensionManagerInterface
+class ExtensionPluginManager extends StandaloneExtensionManager implements ExtensionManagerInterface
 {
     /**
      * Aliases for default set of extension classes.

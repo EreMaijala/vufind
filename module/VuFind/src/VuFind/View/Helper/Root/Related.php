@@ -29,7 +29,6 @@
 
 namespace VuFind\View\Helper\Root;
 
-use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use VuFind\Config\ConfigManagerInterface;
 use VuFind\Related\PluginManager as RelatedManager;
@@ -53,12 +52,12 @@ class Related
     /**
      * Constructor.
      *
-     * @param RelatedManager         $relatedPluginManager Plugin manager for related record modules
-     * @param ConfigManagerInterface $configManager        Configuration manager
-     * @param OptionsManager         $optionsManager       Search options plugin manager
-     * @param Context                $contextHelper        Context helper
-     * @param TemplateRendererInterface $templateRenderer Template renderer
-     * @param ResolverInterface      $viewResolver         View resolver
+     * @param RelatedManager            $relatedPluginManager Plugin manager for related record modules
+     * @param ConfigManagerInterface    $configManager        Configuration manager
+     * @param OptionsManager            $optionsManager       Search options plugin manager
+     * @param Context                   $contextHelper        Context helper
+     * @param TemplateRendererInterface $templateRenderer     Template renderer
+     * @param ResolverInterface         $viewResolver         View resolver
      */
     public function __construct(
         protected RelatedManager $relatedPluginManager,

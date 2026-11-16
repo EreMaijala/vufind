@@ -33,6 +33,7 @@ namespace VuFind\View\Helper\Root;
 use VuFind\Date\Converter;
 use VuFind\Date\DateException;
 use VuFind\I18n\Translator\TranslatorAwareInterface;
+use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\View\Renderer\TemplateRendererInterface;
 
 use function count;
@@ -105,6 +106,7 @@ class Citation implements TranslatorAwareInterface
      * @param Converter                 $dateConverter    Date converter
      * @param TemplateRendererInterface $templateRenderer Template renderer
      */
+    #[Autowire]
     public function __construct(
         protected Converter $dateConverter,
         protected TemplateRendererInterface $templateRenderer,

@@ -42,8 +42,8 @@
   $this->globals()['formOverride'] = ob_get_contents();
   ob_end_clean();
 
-  $params = iterator_to_array($this) + [
+  $params = [
       'helpTopics' => ['blender_advsearch' => 'Help with Advanced Search', 'blender' => 'Help with Search Operators'],
   ];
-  echo $this->partial('search/advanced/layout.phtml', $params);
+  echo $this->render('search/advanced/layout.phtml', $params);
 ?>

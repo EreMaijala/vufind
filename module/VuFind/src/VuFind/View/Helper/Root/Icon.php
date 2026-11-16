@@ -31,7 +31,7 @@ namespace VuFind\View\Helper\Root;
 
 use Laminas\Cache\Storage\StorageInterface;
 use Laminas\View\Helper\EscapeHtmlAttr;
-use Laminas\View\Renderer\RendererInterface;
+use VuFind\View\Renderer\TemplateRendererInterface;
 
 use function in_array;
 use function is_string;
@@ -78,17 +78,17 @@ class Icon
     /**
      * Constructor.
      *
-     * @param array             $config Icon configuration
-     * @param StorageInterface  $cache  Cache instance
-     * @param EscapeHtmlAttr    $esc    EscapeHtmlAttr view helper
-     * @param RendererInterface $view   View renderer
-     * @param bool              $rtl    Are we in right to left text mode?
+     * @param array                     $config           Icon configuration
+     * @param StorageInterface          $cache            Cache instance
+     * @param EscapeHtmlAttr            $esc              EscapeHtmlAttr view helper
+     * @param TemplateRendererInterface $templateRenderer Template renderer
+     * @param bool                      $rtl              Are we in right to left text mode?
      */
     public function __construct(
         protected array $config,
         protected StorageInterface $cache,
         protected EscapeHtmlAttr $esc,
-        protected RendererInterface $view,
+        protected TemplateRendererInterface $templateRenderer,
         protected bool $rtl = false
     ) {
         $this->defaultSet = $this->config['defaultSet'] ?? 'FontAwesome';
@@ -199,9 +199,9 @@ class Icon
 
             // Surface set config and add icon and attrs
             $cached = trim(
-                $this->view->render(
-                    'Helpers/icons/' . $template,
-                    array_merge(
+                $this->templateRenderer->renderTemplateAsString(
+                    template: 'Helpers/icons/' . $template,
+                    params: array_merge(
                         $this->config['sets'][$set] ?? [],
                         [
                             'icon' => $icon,

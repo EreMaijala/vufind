@@ -13,5 +13,5 @@
       <div class="alert alert-danger"><?=$this->transEsc($msg)?></div>
     <?php endif; ?>
   </p>
-  <?=$this->partial('error/contact.phtml', iterator_to_array($this))?>
+  <?=$this->render('error/contact.phtml')?>
 </div>

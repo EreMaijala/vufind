@@ -31,6 +31,7 @@
 namespace VuFind\View\Helper\Root;
 
 use VuFind\ServiceManager\Factory\Autowire;
+use VuFind\View\GlobalsContainer;
 use VuFind\View\Renderer\TemplateRendererInterface;
 
 /**
@@ -56,10 +57,12 @@ class Component
      * Constructor.
      *
      * @param TemplateRendererInterface $templateRenderer Template renderer
+     * @param GlobalsContainer          $globalsContainer Global data container
      */
     #[Autowire]
     public function __construct(
         protected TemplateRendererInterface $templateRenderer,
+        protected GlobalsContainer $globalsContainer,
     ) {
     }
 
@@ -93,7 +96,7 @@ class Component
         $params['_componentClass'] = $this->cssClassCache[$name];
 
         // Pass information from view to the component
-        $params['inLightbox'] ??= $this->view->inLightbox ?? false;
+        $params['inLightbox'] ??= $this->globalsContainer['inLightbox'] ?? false;
 
         return (clone $this->templateRenderer)->renderTemplateAsString(template: "_ui/$path/" . $name, params: $params);
     }

@@ -1,5 +1,5 @@
 <?php
-echo $this->partial(
+echo $this->render(
     'ajax/account/status-badge.phtml',
     [
         'title' => 'account_normal_checkouts',
@@ -7,7 +7,7 @@ echo $this->partial(
         'class' => 'account-info',
     ]
 );
-echo $this->partial(
+echo $this->render(
     'ajax/account/status-badge.phtml',
     [
         'title' => 'account_checkouts_due',
@@ -15,7 +15,7 @@ echo $this->partial(
         'class' => 'account-warning',
     ]
 );
-echo $this->partial(
+echo $this->render(
     'ajax/account/status-badge.phtml',
     [
         'title' => 'account_checkouts_overdue',

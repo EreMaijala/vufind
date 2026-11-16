@@ -158,7 +158,7 @@ class PaginationHelperTest extends \PHPUnit\Framework\TestCase
     {
         $helper = new PaginationHelper();
 
-        $functionConfig = false;
+        $functionConfig = [];
 
         // Typical first page
         $result = $helper->getOptions(1, null, 50, $functionConfig);

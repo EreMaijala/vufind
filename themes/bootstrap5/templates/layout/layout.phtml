@@ -48,7 +48,7 @@
       // if we render them after calling AssetManager's outputHeaderAssets method,
       // some dependencies may not load correctly. Thus, we render early, but use
       // this later.
-      $icons = !isset($globals['renderingError']) ? $this->partial('layout/js-icons.phtml') : '{}';
+      $icons = !isset($globals['renderingError']) ? $this->render('layout/js-icons.phtml') : '{}';
     ?>
     <?php if ($globals['rtl']) {
       // RTL styling
@@ -93,8 +93,8 @@
       }
 
       $root = rtrim($this->url('home'), '/');
-      $jsConfig = !isset($this->renderingError) ? $this->partial('layout/js-configs.phtml') : '{}';
-      $translations = !isset($this->renderingError) ? $this->partial('layout/js-translations.phtml') : '{}';
+      $jsConfig = !isset($this->renderingError) ? $this->render('layout/js-configs.phtml') : '{}';
+      $translations = !isset($this->renderingError) ? $this->render('layout/js-translations.phtml') : '{}';
       $dsb = DEFAULT_SEARCH_BACKEND;
       $cspNonce = $this->csp()->getNonce();
       $searchId = json_encode($globals['searchId']);
@@ -142,7 +142,7 @@
         <span class="visually-hidden" role="heading" aria-level="1"><?=$globals['srmessage'] ?></span>
       <?php endif; ?>
       <a class="visually-hidden-focusable" href="#content"><?=$this->transEsc('Skip to content') ?></a>
-      <?=$this->partial('header.phtml', iterator_to_array($this))?>
+      <?=$this->render('header.phtml')?>
     </header>
     <?=$this->breadcrumbs()->render()?>
     <div role="main" class="main">
@@ -153,7 +153,7 @@
         <?=$this->content ?>
       </div>
     </div>
-    <?=$this->partial('footer.phtml', iterator_to_array($this))?>
+    <?=$this->render('footer.phtml')?>
     <!-- MODAL IN CASE WE NEED ONE -->
     <div id="modal" class="modal fade hidden-print" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog">
@@ -166,7 +166,7 @@
       </div>
     </div>
     <div class="vufind-offcanvas-overlay" data-toggle="vufind-offcanvas"></div>
-    <?=$this->partial('Helpers/analytics.phtml', iterator_to_array($this))?>
+    <?=$this->render('Helpers/analytics.phtml')?>
     <?php foreach ($this->captcha()->js() as $jsInclude):?>
       <?=$this->assetManager()->outputInlineScriptLink($jsInclude)?>
     <?php endforeach; ?>

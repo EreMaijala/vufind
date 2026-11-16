@@ -141,7 +141,7 @@ abstract class AbstractHoldAction extends AbstractTemplateRenderingAction
         return $this->getPaginationHelper()->getOptions(
             (int)$this->getQueryParam('page', 1),
             null,
-            $pageSize,
+            (int)$pageSize,
             $this->ilsConnection->checkFunction('getMyHolds', $patron)
         );
     }

@@ -109,20 +109,19 @@ class PaginationHelper
      * @return array
      */
     public function getOptions(
-        $page,
-        $sort,
-        $defaultPageSize,
-        $functionConfig
+        int $page,
+        ?string $sort,
+        int $defaultPageSize,
+        array $functionConfig
     ) {
         // Get page and page size:
         $limit = $defaultPageSize;
         $ilsPaging = true;
         if (isset($functionConfig['max_results'])) {
-            $limit = min([$functionConfig['max_results'], $limit]);
+            $limit = min([(int)$functionConfig['max_results'], $limit]);
         } elseif (isset($functionConfig['page_size'])) {
             if (!in_array($limit, $functionConfig['page_size'])) {
-                $limit = $functionConfig['default_page_size']
-                    ?? $functionConfig['page_size'][0];
+                $limit = (int)($functionConfig['default_page_size'] ?? $functionConfig['page_size'][0]);
             }
         } else {
             $ilsPaging = false;
@@ -165,8 +164,8 @@ class PaginationHelper
             return false;
         }
         $paginator = new \Laminas\Paginator\Paginator($adapter);
-        $paginator->setItemCountPerPage($limit);
-        $paginator->setCurrentPageNumber($page);
+        $paginator->setItemCountPerPage((int)$limit);
+        $paginator->setCurrentPageNumber((int)$page);
         return $paginator;
     }
 }

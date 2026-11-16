@@ -41,6 +41,7 @@ use VuFind\Db\Service\AuditEventServiceInterface;
 use VuFind\Db\Service\PaymentFeeServiceInterface;
 use VuFind\Db\Service\PaymentServiceInterface;
 use VuFind\Db\Service\UserCardServiceInterface;
+use VuFind\ModuleManager\ModuleManager;
 
 use function in_array;
 
@@ -78,7 +79,7 @@ class OnlinePaymentManagerFactory implements FactoryInterface
             throw new \Exception('Unexpected options passed to factory.');
         }
         $dbServiceManager = $container->get(\VuFind\Db\Service\PluginManager::class);
-        $devToolsAvailable = in_array('VuFindDevTools', $container->get('ModuleManager')->getModules());
+        $devToolsAvailable = in_array('VuFindDevTools', $container->get(ModuleManager::class)->getModules());
         return new $requestedName(
             $container->get(\VuFind\OnlinePayment\Handler\PluginManager::class),
             $container->get(\VuFind\ILS\Connection::class),

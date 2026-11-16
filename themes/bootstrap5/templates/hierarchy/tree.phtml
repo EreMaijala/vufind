@@ -89,7 +89,7 @@
 
         echo " $itemHtml ";
         echo '<ul id="' . $childUlIdEsc . '" class="hierarchy-tree__children" role="group">';
-        ($funcContainer['renderTreeLevel'][0])($node->children, $context, $hierarchyID, $driver, $selectedID, "{$parentNodeId}_$nodeId");
+        ($funcContainer['renderTreeLevel'])($node->children, $context, $hierarchyID, $driver, $selectedID, "{$parentNodeId}_$nodeId");
         echo '</ul></li>';
       } else {
         echo '<li' . ($liClasses ? ' class="' . implode(' ', $liClasses) . '"' : '') . '>'

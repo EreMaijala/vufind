@@ -21,4 +21,4 @@
     $resultsAttrs->add('data-history', $this->saveToHistory ? '1' : '0');
   }
 ?>
-<?=$this->partial('search/list-' . $this->params->getView() . '.phtml', iterator_to_array($this) + compact('resultsClass', 'resultsAttrs'))?>
+<?=$this->render('search/list-' . $this->params->getView() . '.phtml')?>

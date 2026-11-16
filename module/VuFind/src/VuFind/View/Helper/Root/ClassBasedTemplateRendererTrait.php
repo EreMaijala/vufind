@@ -35,7 +35,6 @@
 namespace VuFind\View\Helper\Root;
 
 use Laminas\View\Exception\RuntimeException;
-use Laminas\View\Renderer\RendererInterface;
 use Laminas\View\Resolver\ResolverInterface;
 use VuFind\View\Renderer\TemplateRendererInterface;
 
@@ -84,9 +83,9 @@ trait ClassBasedTemplateRendererTrait
     /**
      * Helper setter function for required dependencies.
      *
-     * @param TemplateRendererInterface $templateRenderer  Template renderer
-     * @param ResolverInterface $viewResolver  View resolver
-     * @param Context           $contextHelper Context helper
+     * @param TemplateRendererInterface $templateRenderer Template renderer
+     * @param ResolverInterface         $viewResolver     View resolver
+     * @param Context                   $contextHelper    Context helper
      *
      * @return void
      */
@@ -213,8 +212,11 @@ trait ClassBasedTemplateRendererTrait
         }
 
         $html = $classTemplate
-            ? $this->getTemplateRenderer()->renderTemplateAsString(template: $classTemplate, params: $context)
-            : '';
+            ? $this->getTemplateRenderer()->renderTemplateAsString(
+                template: $classTemplate,
+                params: $context,
+                rootContext: true
+            ) : '';
 
         return $html;
     }

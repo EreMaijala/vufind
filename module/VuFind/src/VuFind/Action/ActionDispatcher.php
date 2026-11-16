@@ -96,12 +96,9 @@ class ActionDispatcher
         }
 
         $id = null;
-        $routeMatch = $request->getAttribute('route-match');
-        if ($routeMatch) {
-            $id = $this->actionPluginManager->getActionHandlerName(
-                $routeMatch->getParam('category') ?? $routeMatch->getParam('controller'),
-                $routeMatch->getParam('action')
-            );
+        if ($routeMatch = $request->getAttribute('route-match')) {
+            $id = $this->actionPluginManager
+                ->getActionHandlerName($routeMatch->getParam('controller'), $routeMatch->getParam('action'));
         }
 
         $action = $id

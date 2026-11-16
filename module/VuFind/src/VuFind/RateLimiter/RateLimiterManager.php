@@ -207,9 +207,9 @@ class RateLimiterManager implements LoggerAwareInterface, TranslatorAwareInterfa
             if ($this->config['Policies'][$policyId]['addHeaders'] ?? false) {
                 $response = $event->getResponse();
                 $response = $response
-                    ->withHeader('X-RateLimit-Remaining', $result['requestsRemaining'])
-                    ->withHeader('X-RateLimit-Retry-After', $result['retryAfter'])
-                    ->withHeader('X-RateLimit-Limit', $result['requestLimit']);
+                    ->withHeader('X-RateLimit-Remaining', (string)$result['requestsRemaining'])
+                    ->withHeader('X-RateLimit-Retry-After', (string)$result['retryAfter'])
+                    ->withHeader('X-RateLimit-Limit', (string)$result['requestLimit']);
                 $event->setResponse($response);
             }
             if (isset($turnstileLimit) && !$turnstileLimit->isAccepted()) {

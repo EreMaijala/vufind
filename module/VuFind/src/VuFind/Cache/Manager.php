@@ -493,23 +493,22 @@ class Manager implements ContainerInterface, LoggerAwareInterface
             $this->logWarning('Using standard cache instead of in-memory cache -- for testing only!');
             $laminasCache = $this->getCache('object', $storageConfig['options']['namespace']);
             // Fake the capabilities to include static TTL support:
-            $eventManager = $laminasCache->getEventManager();
-            $eventManager->attach(
-                'getCapabilities.post',
-                function ($event) use ($laminasCache): void {
-                    $oldCapacities = $event->getResult();
-                    $newCapacities = new Capabilities(
-                        $laminasCache,
-                        new stdClass(),
-                        ['staticTtl' => true],
-                        $oldCapacities
-                    );
-                    $event->setResult($newCapacities);
-                }
-            );
-            if ($ttl = ($storageConfig['options']['ttl'] ?? null)) {
-                $laminasCache->getOptions()->setTtl($ttl);
-            }
+            /*            $eventManager = $laminasCache->getEventManager();
+                        $eventManager->attach(
+                            'getCapabilities.post',
+                            function ($event) use ($laminasCache): void {
+                                $oldCapacities = $event->getResult();
+                                $newCapacities = new Capabilities(
+                                    $laminasCache,
+                                    new stdClass(),
+                                    ['staticTtl' => true],
+                                    $oldCapacities
+                                );
+                                $event->setResult($newCapacities);
+                            }
+                        );*/
+            $ttl = (int)($storageConfig['options']['ttl'] ?? 60);
+            $laminasCache->getOptions()->setTtl($ttl);
             return $laminasCache;
         }
 

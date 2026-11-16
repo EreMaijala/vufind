@@ -110,13 +110,13 @@ class ForwardHelper implements HelperInterface
         $action = $this->actionPluginManager->get('confirm/confirm');
         $routeMatch = new HttpRouteMatch(
             [
-                'data' => [
+                'data' => serialize([
                     'title' => $title,
                     'confirm' => $yesTarget,
                     'cancel' => $noTarget,
                     'messages' => (array)$messages,
                     'extras' => $extras,
-                ],
+                ]),
             ],
             'Confirm/Confirm'
         );

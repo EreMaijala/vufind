@@ -8,7 +8,7 @@
 <div id="requestButton"></div>
 
 <?php
-  $this->partial('relais/relais-setup.phtml', iterator_to_array($this)); // set up script and translations
+  $this->render('relais/relais-setup.phtml'); // set up script and translations
   $activateRelais = "$(document).ready(function () { VuFind.relais.addItem('$oclc', '$failLink'); });\n";
   echo $this->assetManager()->outputInlineScriptString($activateRelais);
 ?>

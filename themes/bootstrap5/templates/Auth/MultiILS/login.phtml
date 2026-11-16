@@ -12,7 +12,7 @@
     }
   ?>
   <form method="post" action="<?=$this->url('account-home')?>" name="loginForm" class="form-login">
-    <?=$this->auth()->getLoginFields(iterator_to_array($this))?>
+    <?=$this->auth()->getLoginFields()?>
     <?php if ($account->supportsPersistentLogin()) : ?>
       <div class="form-group">
         <label>
