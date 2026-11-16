@@ -38,8 +38,10 @@ use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use VuFind\Action\Error\ExceptionAction;
 use VuFind\Action\Error\NotFoundAction;
+use VuFind\Action\Error\PermissionDeniedAction;
 use VuFind\ActionHelper\PluginManager as HelperPluginManager;
 use VuFind\ActionHelper\RedirectHelper;
+use VuFind\Exception\Forbidden;
 use VuFind\Http\RouteHelper;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\View\GlobalsContainer;
@@ -120,19 +122,29 @@ class ActionDispatcher
     /**
      * Return an exception response.
      *
-     * @param ServerRequestInterface $request  Request
-     * @param ResponseInterface      $response Response
-     * @param Throwable              $ex       Exeption
+     * @param ServerRequestInterface $request   Request
+     * @param ResponseInterface      $response  Response
+     * @param Throwable              $exception Exeption
      *
      * @return ResponseInterface
      */
     protected function getExceptionResponse(
         ServerRequestInterface $request,
         ResponseInterface $response,
-        Throwable $ex
+        Throwable $exception
     ): ResponseInterface {
-        $action = $this->actionPluginManager->get(ExceptionAction::class);
+        if ($exception instanceof Forbidden) {
+            $actionId = 'error/permissiondenied';
+            $actionClass = PermissionDeniedAction::class;
+        } else {
+            $actionId = 'error/exception';
+            $actionClass = ExceptionAction::class;
+        }
+        $action = $this->actionPluginManager->get($actionClass);
         $this->actionConfigManager->applyActionConfig($action, $request->getAttribute('route-match'));
+        $request = $request
+            ->withAttribute('exception', $exception)
+            ->withAttribute('action-id', $actionId);
         return $action($request, $response);
     }
 

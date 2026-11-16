@@ -30,6 +30,8 @@
 namespace VuFindTheme\View\Helper;
 
 use Exception;
+use IteratorAggregate;
+use Laminas\Stdlib\SplStack;
 use Laminas\View\Resolver\ResolverInterface;
 use VuFind\ServiceManager\Factory\Autowire;
 
@@ -67,26 +69,35 @@ class ParentTemplate
      */
     public function __invoke($template, $targetTheme = null)
     {
-        if (!is_callable([$this->templatePathStack, 'getPaths'])) {
-            throw new Exception('Template path stack must implement the getPaths method');
+        $paths = new SplStack();
+        if ($this->templatePathStack instanceof IteratorAggregate) {
+            foreach ($this->templatePathStack as $current) {
+                if (is_callable([$current, 'getPaths'])) {
+                    $paths = [
+                        ...$paths,
+                        ...$current->getPaths()->toArray()
+                    ];
+                }
+            }
+        } else {
+            if (!is_callable([$this->templatePathStack, 'getPaths'])) {
+                throw new Exception('Template path stack must implement the getPaths method');
+            }
+            $paths = $this->templatePathStack->getPaths()->toArray();
         }
-        $paths = $this->templatePathStack->getPaths();
 
-        // rewind to fix problems with multiple invokes
-        $paths->rewind();
         // skip current theme
-        $paths->next();
+        array_shift($paths);
 
-        while (
-            $paths->current() &&
-            (!file_exists($paths->current() . $template) ||
-            (!empty($targetTheme) && !strstr($paths->current(), $targetTheme)))
-        ) {
-            $paths->next();
+        foreach ($paths as $path) {
+            if (
+                (!file_exists($path . $template) ||
+                (!empty($targetTheme) && !strstr($path, $targetTheme)))
+            ) {
+                continue;
+            }
+            return $path . $template;
         }
-        if ($paths->current() == null) {
-            throw new \Exception('not found in parent themes: ' . $template);
-        }
-        return $paths->current() . $template;
+        throw new \Exception('not found in parent themes: ' . $template);
     }
 }

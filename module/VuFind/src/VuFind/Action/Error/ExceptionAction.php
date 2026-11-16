@@ -34,6 +34,7 @@ namespace VuFind\Action\Error;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use VuFind\Action\AbstractTemplateRenderingAction;
+use VuFind\Exception\HttpStatusInterface;
 
 /**
  * Exception action.
@@ -66,6 +67,18 @@ class ExceptionAction extends AbstractTemplateRenderingAction
             'exception' => $exception,
             'display_exceptions' => $exception && ($request->getAttribute('display-exceptions') ?? false),
         ];
-        return $this->renderTemplate($request, $response->withStatus(500), $templateParams, 'error/index');
+        $statusCode = ($exception instanceof HttpStatusInterface) ? $exception->getHttpStatus() : 500;
+        return $this->renderTemplate($request, $response->withStatus($statusCode), $templateParams, 'error/index');
+    }
+
+    /**
+     * Validate any access permission for the action.
+     *
+     * @return ?ResponseInterface A response if access is denied, null otherwise
+     */
+    public function validateAccessPermission(): ?ResponseInterface
+    {
+        // Access to "exception" page is always allowed:
+        return null;
     }
 }

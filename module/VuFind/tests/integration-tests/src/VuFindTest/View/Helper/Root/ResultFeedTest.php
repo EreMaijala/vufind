@@ -29,6 +29,8 @@
 
 namespace VuFindTest\Integration\View\Helper\Root;
 
+use Laminas\View\Helper\EscapeHtml;
+use VuFind\Escaper\Escaper;
 use VuFind\View\Helper\Root\ResultFeed;
 
 /**
@@ -81,7 +83,7 @@ class ResultFeedTest extends \PHPUnit\Framework\TestCase
         $searchOptionsManager = $this->createMock(\VuFind\Search\Options\PluginManager::class);
         $translate = $this->createMock(\VuFind\View\Helper\Root\Translate::class);
         $truncate = $this->createMock(\VuFind\View\Helper\Root\Truncate::class);
-        $escapeHtml = $this->createMock(\Laminas\View\Helper\EscapeHtml::class);
+        $escapeHtml = new EscapeHtml(new Escaper());
 
         $recordLinker = $this->getMockBuilder(\VuFind\View\Helper\Root\RecordLinker::class)
             ->setConstructorArgs([
