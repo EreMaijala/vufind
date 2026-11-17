@@ -31,7 +31,6 @@ namespace VuFindTest\AjaxHandler;
 
 use Laminas\View\HelperPluginManagerInterface;
 use VuFind\AjaxHandler\Recommend;
-use VuFind\AjaxHandler\RecommendFactory;
 use VuFind\Recommend\PluginManager;
 use VuFind\Recommend\RecommendInterface;
 use VuFind\Search\Results\PluginManager as ResultsManager;
@@ -51,6 +50,8 @@ use function count;
  */
 class RecommendTest extends \VuFindTest\Unit\AjaxHandlerTestCase
 {
+    use \VuFindTest\Feature\AutowireTrait;
+
     /**
      * Get a mock params object.
      *
@@ -129,8 +130,7 @@ class RecommendTest extends \VuFindTest\Unit\AjaxHandlerTestCase
         $this->container->set(HelperPluginManagerInterface::class, $plugins);
 
         // Build and test the ajax handler:
-        $factory = new RecommendFactory();
-        $handler = $factory($this->container, Recommend::class);
+        $handler = $this->getAutowiredObject(Recommend::class, $this->container);
         $this->assertEquals([null], $handler->handleRequest($this->getRequest(['mod' => 'foo'])));
     }
 }

@@ -29,6 +29,7 @@
 
 namespace VuFindTest\Container;
 
+use Laminas\View\HelperPluginManagerInterface;
 use PHPUnit\Framework\MockObject\MockBuilder;
 use PHPUnit\Framework\TestCase;
 
@@ -65,7 +66,7 @@ trait MockContainerTrait
      * @var array
      */
     protected $mockAliases = [
-        'ViewHelperManager' => \Laminas\View\HelperPluginManager::class,
+        'ViewHelperManager' => HelperPluginManagerInterface::class,
     ];
 
     /**

@@ -35,6 +35,7 @@ use Laminas\Router\RouteStackInterface;
 use Laminas\View\Helper\Doctype;
 use Laminas\View\Helper\EscapeHtml;
 use Laminas\View\HelperPluginManager;
+use Laminas\View\HelperPluginManagerInterface;
 use Laminas\View\Renderer\PhpRenderer;
 use Laminas\View\View;
 use Laminas\View\ViewInterface;
@@ -96,7 +97,7 @@ trait ViewTrait
         foreach ($services as $key => $value) {
             $helperPluginManager->setService($key, $value);
         }
-        $container->set(\Laminas\View\HelperPluginManager::class, $helperPluginManager);
+        $container->set(HelperPluginManagerInterface::class, $helperPluginManager);
         $factory = new AssetManagerFactory();
         $assetManager = $factory($container, AssetManager::class);
 
