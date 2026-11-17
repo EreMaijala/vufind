@@ -441,7 +441,6 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         $this->sharedByDefault = false;
 
         parent::__construct($configOrContainerInstance, $v3config);
-
         $this->addAbstractFactory(AbstractAutowiringFactory::class);
         $this->addInitializer(ActionInitializer::class);
     }
