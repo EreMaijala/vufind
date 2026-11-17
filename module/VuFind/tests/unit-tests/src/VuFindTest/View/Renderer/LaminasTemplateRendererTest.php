@@ -41,6 +41,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use VuFind\ModuleManager\ModuleManager;
+use VuFind\ModuleManager\ModuleManagerInterface;
 use VuFind\View\Renderer\LaminasTemplateRenderer;
 use VuFindTest\Feature\AutowireTrait;
 use VuFindTest\Feature\ReflectionTrait;
@@ -223,7 +224,7 @@ class LaminasTemplateRendererTest extends TestCase
         $mockModuleManager = $this->createMock(ModuleManager::class);
         $mockModuleManager->expects($this->once())->method('getModules')
             ->willReturn($modules);
-        $renderer = $this->getRenderer(null, null, $testConfig, [ModuleManager::class => $mockModuleManager]);
+        $renderer = $this->getRenderer(null, null, $testConfig, [ModuleManagerInterface::class => $mockModuleManager]);
 
         $this->assertSame(
             ['Extra/', 'VuFind/Foo/', 'VuFind/'],

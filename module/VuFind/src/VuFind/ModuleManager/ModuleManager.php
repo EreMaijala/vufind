@@ -29,9 +29,6 @@
 
 namespace VuFind\ModuleManager;
 
-use Laminas\EventManager\EventManagerAwareTrait;
-use Laminas\EventManager\EventManagerInterface;
-use Laminas\ModuleManager\ModuleManagerInterface;
 use Laminas\ServiceManager\ServiceManager;
 use Laminas\Stdlib\ArrayUtils;
 
@@ -48,8 +45,6 @@ use function is_callable;
  */
 class ModuleManager implements ModuleManagerInterface
 {
-    use EventManagerAwareTrait;
-
     /**
      * All loaded modules.
      *
@@ -74,18 +69,17 @@ class ModuleManager implements ModuleManagerInterface
     /**
      * Constructor.
      *
-     * @param ServiceManager        $serviceManager  Service manager
-     * @param EventManagerInterface $eventManager    Event manager
-     * @param array                 $modules         List of modules
-     * @param array                 $configProviders List of additional configuration providers
+     * @param ServiceManager $serviceManager  Service manager
+     * @param array          $modules         List of modules
+     * @param array          $configProviders List of additional configuration providers
+     * @param ?string        $configCacheFile Module configuration cache file, or null to disable caching
      */
     public function __construct(
         protected ServiceManager $serviceManager,
-        protected EventManagerInterface $eventManager,
         protected array $modules,
         protected array $configProviders,
+        protected ?string $configCacheFile,
     ) {
-        $this->setEventManager($eventManager);
     }
 
     /**
@@ -107,58 +101,6 @@ class ModuleManager implements ModuleManagerInterface
     }
 
     /**
-     * Get a list of modules.
-     *
-     * @return array
-     */
-    public function getModules(): array
-    {
-        return $this->modules;
-    }
-
-    /**
-     * Set an array or Traversable of module names that this module manager should load.
-     *
-     * @param mixed $modules Module names
-     *
-     * @return ModuleManagerInterface
-     */
-    public function setModules($modules): ModuleManagerInterface
-    {
-        $this->modules = (array)$modules;
-        return $this;
-    }
-
-    /**
-     * Get a list of loaded modules.
-     *
-     * @param bool $loadModules If true, load modules if they're not already loaded
-     *
-     * @return array An array of Module objects, keyed by module name
-     */
-    public function getLoadedModules($loadModules)
-    {
-        if ($loadModules) {
-            $this->loadModules();
-        }
-        return $this->loadedModules;
-    }
-
-    /**
-     * Get merged module configuration.
-     *
-     * @return array
-     */
-    public function getMergedConfig(): array
-    {
-        $merged = [];
-        foreach ($this->allConfigs as $config) {
-            $merged = ArrayUtils::merge($merged, $config);
-        }
-        return $merged;
-    }
-
-    /**
      * Load modules.
      *
      * @return void
@@ -177,7 +119,7 @@ class ModuleManager implements ModuleManagerInterface
      *
      * @return mixed Module's Module class or ConfigProvider
      */
-    public function loadModule($moduleName)
+    public function loadModule(string $moduleName): mixed
     {
         $module = null;
         // Check for a VuFind module first:
@@ -202,6 +144,68 @@ class ModuleManager implements ModuleManagerInterface
             }
         }
         return $module;
+    }
+
+    /**
+     * Get an array of loaded modules.
+     *
+     * @param bool $loadModules If true, load modules if they're not already loaded
+     *
+     * @return array An array of Module objects, keyed by module name
+     */
+    public function getLoadedModules(bool $loadModules): array
+    {
+        if ($loadModules) {
+            $this->loadModules();
+        }
+        return $this->loadedModules;
+    }
+
+    /**
+     * Get the list of modules.
+     *
+     * @return array
+     */
+    public function getModules(): array
+    {
+        return $this->modules;
+    }
+
+    /**
+     * Set the list of modules.
+     *
+     * @param array $modules Module names
+     *
+     * @return static
+     */
+    public function setModules(array $modules): static
+    {
+        $this->modules = $modules;
+        return $this;
+    }
+
+    /**
+     * Get merged module configuration.
+     *
+     * @return array
+     */
+    public function getMergedConfig(): array
+    {
+        if ($this->configCacheFile && file_exists($this->configCacheFile)) {
+            try {
+                return unserialize(file_get_contents($this->configCacheFile));
+            } catch (\Exception $e) {
+                // Could not read or unserialize the cache file, pass through
+            }
+        }
+        $merged = [];
+        foreach ($this->allConfigs as $config) {
+            $merged = ArrayUtils::merge($merged, $config);
+        }
+        if ($this->configCacheFile) {
+            file_put_contents($this->configCacheFile, serialize($merged));
+        }
+        return $merged;
     }
 
     /**

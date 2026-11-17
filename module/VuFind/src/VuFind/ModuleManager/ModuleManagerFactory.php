@@ -29,7 +29,6 @@
 
 namespace VuFind\ModuleManager;
 
-use Laminas\EventManager\EventManagerInterface;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
@@ -70,11 +69,18 @@ class ModuleManagerFactory implements \Laminas\ServiceManager\Factory\FactoryInt
         ?array $options = null
     ): mixed {
         $configuration = $container->get('ApplicationConfig');
+
+        $cacheFile = null;
+        if ($configuration['module_listener_options']['config_cache_enabled'] ?? false) {
+            $cacheFile = ($configuration['module_listener_options']['cache_dir'] ?? '')
+                . DIRECTORY_SEPARATOR . 'module-config.php';
+        }
+
         return new $requestedName(
             $container,
-            $container->get(EventManagerInterface::class),
             $configuration['modules'] ?? [],
-            $configuration['config_providers'] ?? []
+            $configuration['config_providers'] ?? [],
+            $cacheFile
         );
     }
 }

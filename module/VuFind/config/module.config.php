@@ -254,6 +254,7 @@ $config = [
             'VuFind\IpAddressUtils' => 'VuFind\Net\IpAddressUtils',
             'VuFind\Logger' => 'VuFind\Log\Logger',
             'VuFind\Mailer' => 'VuFind\Mailer\Mailer',
+            'VuFind\ModuleManager\ModuleManagerInterface' => 'VuFind\ModuleManager\ModuleManager',
             'VuFind\Recaptcha' => 'VuFind\Service\ReCaptcha',
             'VuFind\RecommendPluginManager' => 'VuFind\Recommend\PluginManager',
             'VuFind\RecordCache' => 'VuFind\Record\Cache',

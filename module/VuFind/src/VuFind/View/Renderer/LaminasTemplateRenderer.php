@@ -39,7 +39,7 @@ use Laminas\View\ViewInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use VuFind\Http\ServerUrlHelper;
-use VuFind\ModuleManager\ModuleManager;
+use VuFind\ModuleManager\ModuleManagerInterface;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\View\GlobalsContainer;
 
@@ -66,17 +66,17 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
     /**
      * Constructor.
      *
-     * @param ServerUrlHelper   $serverUrlHelper       Server URL helper
-     * @param RendererInterface $viewRenderer          View renderer
-     * @param ViewInterface     $view                  View
-     * @param ResolverInterface $templateResolver      Template resolver
-     * @param bool              $displayExceptions     Display exceptions?
-     * @param string            $notFoundTemplate      Template for 404 errors
-     * @param string            $errorTemplate         Template for errors
-     * @param array             $extraThemePrefixes    Extra theme prefixes
-     * @param array             $excludedThemePrefixes Excluded theme prefixes
-     * @param GlobalsContainer  $globalsContainer      Global data container
-     * @param ModuleManager     $moduleManager         Module manager
+     * @param ServerUrlHelper        $serverUrlHelper       Server URL helper
+     * @param RendererInterface      $viewRenderer          View renderer
+     * @param ViewInterface          $view                  View
+     * @param ResolverInterface      $templateResolver      Template resolver
+     * @param bool                   $displayExceptions     Display exceptions?
+     * @param string                 $notFoundTemplate      Template for 404 errors
+     * @param string                 $errorTemplate         Template for errors
+     * @param array                  $extraThemePrefixes    Extra theme prefixes
+     * @param array                  $excludedThemePrefixes Excluded theme prefixes
+     * @param GlobalsContainer       $globalsContainer      Global data container
+     * @param ModuleManagerInterface $moduleManager         Module manager
      */
     public function __construct(
         protected ServerUrlHelper $serverUrlHelper,
@@ -95,7 +95,7 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
         #[Autowire(service: 'config', path: 'vufind/excluded_theme_prefixes', default: [])]
         protected array $excludedThemePrefixes,
         protected GlobalsContainer $globalsContainer,
-        protected ModuleManager $moduleManager,
+        protected ModuleManagerInterface $moduleManager,
     ) {
     }
 
