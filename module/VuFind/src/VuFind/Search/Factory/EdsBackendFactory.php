@@ -31,7 +31,6 @@ namespace VuFind\Search\Factory;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
-use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -132,7 +131,7 @@ class EdsBackendFactory extends AbstractBackendFactory
         $isGuest = !$auth->isGranted('access.EDSExtendedResults');
         $session = new \Laminas\Session\Container(
             'EBSCO',
-            $this->getService(ManagerInterface::class)
+            $this->getService(\Laminas\Session\ManagerInterface::class)
         );
         $backend = new Backend(
             $connector,

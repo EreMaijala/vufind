@@ -31,7 +31,6 @@ namespace VuFind\Auth;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
-use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use VuFind\Crypt\RandomHash;
@@ -73,7 +72,7 @@ class EmailAuthenticatorFactory implements \Laminas\ServiceManager\Factory\Facto
             throw new \Exception('Unexpected options passed to factory.');
         }
         return new $requestedName(
-            $container->get(ManagerInterface::class),
+            $container->get(\Laminas\Session\ManagerInterface::class),
             $container->get(RandomHash::class),
             $container->get(\VuFind\Mailer\Mailer::class),
             $container->get(TemplateRendererInterface::class),

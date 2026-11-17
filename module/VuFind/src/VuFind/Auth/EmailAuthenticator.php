@@ -38,6 +38,7 @@ use VuFind\Db\Service\AuthHashServiceInterface;
 use VuFind\Exception\Auth as AuthException;
 use VuFind\Http\RouteHelper;
 use VuFind\Http\ServerUrlHelper;
+use VuFind\Mailer\Mailer;
 use VuFind\Net\UserIpReader;
 use VuFind\View\Renderer\TemplateRendererInterface;
 
@@ -70,7 +71,7 @@ class EmailAuthenticator implements \VuFind\I18n\Translator\TranslatorAwareInter
      *
      * @param ManagerInterface          $sessionManager   Session Manager
      * @param RandomHash                $randomHash       Random hash generator
-     * @param \VuFind\Mailer\Mailer     $mailer           Mailer
+     * @param Mailer                    $mailer           Mailer
      * @param TemplateRendererInterface $templateRenderer Template Renderer
      * @param ServerUrlHelper           $serverUrlHelper  Server URL helper
      * @param RouteHelper               $routeHelper      Route helper

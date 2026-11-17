@@ -33,7 +33,6 @@
 
 namespace VuFind\ILS\Driver;
 
-use Laminas\Session\ManagerInterface;
 use VuFind\Exception\Auth as AuthException;
 use VuFind\Exception\Forbidden as ForbiddenException;
 use VuFind\Exception\ILS as ILSException;
@@ -96,6 +95,13 @@ class PAIA extends DAIA
     protected $session;
 
     /**
+     * SessionManager.
+     *
+     * @var \Laminas\Session\ManagerInterface
+     */
+    protected $sessionManager;
+
+    /**
      * PAIA status strings.
      *
      * @var array
@@ -143,14 +149,15 @@ class PAIA extends DAIA
     /**
      * Constructor.
      *
-     * @param \VuFind\Date\Converter $converter      Date converter
-     * @param ManagerInterface       $sessionManager Session Manager
+     * @param \VuFind\Date\Converter            $converter      Date converter
+     * @param \Laminas\Session\ManagerInterface $sessionManager Session Manager
      */
     public function __construct(
         \VuFind\Date\Converter $converter,
-        protected ManagerInterface $sessionManager
+        \Laminas\Session\ManagerInterface $sessionManager
     ) {
         parent::__construct($converter);
+        $this->sessionManager = $sessionManager;
     }
 
     /**

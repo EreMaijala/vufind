@@ -31,7 +31,6 @@ namespace VuFind\Auth;
 
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
-use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use VuFind\Http\RouteHelper;
@@ -84,7 +83,7 @@ class SimulatedSSOFactory implements \Laminas\ServiceManager\Factory\FactoryInte
             $getUrl,
             $config,
             $container->get(\VuFind\Auth\ILSAuthenticator::class),
-            $container->get(ManagerInterface::class)
+            $container->get(\Laminas\Session\ManagerInterface::class)
         );
     }
 }

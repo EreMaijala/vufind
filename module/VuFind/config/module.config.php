@@ -206,7 +206,7 @@ $config = [
             'VuFindTranslatorCache' => \VuFind\I18n\Translator\TranslatorCacheFactory::class,
         ],
         'delegators' => [
-            \Laminas\I18n\Translator\Translator::class => [
+            \Laminas\Translator\TranslatorInterface::class => [
                 \VuFind\I18n\Translator\TranslatorFactory::class,
             ],
         ],
@@ -284,7 +284,7 @@ $config = [
             'VuFind\View\FlashMessenger\FlashMessengerInterface' => 'VuFind\View\FlashMessenger\FlashMessenger',
             'VuFind\View\Renderer\TemplateRendererInterface' => 'VuFind\View\Renderer\LaminasTemplateRenderer',
 
-            \Laminas\Session\ManagerInterface::class => \Laminas\Session\SessionManager::class,
+            'Laminas\Session\ManagerInterface' => 'Laminas\Session\SessionManager',
 
             // Overrides:
             'Laminas\Escaper\Escaper' => 'VuFind\Escaper\Escaper',

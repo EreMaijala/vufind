@@ -33,7 +33,6 @@ use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
 use Laminas\Session\Container;
-use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use VuFind\Db\Service\SearchServiceInterface;
@@ -71,7 +70,7 @@ class MemoryFactory implements FactoryInterface
         if (!empty($options)) {
             throw new \Exception('Unexpected options passed to factory.');
         }
-        $sessionManager = $container->get(ManagerInterface::class);
+        $sessionManager = $container->get(\Laminas\Session\ManagerInterface::class);
         $session = new Container(
             'Search',
             $sessionManager

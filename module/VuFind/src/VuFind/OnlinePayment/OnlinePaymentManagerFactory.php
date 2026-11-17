@@ -34,7 +34,6 @@ namespace VuFind\OnlinePayment;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
-use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 use VuFind\Db\Service\AuditEventServiceInterface;
@@ -89,7 +88,7 @@ class OnlinePaymentManagerFactory implements FactoryInterface
             $dbServiceManager->get(UserCardServiceInterface::class),
             $dbServiceManager->get(AuditEventServiceInterface::class),
             $container->get(\VuFind\OnlinePayment\Receipt::class),
-            $container->get(ManagerInterface::class),
+            $container->get(\Laminas\Session\ManagerInterface::class),
             $devToolsAvailable
         );
     }

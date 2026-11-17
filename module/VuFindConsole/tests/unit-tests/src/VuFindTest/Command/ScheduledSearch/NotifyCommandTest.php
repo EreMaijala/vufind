@@ -41,7 +41,7 @@ use VuFind\View\Renderer\TemplateRendererInterface;
 use VuFindConsole\Command\ScheduledSearch\NotifyCommand;
 use VuFindTest\Container\MockContainer;
 use VuFindTest\Feature\ConfigRelatedServicesTrait;
-use VuFindTest\I18n\Translator\TestHarness\Translator;
+use VuFindTest\Feature\TranslatorTrait;
 
 use function array_key_exists;
 
@@ -57,6 +57,7 @@ use function array_key_exists;
 class NotifyCommandTest extends \PHPUnit\Framework\TestCase
 {
     use ConfigRelatedServicesTrait;
+    use TranslatorTrait;
 
     /**
      * Container for building mocks.
@@ -301,10 +302,13 @@ class NotifyCommandTest extends \PHPUnit\Framework\TestCase
                 'My Site: translated text',
                 $message
             );
-        $translator = $this->container->createMock(Translator::class);
-        $translator->expects($this->once())->method('translate')
-            ->with('Scheduled Alert Results')
-            ->willReturn('translated text');
+        $translator = $this->getMockTranslator(
+            [
+                'default' => [
+                    'Scheduled Alert Results' => 'translated text',
+                ],
+            ]
+        );
         $command = $this->getCommand(
             [
                 'mailer' => $mailer,
@@ -512,7 +516,7 @@ class NotifyCommandTest extends \PHPUnit\Framework\TestCase
             $routeHelper,
         );
         $command->setTranslator(
-            $options['translator'] ?? $this->createStub(Translator::class)
+            $options['translator'] ?? $this->createStub(\Laminas\Translator\TranslatorInterface::class)
         );
         $command->setPathResolver($this->getPathResolver());
         return $command;

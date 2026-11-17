@@ -33,7 +33,6 @@
 namespace VuFind\Session;
 
 use Laminas\Session\ManagerInterface;
-use Laminas\Session\SessionManager;
 
 use function is_callable;
 
@@ -61,7 +60,7 @@ class Settings
     /**
      * Session manager (if instantiated).
      *
-     * @var SessionManager
+     * @var ManagerInterface
      */
     protected $manager = null;
 

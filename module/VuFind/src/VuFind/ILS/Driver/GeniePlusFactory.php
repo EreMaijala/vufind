@@ -32,7 +32,6 @@ namespace VuFind\ILS\Driver;
 use Laminas\ServiceManager\Exception\ServiceNotCreatedException;
 use Laminas\ServiceManager\Exception\ServiceNotFoundException;
 use Laminas\ServiceManager\Factory\FactoryInterface;
-use Laminas\Session\ManagerInterface;
 use Psr\Container\ContainerExceptionInterface as ContainerException;
 use Psr\Container\ContainerInterface;
 
@@ -70,7 +69,7 @@ class GeniePlusFactory implements FactoryInterface
             throw new \Exception('Unexpected options passed to factory.');
         }
         $sessionFactory = function ($namespace) use ($container) {
-            $manager = $container->get(ManagerInterface::class);
+            $manager = $container->get(\Laminas\Session\ManagerInterface::class);
             return new \Laminas\Session\Container("GeniePlus_$namespace", $manager);
         };
         return new $requestedName($sessionFactory);
