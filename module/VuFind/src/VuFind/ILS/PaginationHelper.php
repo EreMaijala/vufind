@@ -165,8 +165,8 @@ class PaginationHelper
             return null;
         }
         $paginator = new \Laminas\Paginator\Paginator($adapter);
-        $paginator->setItemCountPerPage((int)$limit);
-        $paginator->setCurrentPageNumber((int)$page);
+        $paginator->setItemCountPerPage($limit);
+        $paginator->setCurrentPageNumber($page);
         return $paginator;
     }
 }
