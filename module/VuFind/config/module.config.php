@@ -330,6 +330,7 @@ $config = [
         'template_path_stack'      => [],
     ],
     'templates' => [
+        // Allow templates to try to fetch variables that don't exist (for back-compatibility):
         'strict_variables' => false,
     ],
     // This section contains all VuFind-specific settings (i.e. configurations
