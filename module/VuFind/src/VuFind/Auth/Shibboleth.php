@@ -36,7 +36,6 @@
 namespace VuFind\Auth;
 
 use Laminas\Http\PhpEnvironment\Request;
-use Laminas\Session\ManagerInterface;
 use VuFind\Auth\Shibboleth\ConfigurationLoaderInterface;
 use VuFind\Db\Entity\UserEntityInterface;
 use VuFind\Db\Service\ExternalSessionServiceInterface;
@@ -101,13 +100,13 @@ class Shibboleth extends AbstractBase
     /**
      * Constructor.
      *
-     * @param ManagerInterface             $sessionManager      Session manager
-     * @param ConfigurationLoaderInterface $configurationLoader Configuration loader
-     * @param Request                      $request             Http request object
-     * @param ILSAuthenticator             $ilsAuthenticator    ILS authenticator
+     * @param \Laminas\Session\ManagerInterface $sessionManager      Session manager
+     * @param ConfigurationLoaderInterface      $configurationLoader Configuration loader
+     * @param Request                           $request             Http request object
+     * @param ILSAuthenticator                  $ilsAuthenticator    ILS authenticator
      */
     public function __construct(
-        protected ManagerInterface $sessionManager,
+        protected \Laminas\Session\ManagerInterface $sessionManager,
         protected ConfigurationLoaderInterface $configurationLoader,
         protected Request $request,
         protected ILSAuthenticator $ilsAuthenticator

@@ -119,6 +119,7 @@ class PluginManager extends \VuFind\ServiceManager\AbstractPluginManager
         $this->sharedByDefault = false;
 
         parent::__construct($configOrContainerInstance, $v3config);
+
         $this->addAbstractFactory(PluginFactory::class);
 
         // Add an initializer for setting up hierarchies
