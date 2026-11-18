@@ -34,13 +34,11 @@
 namespace VuFind\Cache;
 
 use Laminas\Cache\Service\StorageAdapterFactory;
-use Laminas\Cache\Storage\Capabilities;
 use Laminas\Cache\Storage\StorageInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LoggerAwareInterface;
-use stdClass;
 use VuFind\Log\LoggerAwareTrait;
 
 use function dirname;
