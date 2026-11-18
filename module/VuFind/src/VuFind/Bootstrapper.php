@@ -57,15 +57,15 @@ class Bootstrapper
     /**
      * Constructor.
      *
-     * @param EventInterface        $event        Event
-     * @param ContainerInterface    $container    Service manager
-     * @param EventManagerInterface $eventManager Event manager
-     * @param array                 $config       VuFind configuration
+     * @param EventInterface        $event     Event
+     * @param ContainerInterface    $container Service manager
+     * @param EventManagerInterface $events    Event manager
+     * @param array                 $config    VuFind configuration
      */
     public function __construct(
         protected EventInterface $event,
         protected ContainerInterface $container,
-        protected EventManagerInterface $eventManager,
+        protected EventManagerInterface $events,
         protected array $config,
     ) {
     }
@@ -134,7 +134,7 @@ class Bootstrapper
                 );
                 return $routeMatch;
             };
-            $this->eventManager->attach(Event::EVENT_ROUTE, $callback);
+            $this->events->attach(Event::EVENT_ROUTE, $callback);
         }
     }
 
@@ -182,8 +182,8 @@ class Bootstrapper
             $globals['allLangs'] = $settings->getEnabledLocales();
             $globals['rtl'] = $settings->isRightToLeftLocale($language);
         };
-        $this->eventManager->attach('dispatch', $callback, 15000);
-        $this->eventManager->attach('dispatch.error', $callback, 15000);
+        $this->events->attach('dispatch', $callback, 15000);
+        $this->events->attach('dispatch.error', $callback, 15000);
     }
 
     /**
@@ -215,8 +215,8 @@ class Bootstrapper
                 return $response;
             }
         };
-        $this->eventManager->attach('dispatch.error', $callback, 9000);
-        $this->eventManager->attach('dispatch', $callback, 9000);
+        $this->events->attach('dispatch.error', $callback, 9000);
+        $this->events->attach('dispatch', $callback, 9000);
     }
 
     /**
@@ -233,9 +233,9 @@ class Bootstrapper
         $finishCallback = function (): void {
             $this->container->get(\VuFind\Auth\LoginTokenManager::class)->requestIsFinished();
         };
-        $this->eventManager->attach('dispatch.error', $dispatchCallback, 8000);
-        $this->eventManager->attach('dispatch', $dispatchCallback, 8000);
-        $this->eventManager->attach('finish', $finishCallback, 8000);
+        $this->events->attach('dispatch.error', $dispatchCallback, 8000);
+        $this->events->attach('dispatch', $dispatchCallback, 8000);
+        $this->events->attach('finish', $finishCallback, 8000);
     }
 
     /**
@@ -261,7 +261,7 @@ class Bootstrapper
                 $response->setStatusCode($exception->getHttpStatus());
             }
         };
-        $this->eventManager->attach('dispatch.error', $callback);
+        $this->events->attach('dispatch.error', $callback);
     }
 
     /**
@@ -303,8 +303,8 @@ class Bootstrapper
                 }
             }
         };
-        $this->eventManager->attach('dispatch.error', $callback);
-        $this->eventManager->attach('render.error', $callback);
+        $this->events->attach('dispatch.error', $callback);
+        $this->events->attach('render.error', $callback);
     }
 
     /**
@@ -321,7 +321,7 @@ class Bootstrapper
         $callback = function (/*$event*/): void {
             $this->container->get(GlobalsContainer::class)['renderingError'] = true;
         };
-        $this->eventManager->attach('render.error', $callback, 10000);
+        $this->events->attach('render.error', $callback, 10000);
     }
 
     /**
@@ -345,7 +345,7 @@ class Bootstrapper
                 }
             }
         };
-        $this->eventManager->attach('render', $callback, 10000);
+        $this->events->attach('render', $callback, 10000);
     }
 
     /**
@@ -367,7 +367,7 @@ class Bootstrapper
             }
             $event->setResponse($response);
         };
-        $this->eventManager->attach(Event::EVENT_FINISH, $callback);
+        $this->events->attach(Event::EVENT_FINISH, $callback);
     }
 
     /**
@@ -400,7 +400,7 @@ class Bootstrapper
                 return $event->getResponse();
             }
         };
-        $this->eventManager->attach('dispatch', $callback, 11000);
+        $this->events->attach('dispatch', $callback, 11000);
     }
 
     /**
