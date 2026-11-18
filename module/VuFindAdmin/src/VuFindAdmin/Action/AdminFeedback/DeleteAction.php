@@ -161,7 +161,7 @@ class DeleteAction extends AbstractAdminAction implements TranslatorAwareInterfa
                 'site_url' => $this->getPostOrQueryParam('site_url'),
                 'status' => $this->getPostOrQueryParam('status'),
                 'ids' => $ids,
-            ],
+            ]
         );
     }
 
