@@ -206,7 +206,7 @@ $config = [
             'VuFindTranslatorCache' => \VuFind\I18n\Translator\TranslatorCacheFactory::class,
         ],
         'delegators' => [
-            \Laminas\Translator\TranslatorInterface::class => [
+            \Laminas\I18n\Translator\Translator::class => [
                 \VuFind\I18n\Translator\TranslatorFactory::class,
             ],
         ],
