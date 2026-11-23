@@ -62,6 +62,10 @@ class ServerUrl
      */
     public function __invoke(string|true|null $requestUri = null): mixed
     {
-        return $this->serverUrlHelper->getUrl($requestUri);
+        return match ($requestUri) {
+            true => $this->serverUrlHelper->getCurrentUrl(),
+            null => $this->serverUrlHelper->getBaseUrl(),
+            default => $this->serverUrlHelper->getUrlForPath($requestUri)
+        };
     }
 }

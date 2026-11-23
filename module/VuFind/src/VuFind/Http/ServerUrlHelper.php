@@ -6,6 +6,7 @@
  * PHP version 8
  *
  * Copyright (C) Villanova University 2025.
+ * Copyright (C) The National Library of Finland 2026.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -74,14 +75,29 @@ class ServerUrlHelper
     /**
      * Constructor.
      *
-     * @param bool $useProxy Use reverse proxy headers?
+     * @param bool   $useProxy      Use reverse proxy headers?
+     * @param ?array $serverContext Server context (like the $_SERVER superglobal that is used as context by default)
      *
      * @return void
      */
     public function __construct(
         #[Autowire(config: 'config', path: 'Site/reverse_proxy', default: false)]
         protected bool $useProxy,
+        protected ?array $serverContext = null,
     ) {
+    }
+
+    /**
+     * Set server context.
+     *
+     * @param array $context New server context
+     *
+     * @return static
+     */
+    public function setServerContext(array $context): static
+    {
+        $this->serverContext = $context;
+        return $this;
     }
 
     /**
@@ -91,7 +107,7 @@ class ServerUrlHelper
      */
     public function getBaseUrl(): string
     {
-        return $this->getUrl(null);
+        return $this->getScheme() . '://' . ($this->getHost() ?? '');
     }
 
     /**
@@ -101,7 +117,9 @@ class ServerUrlHelper
      */
     public function getCurrentUrl(): string
     {
-        return $this->getUrl(true);
+        $serverContext = $this->getServerContext();
+        $path = $serverContext['REQUEST_URI'] ?? '';
+        return $this->getBaseUrl() . (string)$path;
     }
 
     /**
@@ -113,28 +131,7 @@ class ServerUrlHelper
      */
     public function getUrlForPath(string $path): string
     {
-        return $this->getUrl($path);
-    }
-
-    /**
-     * Return a server URL.
-     *
-     * @param string|true|null $requestUri If true, the request URI found in $_SERVER will be appended as a path. If a
-     * string is given, it will be appended as a path. If null, no path is appended.
-     *
-     * @return string
-     */
-    public function getUrl(string|true|null $requestUri): string
-    {
-        if (null === $requestUri) {
-            $path = '';
-        } elseif (true === $requestUri) {
-            $path = $_SERVER['REQUEST_URI'];
-        } else {
-            $path = $requestUri;
-        }
-
-        return $this->getScheme() . '://' . $this->getHost() . (string)$path;
+        return $this->getBaseUrl() . $path;
     }
 
     /**
@@ -238,8 +235,9 @@ class ServerUrlHelper
             return;
         }
 
-        $serverPort = $_SERVER['SERVER_PORT'] ?? null;
-        if ($httpHost = $_SERVER['HTTP_HOST'] ?? null) {
+        $serverContext = $this->getServerContext();
+        $serverPort = $serverContext['SERVER_PORT'] ?? null;
+        if ($httpHost = $serverContext['HTTP_HOST'] ?? null) {
             // Detect if the port is set in SERVER_PORT and included in HTTP_HOST
             if (
                 $serverPort
@@ -253,8 +251,8 @@ class ServerUrlHelper
 
                 // At this point, we have a SERVER_PORT that differs from the Host header, indicating we likely have a
                 // port-forwarding situation. As such, we'll set the host and port from the matched values.
-                $this->setPort((int)$matches['port']);
-                $this->setHost($matches['host']);
+                $this->setPort((int)$matches['port'])
+                    ->setHost($matches['host']);
                 return;
             }
 
@@ -262,7 +260,7 @@ class ServerUrlHelper
             return;
         }
 
-        if (null !== ($serverName = $_SERVER['SERVER_NAME'] ?? null) && null !== $serverPort) {
+        if (null !== $serverPort && null !== ($serverName = $serverContext['SERVER_NAME'] ?? null)) {
             $this->setHost($serverName);
         }
     }
@@ -278,7 +276,8 @@ class ServerUrlHelper
             return false;
         }
 
-        if (!($host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? null)) {
+        $serverContext = $this->getServerContext();
+        if (!($host = $serverContext['HTTP_X_FORWARDED_HOST'] ?? null)) {
             return false;
         }
 
@@ -304,12 +303,13 @@ class ServerUrlHelper
             return;
         }
 
-        if (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT']) {
+        $serverContext = $this->getServerContext();
+        if ($port = $serverContext['SERVER_PORT'] ?? null) {
             if ($this->isReverseProxy()) {
                 $this->setPort(443);
                 return;
             }
-            $this->setPort($_SERVER['SERVER_PORT']);
+            $this->setPort($port);
         }
     }
 
@@ -320,9 +320,10 @@ class ServerUrlHelper
      */
     protected function setPortFromProxy(): bool
     {
+        $serverContext = $this->getServerContext();
         if (
             !$this->useProxy
-            || !($port = $_SERVER['HTTP_X_FORWARDED_PORT'] ?? null)
+            || !($port = $serverContext['HTTP_X_FORWARDED_PORT'] ?? null)
         ) {
             return false;
         }
@@ -342,9 +343,10 @@ class ServerUrlHelper
             return;
         }
 
+        $serverContext = $this->getServerContext();
         if (
-            in_array($_SERVER['HTTPS'] ?? null, [true, 'on'], true)
-            || ($_SERVER['HTTP_SCHEME'] ?? null) === 'https'
+            in_array($serverContext['HTTPS'] ?? null, [true, 'on'], true)
+            || 'https' === ($serverContext['HTTP_SCHEME'] ?? null)
             || 443 === $this->getPort()
             || $this->isReverseProxy()
         ) {
@@ -365,14 +367,15 @@ class ServerUrlHelper
             return false;
         }
 
-        if ($sslHttps = $_SERVER['SSL_HTTPS'] ?? null) {
+        $serverContext = $this->getServerContext();
+        if ($sslHttps = $serverContext['SSL_HTTPS'] ?? null) {
             if (in_array(strtolower($sslHttps), ['on', 1], true)) {
                 $this->setScheme('https');
                 return true;
             }
         }
 
-        if (!($forwardedProto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null)) {
+        if (!($forwardedProto = $serverContext['HTTP_X_FORWARDED_PROTO'] ?? null)) {
             return false;
         }
 
@@ -391,6 +394,17 @@ class ServerUrlHelper
      */
     protected function isReverseProxy(): bool
     {
-        return ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? null) === 'https';
+        $serverContext = $this->getServerContext();
+        return ($serverContext['HTTP_X_FORWARDED_PROTO'] ?? null) === 'https';
+    }
+
+    /**
+     * Get server context.
+     *
+     * @return array
+     */
+    protected function getServerContext(): array
+    {
+        return $this->serverContext ?? $_SERVER;
     }
 }

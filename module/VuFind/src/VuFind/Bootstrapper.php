@@ -246,7 +246,7 @@ class Bootstrapper
     protected function initExceptionBasedHttpStatuses(): void
     {
         // HTTP statuses not needed in console mode:
-        if (PHP_SAPI == 'cli') {
+        if (PHP_SAPI === 'cli') {
             return;
         }
 
@@ -294,7 +294,7 @@ class Bootstrapper
                     $exception = $event->getParam('exception');
                     // Console request does not include server,
                     // so use a dummy in that case.
-                    $server = (PHP_SAPI == 'cli')
+                    $server = (PHP_SAPI === 'cli')
                         ? ['env' => 'console']
                         : Message::toString($event->getRequest());
                     if (!empty($exception)) {

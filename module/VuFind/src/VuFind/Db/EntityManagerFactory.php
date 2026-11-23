@@ -82,10 +82,9 @@ class EntityManagerFactory implements \Laminas\ServiceManager\Factory\FactoryInt
      * @throws ServiceNotCreatedException if an exception is raised when
      * creating a service.
      * @throws ContainerException&\Throwable if any other error occurs
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function __invoke(ContainerInterface $container, string $requestedName, array|null $options = null): mixed
+    #[\PHPMD\Attribute\SuppressWarnings(\PHPMD\Rule\UnusedFormalParameter::class)]
+    public function __invoke(ContainerInterface $container, string $requestedName, ?array $options = null): mixed
     {
         $connection = $container->get(Connection::class);
         $paths = [
@@ -95,7 +94,7 @@ class EntityManagerFactory implements \Laminas\ServiceManager\Factory\FactoryInt
         $isDevMode = APPLICATION_ENV == 'development';
         $config = ORMSetup::createAttributeMetadataConfig($paths, $isDevMode, cache: $this->getCache($container));
         $config->setClassMetadataFactoryName(ClassMetadataFactory::class);
-        $config->setProxyDir(LOCAL_CACHE_DIR . (PHP_SAPI == 'cli' ? '/cli' : '') . '/doctrine-proxies');
+        $config->setProxyDir(LOCAL_CACHE_DIR . (PHP_SAPI === 'cli' ? '/cli' : '') . '/doctrine-proxies');
         $config->setProxyNamespace('DoctrineProxies');
         $config->setAutoGenerateProxyClasses(
             $isDevMode ? ProxyFactory::AUTOGENERATE_ALWAYS : ProxyFactory::AUTOGENERATE_FILE_NOT_EXISTS_OR_CHANGED

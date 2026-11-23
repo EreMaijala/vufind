@@ -223,7 +223,7 @@ class Initializer
         }
 
         // Load standard configuration options:
-        if (PHP_SAPI == 'cli') {
+        if (PHP_SAPI === 'cli') {
             return 'standard';
         }
 

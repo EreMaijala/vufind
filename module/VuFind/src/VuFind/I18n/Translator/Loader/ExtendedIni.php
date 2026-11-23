@@ -150,7 +150,7 @@ class ExtendedIni implements FileLoaderInterface
      */
     public function load(string $locale, string $filename): TextDomain
     {
-        if ($locale == 'debug') {
+        if ($locale === 'debug') {
             return new TextDomain();
         }
 

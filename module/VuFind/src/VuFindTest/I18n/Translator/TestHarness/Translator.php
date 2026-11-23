@@ -95,7 +95,7 @@ class Translator implements TranslatorInterface
         string $textDomain = self::DEFAULT_TEXT_DOMAIN,
         ?string $locale = null
     ): string {
-        $message = $number == 1 ? $singular : $plural;
+        $message = $number === 1 ? $singular : $plural;
         return $this->translate($message, $textDomain, $locale);
     }
 

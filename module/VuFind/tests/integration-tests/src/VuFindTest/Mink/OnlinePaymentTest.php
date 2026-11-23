@@ -425,6 +425,7 @@ final class OnlinePaymentTest extends \VuFindTest\Integration\MinkTestCase
                 return count($session->getWindowNames());
             }
         );
+        // Switch back to main window:
         $session->switchToWindow(null);
 
         // Check contents of HTML version of the receipt (the PDF version can't be loaded in chrome-headless-shell):

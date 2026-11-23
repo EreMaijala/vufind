@@ -62,6 +62,7 @@ class Module implements ModuleInterface
      *
      * @return void
      */
+    #[\PHPMD\Attribute\SuppressWarnings(\PHPMD\Rule\UnusedFormalParameter::class)]
     public function initialize(ContainerInterface $container): void
     {
         $eventManager = $container->get(EventManagerInterface::class);
@@ -75,9 +76,8 @@ class Module implements ModuleInterface
      * @param ContainerInterface $container Service manager
      *
      * @return void
-     *
-     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
+    #[\PHPMD\Attribute\SuppressWarnings(\PHPMD\Rule\UnusedFormalParameter::class)]
     public function onBootstrap(Event $event, ContainerInterface $container): void
     {
     }
