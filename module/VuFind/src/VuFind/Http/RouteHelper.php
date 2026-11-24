@@ -30,7 +30,7 @@
 
 namespace VuFind\Http;
 
-use Closure;
+use Laminas\Router\RouteStackInterface;
 use VuFind\View\Helper\Root\Url;
 
 /**
@@ -46,25 +46,19 @@ use VuFind\View\Helper\Root\Url;
 class RouteHelper
 {
     /**
-     * URL helper.
-     *
-     * @var ?Url
-     */
-    protected ?Url $urlHelper = null;
-
-    /**
      * Constructor.
      *
-     * @param Closure $urlHelperFactory URL helper factory callback
+     * @param RouteStackInterface $router Router
      *
      * @return void
      */
-    public function __construct(protected Closure $urlHelperFactory)
-    {
+    public function __construct(
+        protected RouteStackInterface $router,
+    ) {
     }
 
     /**
-     * Generates a url given the name of a route.
+     * Generates a URL given the name of a route.
      *
      * @param string $name        Name of the route
      * @param array  $routeParams Path parameters
@@ -72,14 +66,7 @@ class RouteHelper
      *
      * @see \Laminas\Router\RouteInterface::assemble()
      *
-     * @throws \Laminas\View\Exception\RuntimeException If no RouteStackInterface was provided
-     * @throws \Laminas\View\Exception\RuntimeException If no RouteMatch was provided
-     * @throws \Laminas\View\Exception\RuntimeException If RouteMatch didn't contain a matched
-     * route name
-     * @throws \Laminas\View\Exception\InvalidArgumentException If the params object was not an
-     * array or Traversable object.
-     *
-     * @return string Url For the link href attribute
+     * @return string
      */
     public function getUrlFromRoute(
         string $name,
@@ -87,20 +74,10 @@ class RouteHelper
         array $queryParams = []
     ): string {
         // Path normalization can cause problems with IDs containing escaped slashes, so let's always disable it:
-        $routeOptions = ['normalize_path' => false] + ($queryParams ? ['query' => $queryParams] : []);
-        return ($this->getUrlHelper())($name, $routeParams, $routeOptions);
-    }
-
-    /**
-     * Get URL helper.
-     *
-     * @return Url
-     */
-    protected function getUrlHelper(): Url
-    {
-        if (null === $this->urlHelper) {
-            $this->urlHelper = ($this->urlHelperFactory)();
-        }
-        return $this->urlHelper;
+        $routeOptions = [
+            'normalize_path' => false,
+            'name' => $name,
+        ] + ($queryParams ? ['query' => $queryParams] : []);
+        return $this->router->assemble($routeParams, $routeOptions)->toString();
     }
 }

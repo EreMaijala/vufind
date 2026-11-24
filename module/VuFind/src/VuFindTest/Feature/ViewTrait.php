@@ -31,7 +31,6 @@ namespace VuFindTest\Feature;
 
 use Laminas\Cache\Storage\Adapter\AdapterOptions;
 use Laminas\Cache\Storage\StorageInterface;
-use Laminas\Router\RouteStackInterface;
 use Laminas\View\Helper\Doctype;
 use Laminas\View\Helper\EscapeHtml;
 use Laminas\View\HelperPluginManager;
@@ -90,8 +89,7 @@ trait ViewTrait
             \Laminas\View\Helper\InlineScript::class => new \Laminas\View\Helper\InlineScript($escaper, $doctype),
             \VuFind\View\Helper\Root\Url::class => new \VuFind\View\Helper\Root\Url(
                 $this->createMock(Application::class),
-                $this->createMock(RouteStackInterface::class),
-                null
+                $this->createMock(RouteHelper::class)
             ),
         ];
         foreach ($services as $key => $value) {

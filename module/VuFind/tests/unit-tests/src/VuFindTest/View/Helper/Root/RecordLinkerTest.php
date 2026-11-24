@@ -30,10 +30,8 @@
 namespace VuFindTest\View\Helper\Root;
 
 use Laminas\Router\RoutePluginManager;
-use Laminas\Router\RouteStackInterface;
 use Laminas\View\Helper\EscapeHtml;
 use Psr\Container\ContainerInterface;
-use VuFind\Application;
 use VuFind\Escaper\Escaper;
 use VuFind\Http\RouteHelper;
 use VuFind\Record\Router;
@@ -213,7 +211,6 @@ class RecordLinkerTest extends \PHPUnit\Framework\TestCase
      */
     protected function getRecordLinker(array $extraHelpers = []): RecordLinker
     {
-        $url = $this->getUrl();
         $memory = $this->createMock(\VuFind\Search\Memory::class);
         $memory->method('getLastSearchId')->willReturn(-123);
 
@@ -234,7 +231,7 @@ class RecordLinkerTest extends \PHPUnit\Framework\TestCase
         $recordLinker = new RecordLinker(
             new Router([]),
             $memory,
-            new RouteHelper(fn () => $url),
+            $this->getRouteHelper(),
             $searchOptionManager,
             $translate,
             $truncate,
@@ -245,18 +242,12 @@ class RecordLinkerTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Get a URL helper.
+     * Get RouteHelper.
      *
-     * @return Url
+     * @return RouteHelper
      */
-    protected function getUrl(): Url
+    protected function getRouteHelper(): RouteHelper
     {
-        $url = new \VuFind\View\Helper\Root\Url(
-            $this->createMock(Application::class),
-            $this->createMock(RouteStackInterface::class),
-            null
-        );
-
         // Create router
         $router = new \Laminas\Router\Http\TreeRouteStack(
             new RoutePluginManager($this->createMock(ContainerInterface::class))
@@ -289,8 +280,6 @@ class RecordLinkerTest extends \PHPUnit\Framework\TestCase
         );
         $router->addRoute('record-description', $actionRoute);
 
-        $url->setRouter($router);
-
-        return $url;
+        return new RouteHelper($router);
     }
 }

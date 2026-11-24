@@ -70,12 +70,9 @@ class UrlFactory implements FactoryInterface
             throw new \Exception('Unexpected options passed to factory.');
         }
 
-        $application = $container->get(Application::class);
-        $request = $application->getRequest();
         $helper = new $requestedName(
-            $application,
+            $container->get(Application::class),
             $container->get('HttpRouter'),
-            $request?->getAttribute('route-match')
         );
 
         return $helper;

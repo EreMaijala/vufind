@@ -29,12 +29,12 @@
 
 namespace VuFindTest\View\Helper;
 
-use Laminas\Router\RouteStackInterface;
 use Laminas\View\Helper\Doctype;
 use Laminas\View\Helper\HeadStyle;
 use Laminas\View\Helper\InlineScript;
 use VuFind\Application;
 use VuFind\Escaper\Escaper;
+use VuFind\Http\RouteHelper;
 use VuFind\View\Helper\Root\HeadLink;
 use VuFind\View\Helper\Root\Url;
 use VuFindTest\Feature\ViewTrait;
@@ -93,7 +93,7 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
         $assetManager = new AssetManager(
             $this->createMock(ThemeInfo::class),
             $this->createMock(AssetPipeline::class),
-            new Url($this->createMock(Application::class), $this->createMock(RouteStackInterface::class), null),
+            new Url($this->createMock(Application::class), $this->createMock(RouteHelper::class)),
             new HeadLink(new \Laminas\View\Helper\HeadLink($escaper, $doctype)),
             new HeadStyle($escaper, $doctype),
             new InlineScript($escaper, $doctype)
@@ -151,7 +151,7 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
         $assetManager = new AssetManager(
             $this->createMock(ThemeInfo::class),
             $this->createMock(AssetPipeline::class),
-            new Url($this->createMock(Application::class), $this->createMock(RouteStackInterface::class), null),
+            new Url($this->createMock(Application::class), $this->createMock(RouteHelper::class)),
             new HeadLink(new \Laminas\View\Helper\HeadLink($escaper, $doctype)),
             new HeadStyle($escaper, $doctype),
             new InlineScript($escaper, $doctype)
@@ -179,7 +179,7 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
             ->setConstructorArgs([
                 $themeInfo,
                 $pipeline,
-                new Url($this->createMock(Application::class), $this->createMock(RouteStackInterface::class), null),
+                new Url($this->createMock(Application::class), $this->createMock(RouteHelper::class)),
                 new HeadLink(new \Laminas\View\Helper\HeadLink($escaper, $doctype)),
                 new HeadStyle($escaper, $doctype),
                 new InlineScript($escaper, $doctype),
@@ -238,7 +238,7 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
             ->setConstructorArgs([
                 $themeInfo,
                 $pipeline,
-                new Url($this->createMock(Application::class), $this->createMock(RouteStackInterface::class), null),
+                new Url($this->createMock(Application::class), $this->createMock(RouteHelper::class)),
                 new HeadLink(new \Laminas\View\Helper\HeadLink($escaper, $doctype)),
                 new HeadStyle($escaper, $doctype),
                 new InlineScript($escaper, $doctype),

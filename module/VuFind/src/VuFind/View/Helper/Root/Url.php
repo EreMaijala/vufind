@@ -6,6 +6,7 @@
  * PHP version 8
  *
  * Copyright (C) Villanova University 2019.
+ * Copyright (C) The National Library of Finland 2026.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2,
@@ -23,6 +24,7 @@
  * @category VuFind
  * @package  View_Helpers
  * @author   Chris Hallberg <challber@villanova.edu>
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development Wiki
  */
@@ -30,9 +32,9 @@
 namespace VuFind\View\Helper\Root;
 
 use Laminas\Router\RouteMatchInterface;
-use Laminas\Router\RouteStackInterface;
 use RuntimeException;
 use VuFind\Application;
+use VuFind\Http\RouteHelper;
 
 use function func_num_args;
 use function is_bool;
@@ -45,6 +47,7 @@ use function is_bool;
  * @category VuFind
  * @package  View_Helpers
  * @author   Chris Hallberg <challber@villanova.edu>
+ * @author   Ere Maijala <ere.maijala@helsinki.fi>
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     https://vufind.org/wiki/development Wiki
  */
@@ -53,14 +56,12 @@ class Url
     /**
      * Constructor.
      *
-     * @param Application          $application Application
-     * @param RouteStackInterface  $router      Router,
-     * @param ?RouteMatchInterface $routeMatch  Route match returned by the router
+     * @param Application $application Application
+     * @param RouteHelper $routeHelper Route helper
      */
     public function __construct(
         protected Application $application,
-        protected RouteStackInterface $router,
-        protected ?RouteMatchInterface $routeMatch
+        protected RouteHelper $routeHelper,
     ) {
     }
 
@@ -69,7 +70,7 @@ class Url
      *
      * @param string $name               Name of the route
      * @param array  $params             Parameters for the link
-     * @param array  $options            Options for the route
+     * @param array  $options            Options for the route (only 'query' => [...] is supported)
      * @param bool   $reuseMatchedParams Whether to reuse matched parameters
      *
      * @see \Laminas\Router\RouteInterface::assemble()
@@ -95,51 +96,24 @@ class Url
         }
 
         if ($name === null) {
-            if ($this->routeMatch === null) {
-                throw new RuntimeException('No RouteMatch instance provided');
+            if (null === ($routeMatch = $this->getRouteMatch())) {
+                throw new RuntimeException('No route-match in request');
             }
 
-            $name = $this->routeMatch->getMatchedRouteName();
+            $name = $routeMatch->getMatchedRouteName();
 
             if ($name === '') {
                 throw new RuntimeException('RouteMatch does not contain a matched route name');
             }
         }
 
-        if ($reuseMatchedParams && $this->routeMatch !== null) {
-            $routeMatchParams = $this->routeMatch->getParams();
+        if ($reuseMatchedParams && null !== ($routeMatch = $this->getRouteMatch())) {
+            $routeMatchParams = $routeMatch->getParams();
             $params = array_merge($routeMatchParams, $params);
         }
 
-        $options['name'] = $name;
-
-        return $this->application->getBasePath() . $this->router->assemble($params, $options)->toString();
-    }
-
-    /**
-     * Set the router to use for assembling.
-     *
-     * @param RouteStackInterface $router Router
-     *
-     * @return static
-     */
-    public function setRouter(RouteStackInterface $router): static
-    {
-        $this->router = $router;
-        return $this;
-    }
-
-    /**
-     * Set route match returned by the router.
-     *
-     * @param RouteMatchInterface $routeMatch Route match
-     *
-     * @return static
-     */
-    public function setRouteMatch(RouteMatchInterface $routeMatch): static
-    {
-        $this->routeMatch = $routeMatch;
-        return $this;
+        return $this->application->getBasePath()
+            . $this->routeHelper->getUrlFromRoute($name, $params, $options['query'] ?? []);
     }
 
     /**
@@ -155,10 +129,19 @@ class Url
         $requestQuery = $this->application->getRequest()?->getQueryParams() ?? [];
         $options = [
             'query' => array_merge($requestQuery, $params),
-            'normalize_path' => false, // fix for VUFIND-1392
         ];
         // If we don't have a route match, direct any url's to default route:
-        $routeName = $this->routeMatch ? null : 'default';
+        $routeName = $this->getRouteMatch() ? null : 'default';
         return ($this)($routeName, [], $options, $reuseMatchedParams);
+    }
+
+    /**
+     * Get route match from application, if available.
+     *
+     * @return ?RouteMatchInterface
+     */
+    protected function getRouteMatch(): ?RouteMatchInterface
+    {
+        return $this->application->getRequest()?->getAttribute('route-match');
     }
 }
