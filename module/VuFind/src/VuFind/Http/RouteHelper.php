@@ -31,6 +31,7 @@
 namespace VuFind\Http;
 
 use Laminas\Router\RouteStackInterface;
+use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\View\Helper\Root\Url;
 
 /**
@@ -52,6 +53,7 @@ class RouteHelper
      *
      * @return void
      */
+    #[Autowire]
     public function __construct(
         protected RouteStackInterface $router,
     ) {

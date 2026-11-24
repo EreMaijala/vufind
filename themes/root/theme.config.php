@@ -29,7 +29,6 @@ return [
             'VuFind\View\Helper\Root\Sorter' => 'VuFind\View\Helper\Root\SorterFactory',
             'VuFind\View\Helper\Root\Summaries' => 'VuFind\View\Helper\Root\ContentLoaderFactory',
             'VuFind\View\Helper\Root\SystemEmail' => 'VuFind\View\Helper\Root\SystemEmailFactory',
-            'VuFind\View\Helper\Root\Url' => 'VuFind\View\Helper\Root\UrlFactory',
             'VuFind\View\Helper\Root\UserList' => 'VuFind\View\Helper\Root\UserListFactory',
 
             'Laminas\View\Helper\EscapeHtmlAttr' => 'VuFind\View\Helper\Root\EscapeHtmlAttrFactory',

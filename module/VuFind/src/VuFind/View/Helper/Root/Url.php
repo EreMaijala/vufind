@@ -35,6 +35,7 @@ use Laminas\Router\RouteMatchInterface;
 use RuntimeException;
 use VuFind\Application;
 use VuFind\Http\RouteHelper;
+use VuFind\ServiceManager\Factory\Autowire;
 
 use function func_num_args;
 use function is_bool;
@@ -59,6 +60,7 @@ class Url
      * @param Application $application Application
      * @param RouteHelper $routeHelper Route helper
      */
+    #[Autowire]
     public function __construct(
         protected Application $application,
         protected RouteHelper $routeHelper,
