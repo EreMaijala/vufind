@@ -10,4 +10,4 @@
     // Set up query parameters for channel list:
     $queryParams = ltrim($this->results->getUrlQuery()->getParams(false), '?');
 ?>
-<?=$this->render('channels/channelList.phtml', compact('queryParams'))?>
+<?=$this->context($this)->renderInContext('channels/channelList.phtml', compact('queryParams'))?>

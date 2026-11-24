@@ -1,5 +1,4 @@
 <?php
-  $this->globals()['extraAdvancedControls'] = $this->render('search/advanced/solr.phtml');
-  // Load the Solr-specific advanced search controls and inject them into the
-  // standard advanced search layout:
-  echo $this->render('search/advanced/layout.phtml');
+  // Load the Solr-specific advanced search controls and inject them into the standard advanced search layout:
+  $this->globals()['extraAdvancedControls'] = $this->context($this)->renderInContext('search/advanced/solr.phtml');
+  echo $this->context($this)->renderInContext('search/advanced/layout.phtml');

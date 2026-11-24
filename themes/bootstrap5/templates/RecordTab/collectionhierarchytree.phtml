@@ -1,6 +1,5 @@
 <?php
   $treeContext = 'Collection';
-  $treePreviewElement = '#tree-preview';
 
   $previewAttrs = [
     'id' => 'tree-preview',
@@ -20,7 +19,7 @@
   <div<?=$this->htmlAttributes($previewAttrs)?>>
     <?php if (($collectionRecord = $this->tab->getActiveRecord()) !== false): ?>
       <?php if ($collectionRecord === null): ?>
-        <?=$this->render('collection/collection-record-error.phtml')?>
+        <?=$this->context($this)->renderInContext('collection/collection-record-error.phtml')?>
       <?php else: ?>
         <?=$this->record($collectionRecord)->getCollectionBriefRecord()?>
       <?php endif; ?>
