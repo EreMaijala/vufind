@@ -31,6 +31,8 @@ namespace VuFind\View\Renderer;
 
 use InvalidArgumentException;
 use Laminas\Uri\Http;
+use Laminas\View\Helper\ViewModel as ViewModelHelper;
+use Laminas\View\HelperPluginManagerInterface;
 use Laminas\View\Model\ModelInterface;
 use Laminas\View\Model\ViewModel;
 use Laminas\View\Renderer\RendererInterface;
@@ -66,17 +68,18 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
     /**
      * Constructor.
      *
-     * @param ServerUrlHelper        $serverUrlHelper       Server URL helper
-     * @param RendererInterface      $viewRenderer          View renderer
-     * @param ViewInterface          $view                  View
-     * @param ResolverInterface      $templateResolver      Template resolver
-     * @param bool                   $displayExceptions     Display exceptions?
-     * @param string                 $notFoundTemplate      Template for 404 errors
-     * @param string                 $errorTemplate         Template for errors
-     * @param array                  $extraThemePrefixes    Extra theme prefixes
-     * @param array                  $excludedThemePrefixes Excluded theme prefixes
-     * @param GlobalsContainer       $globalsContainer      Global data container
-     * @param ModuleManagerInterface $moduleManager         Module manager
+     * @param ServerUrlHelper              $serverUrlHelper       Server URL helper
+     * @param RendererInterface            $viewRenderer          View renderer
+     * @param ViewInterface                $view                  View
+     * @param ResolverInterface            $templateResolver      Template resolver
+     * @param HelperPluginManagerInterface $helperPluginManager   View helper plugin manager
+     * @param bool                         $displayExceptions     Display exceptions?
+     * @param string                       $notFoundTemplate      Template for 404 errors
+     * @param string                       $errorTemplate         Template for errors
+     * @param array                        $extraThemePrefixes    Extra theme prefixes
+     * @param array                        $excludedThemePrefixes Excluded theme prefixes
+     * @param GlobalsContainer             $globalsContainer      Global data container
+     * @param ModuleManagerInterface       $moduleManager         Module manager
      */
     public function __construct(
         protected ServerUrlHelper $serverUrlHelper,
@@ -84,6 +87,7 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
         protected RendererInterface $viewRenderer,
         protected ViewInterface $view,
         protected ResolverInterface $templateResolver,
+        protected HelperPluginManagerInterface $helperPluginManager,
         #[Autowire(service: 'config', path: 'view_manager/display_exceptions', default: false)]
         protected bool $displayExceptions,
         #[Autowire(service: 'config', path: 'view_manager/not_found_template', default: 'error/404')]
@@ -188,31 +192,41 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
         bool $useLayout = false,
         bool $rootContext = false,
     ): string {
-        if ($rootContext && ($rootViewModel = $this->globalsContainer['viewModel'] ?? null)) {
-            $params += $rootViewModel->getVariables();
-        }
-        $viewModel = $this->createViewModel($request, $params, $template);
-        foreach ($childTemplates as $current) {
-            $viewModel->addChild($this->createViewModel($request, $current['params'] ?? [], $current['template']));
-        }
-        if (!$useLayout) {
-            return $this->view->render($viewModel, enableLayout: false);
-        }
+        $viewModelHelper = $this->helperPluginManager->get(ViewModelHelper::class);
+        // Save current model so that we can restore it when done:
+        $saveCurrentModel = $viewModelHelper?->getCurrent();
+        try {
+            if ($rootContext && ($rootViewModel = $this->globalsContainer['viewModel'] ?? null)) {
+                $params += $rootViewModel->getVariables();
+            }
+            $viewModel = $this->createViewModel($request, $params, $template);
+            foreach ($childTemplates as $current) {
+                $viewModel->addChild($this->createViewModel($request, $current['params'] ?? [], $current['template']));
+            }
+            if (!$useLayout) {
+                return $this->view->render($viewModel, enableLayout: false);
+            }
 
-        // Prepare layout and render:
-        if (null === $request) {
-            throw new InvalidArgumentException('Request is required for rendering with layout');
+            // Prepare layout and render:
+            if (null === $request) {
+                throw new InvalidArgumentException('Request is required for rendering with layout');
+            }
+            $templateParts = explode('/', $viewModel->getTemplate());
+            $this->globalsContainer['templateDir'] = $templateParts[0];
+            $this->globalsContainer['templateName'] = $templateParts[1] ?? null;
+            $this->globalsContainer['viewModel'] = $viewModel;
+
+            $layoutModel = new ViewModel([], 'layout/layout');
+            $this->setupRenderingInLightbox($request, $layoutModel);
+            $layoutModel->addChild($viewModel);
+
+            return $this->view->renderLayout($layoutModel);
+        } finally {
+            // Restore the previous "current" model:
+            if ($saveCurrentModel) {
+                $viewModelHelper->setCurrent($saveCurrentModel);
+            }
         }
-        $templateParts = explode('/', $viewModel->getTemplate());
-        $this->globalsContainer['templateDir'] = $templateParts[0];
-        $this->globalsContainer['templateName'] = $templateParts[1] ?? null;
-        $this->globalsContainer['viewModel'] = $viewModel;
-
-        $layoutModel = new ViewModel([], 'layout/layout');
-        $this->setupRenderingInLightbox($request, $layoutModel);
-        $layoutModel->addChild($viewModel);
-
-        return $this->view->renderLayout($layoutModel);
     }
 
     /**
@@ -355,11 +369,11 @@ class LaminasTemplateRenderer implements TemplateRendererInterface
      * Setup layout with lightbox-related variables, and template when a lightbox is requested.
      *
      * @param ServerRequestInterface $request Request
-     * @param ViewModel              $layout  Layout
+     * @param ModelInterface         $layout  Layout
      *
      * @return void
      */
-    protected function setupRenderingInLightbox(ServerRequestInterface $request, ViewModel $layout): void
+    protected function setupRenderingInLightbox(ServerRequestInterface $request, ModelInterface $layout): void
     {
         if ($this->inLightbox($request)) {
             $layout->setTemplate('layout/lightbox');

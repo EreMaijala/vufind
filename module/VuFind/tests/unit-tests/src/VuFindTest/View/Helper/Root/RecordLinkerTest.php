@@ -35,6 +35,7 @@ use Laminas\View\Helper\EscapeHtml;
 use Psr\Container\ContainerInterface;
 use VuFind\Application;
 use VuFind\Escaper\Escaper;
+use VuFind\Http\RouteHelper;
 use VuFind\Record\Router;
 use VuFind\Search\Base\Results;
 use VuFind\View\Helper\Root\RecordLinker;
@@ -233,7 +234,7 @@ class RecordLinkerTest extends \PHPUnit\Framework\TestCase
         $recordLinker = new RecordLinker(
             new Router([]),
             $memory,
-            $url,
+            new RouteHelper(fn () => $url),
             $searchOptionManager,
             $translate,
             $truncate,

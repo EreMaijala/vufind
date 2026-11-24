@@ -44,12 +44,12 @@ use VuFind\Application;
 use VuFind\Cache\Manager as CacheManager;
 use VuFind\Config\ConfigManagerInterface;
 use VuFind\Escaper\Escaper;
+use VuFind\Http\RouteHelper;
 use VuFind\Search\Memory;
 use VuFind\Search\Params\PluginManager;
 use VuFind\View\Helper\Root\CleanHtml;
 use VuFind\View\Helper\Root\CleanHtmlFactory;
 use VuFind\View\Helper\Root\SearchMemory;
-use VuFind\View\Helper\Root\Url;
 use VuFind\View\Renderer\LaminasTemplateRenderer;
 use VuFind\View\Renderer\TemplateRendererInterface;
 use VuFindTest\Container\MockContainer;
@@ -194,7 +194,7 @@ trait ViewTrait
      * Get mock SearchMemory view helper.
      *
      * @param ?Memory        $memory       Optional search memory
-     * @param ?Url           $url          URL helper
+     * @param ?RouteHelper   $routeHelper  Route helper
      * @param ?EscapeHtml    $escapeHtml   EscapeHtml helper
      * @param ?PluginManager $searchParams SearchParams helper
      *
@@ -202,7 +202,7 @@ trait ViewTrait
      */
     protected function getSearchMemoryViewHelper(
         ?Memory $memory = null,
-        ?Url $url = null,
+        ?RouteHelper $routeHelper = null,
         ?EscapeHtml $escapeHtml = null,
         ?PluginManager $searchParams = null
     ): SearchMemory {
@@ -210,10 +210,10 @@ trait ViewTrait
             $memory = $this->createMock(Memory::class);
             $memory->method('getLastSearchId')->willReturn(-123);
         }
-        $url ??= $this->createMock(Url::class);
+        $routeHelper ??= $this->createMock(RouteHelper::class);
         $escapeHtml ??= new EscapeHtml(new Escaper());
         $searchParams ??= $this->createMock(PluginManager::class);
-        return new SearchMemory($memory, $url, $escapeHtml, $searchParams);
+        return new SearchMemory($memory, $routeHelper, $escapeHtml, $searchParams);
     }
 
     /**

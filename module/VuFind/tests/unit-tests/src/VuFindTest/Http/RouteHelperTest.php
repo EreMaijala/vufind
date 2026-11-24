@@ -29,7 +29,6 @@
 
 namespace VuFindTest\Http;
 
-use Closure;
 use VuFind\Http\RouteHelper;
 use VuFind\View\Helper\Root\Url as UrlHelper;
 
@@ -61,9 +60,7 @@ class RouteHelperTest extends \PHPUnit\Framework\TestCase
             ->method('__invoke')
             ->with($routeName, $routeParams, ['query' => $queryParams, 'normalize_path' => false])
             ->willReturn($routeResult);
-        $routeHelper = new RouteHelper(
-            Closure::fromCallable(fn () => $urlHelper)
-        );
+        $routeHelper = new RouteHelper(fn () => $urlHelper);
 
         $url = $routeHelper->getUrlFromRoute($routeName, $routeParams, $queryParams);
         $this->assertSame($routeResult, $url);
