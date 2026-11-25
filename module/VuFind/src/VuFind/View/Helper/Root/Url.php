@@ -43,8 +43,6 @@ use function is_bool;
 /**
  * Url view helper.
  *
- * Partially adapted from Laminas View v2 Url helper.
- *
  * @category VuFind
  * @package  View_Helpers
  * @author   Chris Hallberg <challber@villanova.edu>
@@ -114,8 +112,7 @@ class Url
             $params = array_merge($routeMatchParams, $params);
         }
 
-        return $this->application->getBasePath()
-            . $this->routeHelper->getUrlFromRoute($name, $params, $options['query'] ?? []);
+        return $this->routeHelper->getUrlFromRoute($name, $params, $options['query'] ?? []);
     }
 
     /**

@@ -49,12 +49,14 @@ class RouteHelper
     /**
      * Constructor.
      *
-     * @param RouteStackInterface $router Router
+     * @param RequestHelper       $requestHelper Request helper
+     * @param RouteStackInterface $router        Router
      *
      * @return void
      */
     #[Autowire]
     public function __construct(
+        protected RequestHelper $requestHelper,
         protected RouteStackInterface $router,
     ) {
     }
@@ -80,6 +82,7 @@ class RouteHelper
             'normalize_path' => false,
             'name' => $name,
         ] + ($queryParams ? ['query' => $queryParams] : []);
-        return $this->router->assemble($routeParams, $routeOptions)->toString();
+        return $this->requestHelper->getBasePath()
+            . $this->router->assemble($routeParams, $routeOptions)->toString();
     }
 }

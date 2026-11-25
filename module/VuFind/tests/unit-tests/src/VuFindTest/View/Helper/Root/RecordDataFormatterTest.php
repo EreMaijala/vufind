@@ -42,6 +42,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Container\ContainerInterface;
 use VuFind\ActionHelper\LoginHelper;
 use VuFind\Escaper\Escaper;
+use VuFind\Http\RequestHelper;
 use VuFind\Http\RouteHelper;
 use VuFind\Http\ServerUrlHelper;
 use VuFind\RecordDataFormatter\Specs\DefaultRecord as DefaultRecordSpec;
@@ -167,7 +168,7 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
             $escapeOrCleanHtml,
             $truncate,
             $auth,
-            new RouteHelper($this->createMock(RouteStackInterface::class)),
+            new RouteHelper(new RequestHelper(), $this->createMock(RouteStackInterface::class)),
             $this->createMock(ServerUrlHelper::class),
             new GlobalsContainer(),
             $configEntity

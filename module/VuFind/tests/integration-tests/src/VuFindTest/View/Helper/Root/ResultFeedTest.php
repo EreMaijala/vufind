@@ -33,6 +33,7 @@ use Laminas\Router\AssembledUrl;
 use Laminas\Router\RouteStackInterface;
 use Laminas\View\Helper\EscapeHtml;
 use VuFind\Escaper\Escaper;
+use VuFind\Http\RequestHelper;
 use VuFind\Http\RouteHelper;
 use VuFind\Http\ServerUrlHelper;
 use VuFind\View\Helper\Root\ResultFeed;
@@ -93,7 +94,7 @@ class ResultFeedTest extends \PHPUnit\Framework\TestCase
             ->setConstructorArgs([
                 $router,
                 $memory,
-                new RouteHelper($router),
+                new RouteHelper(new RequestHelper(), $router),
                 $searchOptionsManager,
                 $translate,
                 $truncate,

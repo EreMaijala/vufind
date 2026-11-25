@@ -38,6 +38,7 @@ use VuFind\Cover\Loader;
 use VuFind\Db\Entity\UserEntityInterface;
 use VuFind\Db\Service\PluginManager;
 use VuFind\Db\Service\UserListServiceInterface;
+use VuFind\Http\RequestHelper;
 use VuFind\Http\RouteHelper;
 use VuFind\Http\ServerUrlHelper;
 use VuFind\RecordDriver\AbstractBase as RecordDriver;
@@ -779,7 +780,7 @@ class RecordTest extends \PHPUnit\Framework\TestCase
             $this->createMock(\VuFind\View\Helper\Root\EscapeOrCleanHtml::class),
             $this->createMock(\VuFind\View\Helper\Root\Truncate::class),
             $auth,
-            new RouteHelper($router),
+            new RouteHelper(new RequestHelper(), $router),
             $serverUrlHelper,
             new GlobalsContainer(),
             $config,

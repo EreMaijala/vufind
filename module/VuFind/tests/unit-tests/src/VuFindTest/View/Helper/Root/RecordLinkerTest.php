@@ -33,6 +33,7 @@ use Laminas\Router\RoutePluginManager;
 use Laminas\View\Helper\EscapeHtml;
 use Psr\Container\ContainerInterface;
 use VuFind\Escaper\Escaper;
+use VuFind\Http\RequestHelper;
 use VuFind\Http\RouteHelper;
 use VuFind\Record\Router;
 use VuFind\Search\Base\Results;
@@ -280,6 +281,6 @@ class RecordLinkerTest extends \PHPUnit\Framework\TestCase
         );
         $router->addRoute('record-description', $actionRoute);
 
-        return new RouteHelper($router);
+        return new RouteHelper(new RequestHelper(), $router);
     }
 }

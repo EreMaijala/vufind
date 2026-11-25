@@ -32,7 +32,6 @@
 namespace VuFind;
 
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Psr7\ServerRequest;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\Router\Http\HttpRouteMatch;
 use Laminas\View\Model\ModelInterface;
@@ -43,9 +42,9 @@ use Psr\Http\Message\ServerRequestInterface;
 use VuFind\Action\ActionDispatcher;
 use VuFind\EventManager\Event;
 use VuFind\EventManager\EventInterface;
+use VuFind\Http\RequestHelper;
 use VuFind\ServiceManager\Factory\Autowire;
 
-use function dirname;
 use function strlen;
 
 /**
@@ -77,24 +76,19 @@ class Application
     protected ?ResponseInterface $response = null;
 
     /**
-     * Base path of the request.
-     *
-     * @var ?string
-     */
-    protected ?string $basePath = null;
-
-    /**
      * Constructor.
      *
      * @param ContainerInterface    $container        Service container
      * @param EventManagerInterface $eventManager     Event manager
      * @param ActionDispatcher      $actionDispatcher Action dispatcher
+     * @param RequestHelper         $requestHelper    Request helper
      */
     #[Autowire]
     public function __construct(
         protected ContainerInterface $container,
         protected EventManagerInterface $eventManager,
         protected ActionDispatcher $actionDispatcher,
+        protected RequestHelper $requestHelper,
     ) {
     }
 
@@ -105,7 +99,7 @@ class Application
      */
     public function run(): void
     {
-        $this->request = $this->createServerRequest();
+        $this->request = $this->requestHelper->createServerRequest();
         $this->response = $this->createResponse();
 
         // Trigger bootstrap event:
@@ -119,7 +113,7 @@ class Application
         }
 
         // Try to find a route match for the request:
-        $basePath = $this->getBasePath();
+        $basePath = $this->requestHelper->getBasePath();
         $routeMatch = $this->container->get('HttpRouter')->match($this->request, strlen($basePath));
 
         // Trigger route event:
@@ -175,29 +169,6 @@ class Application
     public function getResponse(): ?ResponseInterface
     {
         return $this->response;
-    }
-
-    /**
-     * Get the base path of the request.
-     *
-     * @return string
-     */
-    public function getBasePath(): string
-    {
-        if (null === $this->basePath) {
-            $this->basePath = $this->detectBasePath($this->request);
-        }
-        return $this->basePath;
-    }
-
-    /**
-     * Create request from globals.
-     *
-     * @return ServerRequestInterface
-     */
-    protected function createServerRequest(): ServerRequestInterface
-    {
-        return ServerRequest::fromGlobals();
     }
 
     /**
@@ -296,133 +267,5 @@ class Application
         $event->stopPropagation(false);
         $this->eventManager->setEventPrototype($event);
         return $this->eventManager->triggerEventUntil($callback, $event);
-    }
-
-    /**
-     * Auto-detect the base path from the request environment.
-     *
-     * Uses a variety of criteria in order to detect the base URL of the request (i.e., anything additional to the
-     * document root).
-     *
-     * Adapted from Laminas Request class.
-     *
-     * @param ServerRequestInterface $request Request
-     *
-     * @return string
-     */
-    protected function detectBasePath(ServerRequestInterface $request): string
-    {
-        $serverParams = $request->getServerParams();
-        $filename       = $serverParams['SCRIPT_FILENAME'] ?? '';
-        $scriptName     = $serverParams['SCRIPT_NAME'] ?? null;
-        $phpSelf        = $serverParams['PHP_SELF'] ?? null;
-        $origScriptName = $serverParams['ORIG_SCRIPT_NAME'] ?? null;
-
-        if ($scriptName !== null && basename($scriptName) === $filename) {
-            $baseUrl = $scriptName;
-        } elseif ($phpSelf !== null && basename($phpSelf) === $filename) {
-            $baseUrl = $phpSelf;
-        } elseif ($origScriptName !== null && basename($origScriptName) === $filename) {
-            // 1and1 shared hosting compatibility.
-            $baseUrl = $origScriptName;
-        } else {
-            // Backtrack up the SCRIPT_FILENAME to find the portion matching PHP_SELF:
-            $baseUrl  = '/';
-            $basename = basename($filename);
-            if ($basename) {
-                $path     = $phpSelf ? trim($phpSelf, '/') : '';
-                $basePos  = strpos($path, $basename) ?: 0;
-                $baseUrl .= substr($path, 0, $basePos) . $basename;
-            }
-        }
-
-        // If the baseUrl is empty, then simply return an empty string:
-        if (!$baseUrl) {
-            return '';
-        }
-
-        // Does the base URL have anything in common with the request URI?
-        $requestUri = $this->detectRequestUri($request);
-
-        // Full base URL matches.
-        if (str_starts_with($requestUri, $baseUrl)) {
-            return $baseUrl;
-        }
-
-        // Directory portion of base path matches.
-        $baseDir = str_replace('\\', '/', dirname($baseUrl));
-        if (str_starts_with($requestUri, $baseDir)) {
-            return $baseDir;
-        }
-
-        $truncatedRequestUri = $requestUri;
-
-        if (false !== ($pos = strpos($requestUri, '?'))) {
-            $truncatedRequestUri = substr($requestUri, 0, $pos);
-        }
-
-        $basename = basename($baseUrl);
-
-        // No match whatsoever
-        if (empty($basename) || !str_contains($truncatedRequestUri, $basename)) {
-            return '';
-        }
-
-        // If using mod_rewrite or ISAPI_Rewrite strip the script filename out of the base path. $pos !== 0 makes sure
-        // it is not matching a value from PATH_INFO or QUERY_STRING.
-        if (
-            strlen($requestUri) >= strlen($baseUrl)
-            && (false !== ($pos = strpos($requestUri, $baseUrl)) && $pos !== 0)
-        ) {
-            $baseUrl = substr($requestUri, 0, $pos + strlen($baseUrl));
-        }
-
-        return $baseUrl;
-    }
-
-    /**
-     * Detect the base URI for the request.
-     *
-     * Looks at a variety of criteria in order to attempt to autodetect a base
-     * URI, including rewrite URIs, proxy URIs, etc.
-     *
-     * Adapted from Laminas Request class.
-     *
-     * @param ServerRequestInterface $request Request
-     *
-     * @return string
-     */
-    protected function detectRequestUri(ServerRequestInterface $request): string
-    {
-        $requestUri = null;
-        $serverParams = $request->getServerParams();
-
-        // IIS7 with URL Rewrite: make sure we get the unencoded url
-        // (double slash problem).
-        $iisUrlRewritten = $serverParams['IIS_WasUrlRewritten'] ?? null;
-        $unencodedUrl    = $serverParams['UNENCODED_URL'] ?? '';
-        if ('1' === $iisUrlRewritten && '' !== $unencodedUrl) {
-            return $unencodedUrl;
-        }
-
-        $requestUri = $serverParams['REQUEST_URI'] ?? null;
-
-        // HTTP proxy requests setup request URI with scheme and host [and port]
-        // + the URL path, only use URL path.
-        if ($requestUri !== null) {
-            return preg_replace('#^[^/:]+://[^/]+#', '', $requestUri);
-        }
-
-        // IIS 5.0, PHP as CGI.
-        $origPathInfo = $serverParams['ORIG_PATH_INFO'] ?? null;
-        if ($origPathInfo !== null) {
-            $queryString = $serverParams['QUERY_STRING'] ?? null;
-            if ($queryString !== '') {
-                $origPathInfo .= '?' . $queryString;
-            }
-            return $origPathInfo;
-        }
-
-        return '/';
     }
 }

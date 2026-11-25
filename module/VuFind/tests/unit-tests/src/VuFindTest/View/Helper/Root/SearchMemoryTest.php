@@ -34,6 +34,7 @@ use Laminas\Router\RouteStackInterface;
 use Laminas\View\Helper\EscapeHtml;
 use PHPUnit\Framework\MockObject\MockObject;
 use VuFind\Escaper\Escaper;
+use VuFind\Http\RequestHelper;
 use VuFind\Http\RouteHelper;
 use VuFind\Search\Memory;
 use VuFind\Search\Params\PluginManager;
@@ -129,7 +130,7 @@ class SearchMemoryTest extends \PHPUnit\Framework\TestCase
         $searchParams->method('get')->with('Solr')->willReturn($solrParams);
         return $this->getSearchMemoryViewHelper(
             $memory,
-            new RouteHelper($router),
+            new RouteHelper(new RequestHelper(), $router),
             $escapeHtml,
             $searchParams
         );

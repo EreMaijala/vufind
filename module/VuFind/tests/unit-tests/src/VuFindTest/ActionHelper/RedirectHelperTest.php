@@ -36,8 +36,8 @@ use Laminas\Router\AssembledUrl;
 use Laminas\Router\RouteStackInterface;
 use PHPUnit\Framework\TestCase;
 use VuFind\ActionHelper\RedirectHelper;
+use VuFind\Http\RequestHelper;
 use VuFind\Http\RouteHelper;
-use VuFind\View\Helper\Root\Url;
 
 /**
  * RedirectHelper test class.
@@ -136,6 +136,6 @@ class RedirectHelperTest extends TestCase
                     return new AssembledUrl('/some/route');
                 }
             );
-        return new RouteHelper($router);
+        return new RouteHelper(new RequestHelper(), $router);
     }
 }
