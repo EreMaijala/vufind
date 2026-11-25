@@ -31,10 +31,10 @@ namespace VuFind;
 
 use GuzzleHttp\Psr7\Message;
 use Laminas\EventManager\EventManagerInterface;
-use Laminas\Http\Header\Location;
 use Laminas\Http\Response;
 use Laminas\Router\Http\HttpRouteMatch;
 use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseInterface;
 use VuFind\Cookie\CookieManager;
 use VuFind\EventManager\Event;
 use VuFind\EventManager\EventInterface;
@@ -42,6 +42,7 @@ use VuFind\Http\ServerUrlHelper;
 use VuFind\I18n\Locale\LocaleSettings;
 use VuFind\RateLimiter\RateLimiterManager;
 use VuFind\View\GlobalsContainer;
+use VuFind\View\Renderer\TemplateRendererInterface;
 
 /**
  * VuFind Bootstrapper.
@@ -182,8 +183,8 @@ class Bootstrapper
             $globals['allLangs'] = $settings->getEnabledLocales();
             $globals['rtl'] = $settings->isRightToLeftLocale($language);
         };
-        $this->events->attach('dispatch', $callback, 15000);
-        $this->events->attach('dispatch.error', $callback, 15000);
+        $this->events->attach(Event::EVENT_DISPATCH, $callback, 15000);
+        $this->events->attach(Event::EVENT_DISPATCH_ERROR, $callback, 15000);
     }
 
     /**
@@ -215,8 +216,8 @@ class Bootstrapper
                 return $response;
             }
         };
-        $this->events->attach('dispatch.error', $callback, 9000);
-        $this->events->attach('dispatch', $callback, 9000);
+        $this->events->attach(Event::EVENT_DISPATCH_ERROR, $callback, 9000);
+        $this->events->attach(Event::EVENT_DISPATCH, $callback, 9000);
     }
 
     /**
@@ -233,9 +234,9 @@ class Bootstrapper
         $finishCallback = function (): void {
             $this->container->get(\VuFind\Auth\LoginTokenManager::class)->requestIsFinished();
         };
-        $this->events->attach('dispatch.error', $dispatchCallback, 8000);
-        $this->events->attach('dispatch', $dispatchCallback, 8000);
-        $this->events->attach('finish', $finishCallback, 8000);
+        $this->events->attach(Event::EVENT_DISPATCH_ERROR, $dispatchCallback, 8000);
+        $this->events->attach(Event::EVENT_DISPATCH, $dispatchCallback, 8000);
+        $this->events->attach(Event::EVENT_FINISH, $finishCallback, 8000);
     }
 
     /**
@@ -261,7 +262,7 @@ class Bootstrapper
                 $response->setStatusCode($exception->getHttpStatus());
             }
         };
-        $this->events->attach('dispatch.error', $callback);
+        $this->events->attach(Event::EVENT_DISPATCH_ERROR, $callback);
     }
 
     /**
@@ -303,25 +304,7 @@ class Bootstrapper
                 }
             }
         };
-        $this->events->attach('dispatch.error', $callback);
-        $this->events->attach('render.error', $callback);
-    }
-
-    /**
-     * Set up handling for rendering problems.
-     *
-     * @return void
-     */
-    protected function initRenderErrorEvent(): void
-    {
-        // When a render.error is triggered, as a high priority, set a flag in the
-        // globals that can be used to suppress actions in the layout templates that
-        // might trigger exceptions -- this will greatly increase the odds of showing
-        // a user-friendly message instead of a fatal error.
-        $callback = function (/*$event*/): void {
-            $this->container->get(GlobalsContainer::class)['renderingError'] = true;
-        };
-        $this->events->attach('render.error', $callback, 10000);
+        $this->events->attach(Event::EVENT_DISPATCH_ERROR, $callback);
     }
 
     /**
@@ -333,19 +316,25 @@ class Bootstrapper
     {
         // When a render is triggered, check the response status code and switch to a simple redirect template for
         // 302 redirects.
-        $callback = function ($event): void {
+        $callback = function ($event): ?ResponseInterface {
             $response = $event->getResponse();
-            if ($response instanceof Response && $response->getStatusCode() === 302) {
-                $viewModel = $this->container->get('ViewManager')->getViewModel();
-                if ($viewModel->getTemplate() === 'layout/layout') {
-                    $viewModel->setTemplate('layout/redirect');
-                    $location = $response->getHeaders()->get('Location');
-                    // Note: redirectUrl is used as a view variable, not a global!
-                    $viewModel->setVariable('redirectUrl', $location instanceof Location ? $location->getUri() : null);
+            if ($response instanceof ResponseInterface && $response->getStatusCode() === 302) {
+                $body = $response->getBody();
+                if ($body->getSize() === 0) {
+                    $redirectUrl = $response->getHeader('Location')[0] ?? null;
+                    $templateRenderer = $this->container->get(TemplateRendererInterface::class);
+                    $body->write(
+                        $templateRenderer->renderTemplateAsString(
+                            template: 'layout/redirect',
+                            params: compact('redirectUrl')
+                        )
+                    );
+                    return $response;
                 }
             }
+            return null;
         };
-        $this->events->attach('render', $callback, 10000);
+        $this->events->attach(Event::EVENT_FINISH, $callback, 10000);
     }
 
     /**
@@ -400,7 +389,7 @@ class Bootstrapper
                 return $event->getResponse();
             }
         };
-        $this->events->attach('dispatch', $callback, 11000);
+        $this->events->attach(Event::EVENT_DISPATCH, $callback, 11000);
     }
 
     /**
