@@ -32,7 +32,6 @@ namespace VuFind\Action;
 use GuzzleHttp\Psr7\Response;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\Http\Request;
-use Laminas\View\Model\ViewModel;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
@@ -110,8 +109,7 @@ class ActionDispatcher
 
         $request = $request
             ->withAttribute('action-id', $id)
-            ->withAttribute('route-helper', $this->routeHelper)
-            ->withAttribute('view-model', new ViewModel());
+            ->withAttribute('route-helper', $this->routeHelper);
         try {
             return $action($request, $response);
         } catch (Throwable $ex) {
