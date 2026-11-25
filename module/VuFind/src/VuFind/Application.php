@@ -31,7 +31,6 @@
 
 namespace VuFind;
 
-use GuzzleHttp\Psr7\Response;
 use Laminas\EventManager\EventManagerInterface;
 use Laminas\Router\Http\HttpRouteMatch;
 use Laminas\View\Model\ModelInterface;
@@ -43,6 +42,7 @@ use VuFind\Action\ActionDispatcher;
 use VuFind\EventManager\Event;
 use VuFind\EventManager\EventInterface;
 use VuFind\Http\RequestHelper;
+use VuFind\Http\ResponseHelper;
 use VuFind\ServiceManager\Factory\Autowire;
 
 use function strlen;
@@ -59,8 +59,6 @@ use function strlen;
  */
 class Application
 {
-    public const CHUNK_SIZE = 8192;
-
     /**
      * Request.
      *
@@ -82,6 +80,7 @@ class Application
      * @param EventManagerInterface $eventManager     Event manager
      * @param ActionDispatcher      $actionDispatcher Action dispatcher
      * @param RequestHelper         $requestHelper    Request helper
+     * @param ResponseHelper        $responseHelper   Response helper
      */
     #[Autowire]
     public function __construct(
@@ -89,6 +88,7 @@ class Application
         protected EventManagerInterface $eventManager,
         protected ActionDispatcher $actionDispatcher,
         protected RequestHelper $requestHelper,
+        protected ResponseHelper $responseHelper,
     ) {
     }
 
@@ -100,7 +100,7 @@ class Application
     public function run(): void
     {
         $this->request = $this->requestHelper->createServerRequest();
-        $this->response = $this->createResponse();
+        $this->response = $this->responseHelper->createResponse();
 
         // Trigger bootstrap event:
         $event = (new Event())
@@ -148,7 +148,7 @@ class Application
             $this->response = $result;
         }
 
-        $this->outputResponse($this->response);
+        $this->responseHelper->outputResponse($this->response);
     }
 
     /**
@@ -172,16 +172,6 @@ class Application
     }
 
     /**
-     * Create a default response.
-     *
-     * @return ResponseInterface
-     */
-    protected function createResponse(): ResponseInterface
-    {
-        return new Response();
-    }
-
-    /**
      * Create a view model.
      *
      * @return ModelInterface
@@ -189,63 +179,6 @@ class Application
     protected function createViewModel(): ModelInterface
     {
         return new ViewModel();
-    }
-
-    /**
-     * Output a response.
-     *
-     * @param ResponseInterface $response Response
-     *
-     * @return void
-     */
-    protected function outputResponse(ResponseInterface $response): void
-    {
-        $this->outputHeaders($response);
-        $this->outputBody($response);
-    }
-
-    /**
-     * Output response headers.
-     *
-     * @param ResponseInterface $response Response
-     *
-     * @return void
-     */
-    protected function outputHeaders(ResponseInterface $response): void
-    {
-        // Don't do anything if headers have already been sent:
-        if (headers_sent()) {
-            return;
-        }
-
-        $status = 'HTTP/' . $response->getProtocolVersion() . ' ' . $response->getStatusCode();
-        if ($reason = $response->getReasonPhrase()) {
-            $status .= " $reason";
-        }
-
-        header($status);
-
-        foreach ($response->getHeaders() as $header => $values) {
-            foreach ($values as $value) {
-                header("$header: $value");
-            }
-        }
-    }
-
-    /**
-     * Output response body.
-     *
-     * @param ResponseInterface $response Response
-     *
-     * @return void
-     */
-    protected function outputBody(ResponseInterface $response): void
-    {
-        $body = $response->getBody();
-        $body->rewind();
-        while (!$body->eof()) {
-            echo $body->read(self::CHUNK_SIZE);
-        }
     }
 
     /**
