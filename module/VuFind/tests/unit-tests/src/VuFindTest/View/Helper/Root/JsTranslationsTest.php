@@ -34,7 +34,6 @@ use VuFind\View\Helper\Root\JsTranslations;
 use VuFind\View\Helper\Root\TransEsc;
 use VuFind\View\Helper\Root\Translate;
 use VuFindTest\Feature\TranslatorTrait;
-use VuFindTest\Feature\ViewTrait;
 
 /**
  * JsTranslations view helper Test Class.
@@ -47,7 +46,6 @@ use VuFindTest\Feature\ViewTrait;
  */
 class JsTranslationsTest extends \PHPUnit\Framework\TestCase
 {
-    use ViewTrait;
     use TranslatorTrait;
 
     /**
@@ -57,8 +55,7 @@ class JsTranslationsTest extends \PHPUnit\Framework\TestCase
      */
     public function testHelper()
     {
-        $helperPluginManager = $this->getHelperPluginManager($this->getViewHelpers());
-        $translate = $helperPluginManager->get('translate');
+        $translate = $this->getTranslateHelper();
         $escapeHtml = new \Laminas\View\Helper\EscapeHtml(new Escaper());
         $transEsc = new TransEsc($translate, $escapeHtml);
         $helper = new JsTranslations($translate, $transEsc);
@@ -107,11 +104,11 @@ class JsTranslationsTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Get view helpers needed by test.
+     * Get translate view helper.
      *
-     * @return array
+     * @return Translate
      */
-    protected function getViewHelpers()
+    protected function getTranslateHelper(): Translate
     {
         $translator = $this->getMockTranslator(
             [
@@ -124,8 +121,6 @@ class JsTranslationsTest extends \PHPUnit\Framework\TestCase
         );
         $translate = new Translate();
         $translate->setTranslator($translator);
-        return [
-            'translate' => $translate,
-        ];
+        return $translate;
     }
 }

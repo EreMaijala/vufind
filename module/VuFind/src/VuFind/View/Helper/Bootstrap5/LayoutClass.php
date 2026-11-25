@@ -30,6 +30,8 @@
 
 namespace VuFind\View\Helper\Bootstrap5;
 
+use VuFind\View\GlobalsContainer;
+
 /**
  * Helper class for managing bootstrap theme's high-level (body vs. sidebar) page
  * layout.
@@ -45,14 +47,16 @@ class LayoutClass extends \VuFind\View\Helper\AbstractLayoutClass
     /**
      * Constructor.
      *
-     * @param bool $sidebarOnLeft Does the sidebar go on the left?
-     * @param bool $offcanvas     Is offcanvas menu active?
-     * @param bool $rtl           Are we in right-to-left mode?
+     * @param bool             $sidebarOnLeft    Does the sidebar go on the left?
+     * @param bool             $offcanvas        Is offcanvas menu active?
+     * @param bool             $rtl              Are we in right-to-left mode?
+     * @param GlobalsContainer $globalsContainer Global data container
      */
     public function __construct(
         bool $sidebarOnLeft,
         bool $offcanvas,
         bool $rtl,
+        protected GlobalsContainer $globalsContainer
     ) {
         parent::__construct($sidebarOnLeft, $offcanvas, $rtl);
     }
@@ -69,6 +73,10 @@ class LayoutClass extends \VuFind\View\Helper\AbstractLayoutClass
      */
     public function __invoke(string $class, bool $hasSidebar = true)
     {
+        $overriddenSidebarOnLeft = $this->globalsContainer['sidebarOnLeft'] ?? null;
+        if ($overriddenSidebarOnLeft !== null) {
+            $this->sidebarOnLeft = $overriddenSidebarOnLeft;
+        }
         switch ($class) {
             case 'mainbody':
                 if (!$hasSidebar) {

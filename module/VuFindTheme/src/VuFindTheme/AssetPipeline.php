@@ -69,13 +69,13 @@ class AssetPipeline implements LoggerAwareInterface
      * Constructor.
      *
      * @param ThemeInfo   $themeInfo      Theme information service
-     * @param Url         $urlHelper      URL view helper
+     * @param string      $baseUrlPath    Path part of the base URL
      * @param string|bool $pipelineConfig Config for current application environment
      * @param ?int        $maxImportSize  Maximum imported (inlined) file size
      */
     public function __construct(
         protected ThemeInfo $themeInfo,
-        protected Url $urlHelper,
+        protected string $baseUrlPath,
         protected string|bool $pipelineConfig,
         protected ?int $maxImportSize = null
     ) {
@@ -387,8 +387,7 @@ class AssetPipeline implements LoggerAwareInterface
                 $type . '/' . $path,
                 ThemeInfo::RETURN_ALL_DETAILS
             );
-            $url = ($this->urlHelper)('home') . 'themes/' . $details['theme']
-                . '/' . $type . '/' . $path;
+            $url = $this->baseUrlPath . 'themes/' . $details['theme'] . '/' . $type . '/' . $path;
             $url .= str_contains($url, '?') ? '&_=' : '?_=';
             $url .= filemtime($details['path']);
             return $url;
@@ -423,7 +422,7 @@ class AssetPipeline implements LoggerAwareInterface
             fclose($handle);
         }
 
-        return ($this->urlHelper)('home') . 'cache/' . $filename;
+        return $this->baseUrlPath . 'cache/' . $filename;
     }
 
     /**

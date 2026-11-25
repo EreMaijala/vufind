@@ -36,7 +36,6 @@ use VuFind\Cookie\CookieManager;
 use VuFind\Http\PhpEnvironment\Request;
 use VuFind\Http\ServerUrlHelper;
 use VuFind\View\Helper\Root\CookieConsent;
-use VuFind\View\Helper\Root\Url;
 use VuFind\View\Renderer\TemplateRendererInterface;
 use VuFindTest\Feature\FixtureTrait;
 
@@ -213,9 +212,6 @@ class CookieConsentTest extends \PHPUnit\Framework\TestCase
         bool $expectRender = true,
         string $userAgent = 'I could be a real user'
     ): CookieConsent {
-        $url = $this->createMock(Url::class);
-        $url->method('__invoke')->willReturn('http://localhost/first/vufind');
-
         $serverUrlHelper = new ServerUrlHelper(false);
         $serverUrlHelper->setHost('localhost');
 

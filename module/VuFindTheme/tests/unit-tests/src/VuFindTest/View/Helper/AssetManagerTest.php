@@ -32,12 +32,8 @@ namespace VuFindTest\View\Helper;
 use Laminas\View\Helper\Doctype;
 use Laminas\View\Helper\HeadStyle;
 use Laminas\View\Helper\InlineScript;
-use VuFind\Application;
 use VuFind\Escaper\Escaper;
-use VuFind\Http\RouteHelper;
 use VuFind\View\Helper\Root\HeadLink;
-use VuFind\View\Helper\Root\Url;
-use VuFindTest\Feature\ViewTrait;
 use VuFindTheme\AssetPipeline;
 use VuFindTheme\ThemeInfo;
 use VuFindTheme\View\Helper\AssetManager;
@@ -53,8 +49,6 @@ use VuFindTheme\View\Helper\AssetManager;
  */
 class AssetManagerTest extends \PHPUnit\Framework\TestCase
 {
-    use ViewTrait;
-
     /**
      * Data provider for testOutputInlineScriptLink().
      *
@@ -88,16 +82,7 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
     public function testOutputInlineScriptLink(array $attrs, string $expected): void
     {
         $script = 'foo.js';
-        $escaper = new Escaper();
-        $doctype = new Doctype();
-        $assetManager = new AssetManager(
-            $this->createMock(ThemeInfo::class),
-            $this->createMock(AssetPipeline::class),
-            new Url($this->createMock(Application::class), $this->createMock(RouteHelper::class)),
-            new HeadLink(new \Laminas\View\Helper\HeadLink($escaper, $doctype)),
-            new HeadStyle($escaper, $doctype),
-            new InlineScript($escaper, $doctype)
-        );
+        $assetManager = $this->getAssetManager();
         $this->assertSame($expected, $assetManager->outputInlineScriptLink($script, $attrs));
     }
 
@@ -146,16 +131,7 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
     public function testOutputInlineScriptString(array $attrs, string $expected): void
     {
         $script = 'foo';
-        $escaper = new Escaper();
-        $doctype = new Doctype();
-        $assetManager = new AssetManager(
-            $this->createMock(ThemeInfo::class),
-            $this->createMock(AssetPipeline::class),
-            new Url($this->createMock(Application::class), $this->createMock(RouteHelper::class)),
-            new HeadLink(new \Laminas\View\Helper\HeadLink($escaper, $doctype)),
-            new HeadStyle($escaper, $doctype),
-            new InlineScript($escaper, $doctype)
-        );
+        $assetManager = $this->getAssetManager();
         $this->assertSame($expected, $assetManager->outputInlineScriptString($script, $attrs));
     }
 
@@ -179,7 +155,7 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
             ->setConstructorArgs([
                 $themeInfo,
                 $pipeline,
-                new Url($this->createMock(Application::class), $this->createMock(RouteHelper::class)),
+                '/',
                 new HeadLink(new \Laminas\View\Helper\HeadLink($escaper, $doctype)),
                 new HeadStyle($escaper, $doctype),
                 new InlineScript($escaper, $doctype),
@@ -238,7 +214,7 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
             ->setConstructorArgs([
                 $themeInfo,
                 $pipeline,
-                new Url($this->createMock(Application::class), $this->createMock(RouteHelper::class)),
+                '/',
                 new HeadLink(new \Laminas\View\Helper\HeadLink($escaper, $doctype)),
                 new HeadStyle($escaper, $doctype),
                 new InlineScript($escaper, $doctype),
@@ -277,6 +253,53 @@ class AssetManagerTest extends \PHPUnit\Framework\TestCase
                 </style>
                 EOT,
             trim($manager->outputHeaderAssets())
+        );
+    }
+
+    /**
+     * Get HeadLink helper.
+     *
+     * @return HeadLink
+     */
+    protected function getHeadLink(): HeadLink
+    {
+        return new HeadLink(new \Laminas\View\Helper\HeadLink(new Escaper(), new Doctype()));
+    }
+
+    /**
+     * Get HeadStyle helper.
+     *
+     * @return HeadStyle
+     */
+    protected function getHeadStyle(): HeadStyle
+    {
+        return new HeadStyle(new Escaper(), new Doctype());
+    }
+
+    /**
+     * Get InlineScript helper.
+     *
+     * @return InlineScript
+     */
+    protected function getInlineScript(): InlineScript
+    {
+        return new InlineScript(new Escaper(), new Doctype());
+    }
+
+    /**
+     * Get AssetManager.
+     *
+     * @return AssetManager
+     */
+    protected function getAssetManager(): AssetManager
+    {
+        return new AssetManager(
+            $this->createMock(ThemeInfo::class),
+            $this->createMock(AssetPipeline::class),
+            '/',
+            $this->getHeadLink(),
+            $this->getHeadStyle(),
+            $this->getInlineScript()
         );
     }
 }

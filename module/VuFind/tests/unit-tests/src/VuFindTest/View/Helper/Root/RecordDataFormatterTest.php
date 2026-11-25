@@ -29,6 +29,7 @@
 
 namespace VuFindTest\View\Helper\Root;
 
+use Laminas\Router\RouteStackInterface;
 use Laminas\View\Helper\EscapeHtml;
 use Laminas\View\Helper\EscapeHtmlAttr;
 use Laminas\View\HelperPluginManager;
@@ -51,7 +52,6 @@ use VuFind\View\GlobalsContainer;
 use VuFind\View\Helper\Root\RecordDataFormatter;
 use VuFind\View\Helper\Root\Render;
 use VuFind\View\Helper\Root\SchemaOrg;
-use VuFind\View\Helper\Root\ServerUrl;
 use VuFind\View\Helper\Root\Url;
 
 use function count;
@@ -108,7 +108,6 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
         Url $url
     ): array {
         $escapeHtml = new EscapeHtml(new Escaper());
-        $serverUrl = new ServerUrl($this->createMock(ServerUrlHelper::class));
 
         $configManager = $container->get(\VuFind\Config\ConfigManagerInterface::class);
         $configHelper = new \VuFind\View\Helper\Root\Config($configManager, $this->createMock(LoginHelper::class));
@@ -168,8 +167,8 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
             $escapeOrCleanHtml,
             $truncate,
             $auth,
-            $url,
-            $serverUrl,
+            new RouteHelper($this->createMock(RouteStackInterface::class)),
+            $this->createMock(ServerUrlHelper::class),
             new GlobalsContainer(),
             $configEntity
         );
@@ -189,7 +188,7 @@ class RecordDataFormatterTest extends \PHPUnit\Framework\TestCase
             'context' => $context,
             'config' => $configHelper,
             'escapeHtmlAttr' => $escapeHtmlAttr,
-            'identifierLinker' => new \VuFind\View\Helper\Root\IdentifierLinker($context, $templateRenderer),
+            'identifierLinker' => new \VuFind\View\Helper\Root\IdentifierLinker($templateRenderer),
             'htmlSafeJsonEncode' => new \VuFind\View\Helper\Root\HtmlSafeJsonEncode($helperPluginManager),
             'icon' => new \VuFind\View\Helper\Root\Icon(
                 [],

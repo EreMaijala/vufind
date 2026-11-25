@@ -29,9 +29,12 @@
 
 namespace VuFindTest\Integration\View\Helper\Root;
 
+use Laminas\Router\AssembledUrl;
+use Laminas\Router\RouteStackInterface;
 use Laminas\View\Helper\EscapeHtml;
 use VuFind\Escaper\Escaper;
 use VuFind\Http\RouteHelper;
+use VuFind\Http\ServerUrlHelper;
 use VuFind\View\Helper\Root\ResultFeed;
 
 /**
@@ -79,8 +82,8 @@ class ResultFeedTest extends \PHPUnit\Framework\TestCase
         $record->method('getLinkDetails')->willReturn([['url' => 'http://driver-url']]);
         $router = new \VuFind\Record\Router([]);
         $memory = $this->createMock(\VuFind\Search\Memory::class);
-        $url = $this->createMock(\VuFind\View\Helper\Root\Url::class);
-        $url->method('__invoke')->willReturn('test/url');
+        $router = $this->createMock(RouteStackInterface::class);
+        $router->method('assemble')->willReturnCallback(fn () => new AssembledUrl('test/url'));
         $searchOptionsManager = $this->createMock(\VuFind\Search\Options\PluginManager::class);
         $translate = $this->createMock(\VuFind\View\Helper\Root\Translate::class);
         $truncate = $this->createMock(\VuFind\View\Helper\Root\Truncate::class);
@@ -90,7 +93,7 @@ class ResultFeedTest extends \PHPUnit\Framework\TestCase
             ->setConstructorArgs([
                 $router,
                 $memory,
-                new RouteHelper(fn () => $url),
+                new RouteHelper($router),
                 $searchOptionsManager,
                 $translate,
                 $truncate,
@@ -99,10 +102,7 @@ class ResultFeedTest extends \PHPUnit\Framework\TestCase
             ->getMock();
         $recordLinker->method('getUrl')->willReturn('test/url');
 
-        $serverUrl = $this->createMock(\VuFind\View\Helper\Root\ServerUrl::class);
-        $serverUrl->method('__invoke')->willReturn('http://server/url');
-
-        return compact('currentPath', 'record', 'recordLinker') + ['serverurl' => $serverUrl];
+        return compact('currentPath', 'record', 'recordLinker');
     }
 
     /**
@@ -143,8 +143,11 @@ class ResultFeedTest extends \PHPUnit\Framework\TestCase
         $results = $this->getResultsObject();
         $results->getParams()->initFromRequest($request);
         $plugins = $this->getPlugins();
+        $serverUrlHelper = $this->createMock(ServerUrlHelper::class);
+        $serverUrlHelper->method('getUrlForPath')->willReturn('http://server/url');
+
         $helper = new ResultFeed(
-            $plugins['serverurl'],
+            $serverUrlHelper,
             $plugins['currentPath'],
             $plugins['recordLinker'],
             $plugins['record'],

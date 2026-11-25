@@ -114,9 +114,8 @@ class NotifyCommand extends Command implements TranslatorAwareInterface
      * @param LocaleSettings            $localeSettings       Locale settings object
      * @param DynamicFileListCollector  $translationCollector Translation collector
      * @param RouteHelper               $routeHelper          Route helper
-     * @param string|null               $name                 The name of the command; passing
-     *                                                        null means it must be set in
-     *                                                        configure()
+     * @param string|null               $name                 The name of the command; passing null means it must be set
+     * in configure()
      */
     public function __construct(
         protected SecretCalculator $secretCalculator,

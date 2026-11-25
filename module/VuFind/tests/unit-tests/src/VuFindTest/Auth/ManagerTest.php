@@ -29,6 +29,7 @@
 
 namespace VuFindTest\Auth;
 
+use Closure;
 use Laminas\Http\PhpEnvironment\Request;
 use Laminas\Session\ManagerInterface;
 use Laminas\Session\SessionManager;
@@ -39,8 +40,6 @@ use VuFind\Auth\PluginManager;
 use VuFind\Auth\UserSessionPersistenceInterface;
 use VuFind\Db\Entity\UserEntityInterface;
 use VuFind\Db\Service\UserServiceInterface;
-use VuFind\Http\RouteHelper;
-use VuFind\Http\ServerUrlHelper;
 
 use function get_class;
 
@@ -584,8 +583,7 @@ class ManagerTest extends \PHPUnit\Framework\TestCase
             $csrf,
             $loginTokenManager,
             $ils,
-            $this->createMock(ServerUrlHelper::class),
-            $this->createMock(RouteHelper::class),
+            Closure::fromCallable(fn () => 'http://localhost/'),
             $this->createMock(\VuFind\Db\Service\AuditEventServiceInterface::class)
         );
     }

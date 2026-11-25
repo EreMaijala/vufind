@@ -39,6 +39,8 @@ use VuFind\Db\Service\DbServiceAwareInterface;
 use VuFind\Db\Service\DbServiceAwareTrait;
 use VuFind\Db\Service\UserListServiceInterface;
 use VuFind\Db\Service\UserResourceServiceInterface;
+use VuFind\Http\RouteHelper;
+use VuFind\Http\ServerUrlHelper;
 use VuFind\Search\Memory;
 use VuFind\Search\UrlQueryHelper;
 use VuFind\ServiceManager\Factory\Autowire;
@@ -89,8 +91,8 @@ class Record implements DbServiceAwareInterface
      * @param EscapeOrCleanHtml         $escapeOrCleanHtml EscapeOrCleanHtml helper
      * @param Truncate                  $truncate          Truncate helper
      * @param Auth                      $auth              Auth helper
-     * @param Url                       $url               Url helper
-     * @param ServerUrl                 $serverUrl         ServerUrl helper
+     * @param RouteHelper               $routeHelper       RouteHelper
+     * @param ServerUrlHelper           $serverUrlHelper   Server URL helper
      * @param GlobalsContainer          $globalsContainer  Global data container
      * @param ?array                    $config            Configuration from config.ini
      */
@@ -116,10 +118,8 @@ class Record implements DbServiceAwareInterface
         protected Truncate $truncate,
         #[Autowire(container: 'ViewHelperManager')]
         protected Auth $auth,
-        #[Autowire(container: 'ViewHelperManager')]
-        protected Url $url,
-        #[Autowire(container: 'ViewHelperManager')]
-        protected ServerUrl $serverUrl,
+        protected RouteHelper $routeHelper,
+        protected ServerUrlHelper $serverUrlHelper,
         protected GlobalsContainer $globalsContainer,
         #[Autowire(config: 'config', configType: 'array')]
         protected ?array $config = null
@@ -734,7 +734,7 @@ class Record implements DbServiceAwareInterface
             'text' => $text, 'level' => $level, 'size' => $size, 'margin' => $margin,
         ];
 
-        return ($this->url)('qrcode-show') . '?' . http_build_query($qrcode);
+        return $this->routeHelper->getUrlFromRoute('qrcode-show', queryParams: $qrcode);
     }
 
     /**
@@ -798,8 +798,8 @@ class Record implements DbServiceAwareInterface
             if (!isset($link['url'])) {
                 $routeParams = $link['routeParams'] ?? [];
 
-                $link['url'] = ($this->serverUrl)(
-                    ($this->url)($link['route'], $routeParams)
+                $link['url'] = $this->serverUrlHelper->getUrlForPath(
+                    $this->routeHelper->getUrlFromRoute($link['route'], $routeParams)
                 );
                 if (isset($link['queryString'])) {
                     $link['url'] .= $link['queryString'];

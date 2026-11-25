@@ -109,7 +109,7 @@ class SearchMemoryTest extends \PHPUnit\Framework\TestCase
      * @param Params $solrParams Configured Solr Params object
      * @param Memory $memory     Memory helper
      *
-     * @return PhpRenderer
+     * @return SearchMemory
      */
     protected function getConfiguredHelper(Params $solrParams, Memory $memory): SearchMemory
     {

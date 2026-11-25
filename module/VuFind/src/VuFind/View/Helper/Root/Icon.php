@@ -193,7 +193,7 @@ class Icon
         $cacheKey = $this->cacheKey($name, $attrs);
         $cached = $this->cache->getItem($cacheKey);
 
-        if ($cached == null) {
+        if ($cached === null) {
             [$icon, $set, $template, $class] = $this->mapIcon($name);
             $attrs['class'] = trim(($attrs['class'] ?? '') . ' ' . $class);
 

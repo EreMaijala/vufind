@@ -40,6 +40,7 @@ use Laminas\View\View;
 use Laminas\View\ViewInterface;
 use Psr\Container\ContainerInterface;
 use VuFind\Application;
+use VuFind\Application\UriRegistry;
 use VuFind\Cache\Manager as CacheManager;
 use VuFind\Config\ConfigManagerInterface;
 use VuFind\Escaper\Escaper;
@@ -96,6 +97,9 @@ trait ViewTrait
             $helperPluginManager->setService($key, $value);
         }
         $container->set(HelperPluginManagerInterface::class, $helperPluginManager);
+        $uriRegistry = $this->createMock(UriRegistry::class);
+        $uriRegistry->method('get')->with('BaseUrlPath')->willReturn('/');
+        $container->set(UriRegistry::class, $uriRegistry);
         $factory = new AssetManagerFactory();
         $assetManager = $factory($container, AssetManager::class);
 
@@ -151,8 +155,6 @@ trait ViewTrait
 
     /**
      * Get a working template renderer.
-     *
-     * Note: AutowireTrait required!
      *
      * @param ?HelperPluginManager $helperPluginManager Configured helper plugin manager
      * @param string               $theme               Theme directory to load from

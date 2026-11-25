@@ -78,7 +78,7 @@ class Context
     /**
      * Get template variables.
      *
-     * @param array $extra Extra variable
+     * @param array $extra Extra variables
      *
      * @return array
      */

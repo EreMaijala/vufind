@@ -30,7 +30,6 @@
 namespace VuFind\View\Helper;
 
 use Laminas\View\Helper\EscapeHtml;
-use Laminas\View\HelperPluginManagerInterface;
 use VuFind\Search\Base\Results;
 use VuFind\ServiceManager\Factory\Autowire;
 use VuFind\View\Helper\Root\TransEsc;
@@ -53,9 +52,9 @@ abstract class AbstractSearch
      * @param TransEsc   $transEsc   TransEsc helper
      */
     public function __construct(
-        #[Autowire(container: HelperPluginManagerInterface::class)]
+        #[Autowire(container: 'ViewHelperManager')]
         protected EscapeHtml $escapeHtml,
-        #[Autowire(container: HelperPluginManagerInterface::class)]
+        #[Autowire(container: 'ViewHelperManager')]
         protected TransEsc $transEsc,
     ) {
     }
