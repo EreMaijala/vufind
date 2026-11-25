@@ -369,25 +369,24 @@ class Bootstrapper
         if (PHP_SAPI === 'cli') {
             return;
         }
-        $callback = function ($event) {
+        $callback = function ($event): ?ResponseInterface {
             // Create rate limiter manager here so that we don't e.g. initialize the session too early:
             $rateLimiterManager = $this->container->get(RateLimiterManager::class);
             if (!$rateLimiterManager->isEnabled()) {
-                return;
+                return null;
             }
             $result = $rateLimiterManager->check($event);
             if (!$result['allow']) {
                 if ($result['presentTurnstileChallenge'] ?? false) {
-                    $this->presentTurnstileChallenge($rateLimiterManager, $event);
+                    return $this->presentTurnstileChallenge($rateLimiterManager, $event);
                 } else {
                     $response = $event->getResponse();
                     $response = $response->withStatus(429);
                     $response->getBody()->write($result['message']);
-                    $event->setResponse($response);
+                    return $response;
                 }
-                $event->stopPropagation(true);
-                return $event->getResponse();
             }
+            return null;
         };
         $this->events->attach(Event::EVENT_DISPATCH, $callback, 11000);
     }
@@ -398,12 +397,12 @@ class Bootstrapper
      * @param RateLimiterManager $rateLimiterManager The RateLimiterManager
      * @param EventInterface     $event              The current event
      *
-     * @return void
+     * @return ResponseInterface
      */
     protected function presentTurnstileChallenge(
         RateLimiterManager $rateLimiterManager,
         EventInterface $event
-    ): void {
+    ): ResponseInterface {
         // Although the challenge could be displayed at the current URL, redirecting to a simple URL (combined with a
         // policy that blocks the referrer URL) may hide search or result data from being accessible to Turnstile.
         $response = $event->getResponse();
@@ -419,6 +418,6 @@ class Bootstrapper
             'Location',
             $serverUrlHelper->getBaseUrl() . '/Turnstile/Challenge?context=' . $context
         );
-        $event->setResponse($response);
+        return $response;
     }
 }
