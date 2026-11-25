@@ -81,7 +81,7 @@ class ResultFeedTest extends \PHPUnit\Framework\TestCase
         $record = $this->createMock(\VuFind\View\Helper\Root\Record::class);
         $record->method('__invoke')->willReturn($record);
         $record->method('getLinkDetails')->willReturn([['url' => 'http://driver-url']]);
-        $router = new \VuFind\Record\Router([]);
+        $recordRouter = new \VuFind\Record\Router([]);
         $memory = $this->createMock(\VuFind\Search\Memory::class);
         $router = $this->createMock(RouteStackInterface::class);
         $router->method('assemble')->willReturnCallback(fn () => new AssembledUrl('test/url'));
@@ -92,7 +92,7 @@ class ResultFeedTest extends \PHPUnit\Framework\TestCase
 
         $recordLinker = $this->getMockBuilder(\VuFind\View\Helper\Root\RecordLinker::class)
             ->setConstructorArgs([
-                $router,
+                $recordRouter,
                 $memory,
                 new RouteHelper(new RequestHelper(), $router),
                 $searchOptionsManager,
